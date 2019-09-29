@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <lua.h>
 #include <lauxlib.h>
 #include <lualib.h>
@@ -69,7 +70,7 @@ static int _G_gl_shader_source(lua_State *L)
 {
     luagl_shader_t *luagl_shader;
     const char *source;
-    unsigned int lensource;
+    size_t lensource;
     int source_length;
 
     // Arguments.

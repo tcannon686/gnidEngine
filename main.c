@@ -19,6 +19,8 @@
 #include "luapng.h"
 
 static GLFWwindow *window;
+static int window_width;
+static int window_height;
 static int lua_reg_callbacks = 0;
 static lua_State *L;
 
@@ -82,26 +84,22 @@ static int LuaWindowNewIndex(lua_State *L)
 		const char *str = lua_tostring(L, 2);
 		if(strcmp(str, "width") == 0)
 		{
-            int width, height;
-            width = (int) lua_tointeger(L, 3);
-			glfwGetWindowSize(window, NULL, &height);
+            window_width = (int) lua_tointeger(L, 3);
 			glfwSetWindowSize(
 				window,
-				width,
-				height);
-            glViewport(0, 0, width, height);
+				window_width,
+				window_height);
+            glViewport(0, 0, window_width, window_height);
 			return 0;
 		}
 		else if(strcmp(str, "height") == 0)
 		{
-			int width, height;
-			glfwGetWindowSize(window, &width, NULL);
-            height = lua_tointeger(L, 3);
+            window_height = lua_tointeger(L, 3);
 			glfwSetWindowSize(
 				window,
-				width,
-				height);
-            glViewport(0, 0, width, height);
+			    window_width,
+				window_height);
+            glViewport(0, 0, window_width, window_height);
 			return 0;
 		}
 		else if(strcmp(str, "callbacks") == 0)
@@ -206,8 +204,10 @@ int main(int argc, char **argv)
 	
 	glfwDefaultWindowHints();
 	glfwWindowHint(GLFW_RESIZABLE, 0);
-	window = glfwCreateWindow(640, 480, "Game", NULL, NULL);
-	if(!window)
+    window_width = 640;
+    window_height = 480;
+    window = glfwCreateWindow(window_width, window_height, "Game", NULL, NULL);
+    if(!window)
 	{
 		glfwTerminate();
 		return -1;
@@ -283,11 +283,11 @@ int main(int argc, char **argv)
 
         while((error = glGetError()) != GL_NO_ERROR)
         {
-            fprintf(stderr, "error: OpenGL error %x.", error);
+            fprintf(stderr, "error: OpenGL error %x.\n", error);
         }
 	}
     
-    printf("info: Done.");
+    printf("info: Done.\n");
 	
 	glfwTerminate();
 }

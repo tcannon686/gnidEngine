@@ -152,9 +152,29 @@ function ShaderProgram.new(self, attributes)
             gl.shader.use(self.__program)
         end
         for name, attrib in pairs(self.__vertexAttributes) do
+            if attrib.location < 0 then
+                error("invalid vertex attrib " .. name .. ".")
+            end
             gl.vertexAttrib.enable(attrib.location)
         end
     end
+
+    ret.isAttrib = function(self, key)
+        if self.__vertexAttributes[key] then
+            return true
+        else
+            return false
+        end
+    end
+
+    ret.isUniform = function(self, key)
+        if self.__uniforms[key] then
+            return true
+        else
+            return false
+        end
+    end
+
     setmetatable(ret, self.__mt)
     return ret
 end

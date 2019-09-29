@@ -6,7 +6,6 @@ shaders = {}
 shaders.flat = ShaderProgram:new {
     vertexAttributes = {
         "vertex",
-        "normal"
     },
 
     uniforms = {
@@ -170,7 +169,7 @@ void main()
     vec3 color = diffuseColor.xyz;
     float alpha = diffuseColor.w;
     
-    if(enableDiffuseTexture)
+    if(enableDiffuseTexture == 1)
     {
         vec4 sample = texture(diffuseTexture, fragTexCo.xy);
         color = sample.xyz;

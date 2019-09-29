@@ -28,7 +28,7 @@ if not r1 then
     window.close()
 end
 local testMesh = SkinnedMesh:new(r1, r2)
---[[local testObj = Mesh:new {
+local testObj = Mesh:new {
     pointCloud = PointCloud:new {
         position = VertexArray:new {
             Vector(0, 0, 0),
@@ -47,7 +47,7 @@ local testMesh = SkinnedMesh:new(r1, r2)
             indexArray = IndexArray:new { 1, 2, 3 }
         }
     }
-}]]
+}
 
 walkPlayer = ActionPlayer:new {
     action = r3.Walk,
@@ -209,7 +209,7 @@ function render()
                 * Matrix.newScale(0.05 * Vector.one)
                 * Matrix.newTranslate(-0.5 * Vector.one)
                 
-            cubeMesh.pointCloud:bind(shaders.flat)
+            cubeMesh.pointCloudV:bind(shaders.flat)
             cubeMesh.indexArray:render()
         end
         
@@ -224,7 +224,7 @@ function render()
                     - Vector(0.005, 0.005, 0.005))
                 * Matrix.newScale(player.selection.size
                     + Vector(0.01, 0.01, 0.01))
-            cubeMesh.pointCloud:bind(shaders.flat)
+            cubeMesh.pointCloudV:bind(shaders.flat)
             cubeMesh.indexArray:render()
         end
     end
@@ -323,7 +323,7 @@ function drawAxis(origin, axis, color)
         * Matrix.newTranslate(Vector(-0.0125, -0.0125, -0.0125))
         * Matrix.newScale(axis + Vector(0.025, 0.025, 0.025))
     shaders.flat.color = color
-    cubeMesh.pointCloud:bind(shaders.flat)
+    cubeMesh.pointCloudV:bind(shaders.flat)
     cubeMesh.indexArray:render()
 end
 
@@ -338,7 +338,7 @@ function drawAxes(origin)
         * Matrix.newScale(Vector(0.05, 0.05, 0.05))
         * Matrix.newTranslate(Vector(-0.5, -0.5, -0.5))
     shaders.flat.color = Vector(1, 1, 0)
-    cubeMesh.pointCloud:bind(shaders.flat)
+    cubeMesh.pointCloudV:bind(shaders.flat)
     cubeMesh.indexArray:render()
 end
 

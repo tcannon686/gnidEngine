@@ -1,0 +1,5 @@
+game
+game.exe
+*~
+*.o
+.*.swp

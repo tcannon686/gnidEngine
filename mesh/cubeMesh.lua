@@ -81,9 +81,14 @@ cubeMesh.normals = cubeNormals
 cubeMesh.indices = cubeIndices
 cubeMesh.indexArray = IndexArray:new(cubeIndices)
 
-cubeMesh.pointCloud = PointCloud:new {
+-- Point cloud with normals.
+cubeMesh.pointCloudVN = PointCloud:new {
     vertex = VertexArray:new(cubeVertices),
     normal = VertexArray:new(cubeNormals),
+}
+-- Point cloud without normals.
+cubeMesh.pointCloudV = PointCloud:new {
+    vertex = VertexArray:new(cubeVertices),
 }
 
 return cubeMesh
