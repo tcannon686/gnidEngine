@@ -29,10 +29,16 @@ function SampledAnimationCurve.new(self, attributes)
         if index < 1 then
             index = 1 end
         if self.lerp then
+            local t = (time - (index - 1) / self.sampleRate) * self.sampleRate
+            if t < 0 then
+                t = 0
+            elseif t > 1 then
+                t = 1
+            end
             return math3d.lerp(
                 self.samples[index],
                 self.samples[index % self.sampleCount + 1],
-                (time - (index - 1) / self.sampleRate) * self.sampleRate)
+                t)
         else
             return self.samples[index]
         end

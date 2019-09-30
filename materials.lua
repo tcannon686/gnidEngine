@@ -45,6 +45,12 @@ local materials = {
             diffuseTexture = textures.concrete1,
             enableDiffuseTexture = true
         }),
+    metal1 = Material:new(
+        shaders.default,
+        {
+            diffuseColor = Vector(0.5, 0.5, 0.5, 1.0),
+            enableDiffuseTexture = false
+        }),
     road1 = Material:new(
         shaders.default,
         {
@@ -73,6 +79,12 @@ local materials = {
         shaders.default,
         {
             diffuseTexture = textures.wood2,
+            enableDiffuseTexture = true
+        }),
+    wood3 = Material:new(
+        shaders.default,
+        {
+            diffuseTexture = textures.wood3,
             enableDiffuseTexture = true
         }),
 }

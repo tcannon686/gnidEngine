@@ -2,7 +2,6 @@
 local Mesh = require("wrap/Mesh")
 local VertexArray = require("wrap/VertexArray")
 local IndexArray = require("wrap/IndexArray")
-local cubeMesh = require("mesh/cubeMesh")
 
 local Octree = {}
 Octree.__mt = {}

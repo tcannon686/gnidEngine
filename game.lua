@@ -19,40 +19,6 @@ local cubeMesh = require("mesh/cubeMesh")
 local shaders = require("shaders")
 
 local materials = require("materials")
-local obj = require("obj")
-local tmd = require("tmd")
-
-local r1, r2, r3 = tmd.loadTmd("mesh/tmd/test.tmd")
-if not r1 then
-    print("error: tmd: " .. r2)
-    window.close()
-end
-local testMesh = SkinnedMesh:new(r1, r2)
-local testObj = Mesh:new {
-    pointCloud = PointCloud:new {
-        position = VertexArray:new {
-            Vector(0, 0, 0),
-            Vector(1, 0, 0),
-            Vector(1, 1, 0)
-        },
-        normal = VertexArray:new {
-            Vector(0, 0, -1),
-            Vector(0, 0, -1),
-            Vector(0, 0, -1)
-        },
-    },
-    bindings = {
-        {
-            material = materials.default,
-            indexArray = IndexArray:new { 1, 2, 3 }
-        }
-    }
-}
-
-walkPlayer = ActionPlayer:new {
-    action = r3.Walk,
-    target = testMesh.skeleton,
-}
 
 function saveMap(name)
     local filename
@@ -184,8 +150,6 @@ octree:update()
 
 window.cursorMode = cursorMode.DISABLED
 
-
-
 function getLookMatrix(lookX, lookY)
     return Matrix.newRotate(lookY, Vector(1, 0, 0))
         * Matrix.newRotate(lookX, Vector(0, 1, 0))
@@ -197,7 +161,6 @@ function render()
     shaders.default.transform = player.viewMatrix
     octree:render()
     shaders.default.transform = player.viewMatrix
-    testMesh:render()
 
     if player.mode == "edit" then
         -- Draw aim.
@@ -231,7 +194,6 @@ function render()
 end
 
 function update(deltaT)
-    walkPlayer:tick(deltaT)
     direction = Vector()
 
     if not keysDown[keys.KEY_LEFT_ALT] then

@@ -9,5 +9,6 @@ local textures = {
     snow1 = Texture2D:loadPng("textures/Snow1.png"),
     wood1 = Texture2D:loadPng("textures/Wood1.png"),
     wood2 = Texture2D:loadPng("textures/Wood2.png"),
+    wood3 = Texture2D:loadPng("textures/Wood3.png"),
 }
 return textures

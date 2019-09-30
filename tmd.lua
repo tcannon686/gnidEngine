@@ -225,7 +225,7 @@ function parseRecord(state)
     end
 end
 
--- Returns Mesh, Skeleton if successful, otherwise nil, string if failed.
+-- Returns a table of mesh, skeleton, actions, or nil, error.
 function tmd.parse(str)
     local state = {
         vertexAttribs = {},
@@ -293,13 +293,17 @@ function tmd.parse(str)
     end
 
     -- Create the mesh and skeleton from the data.
-    return Mesh:new {
-        pointCloud = PointCloud:new(state.vertexAttribs),
-        bindings = state.bindings
-    }, skeleton, actions
+    return {
+        mesh = Mesh:new {
+            pointCloud = PointCloud:new(state.vertexAttribs),
+            bindings = state.bindings
+        },
+        skeleton = skeleton,
+        actions = actions
+    }
 end
 
--- Returns Mesh, Skeleton if successful, otherwise nil, string if failed.
+-- Returns a table of mesh, skeleton, actions, or nil, error.
 function tmd.loadTmd(path)
     local f = io.open(path, "rb")
 

@@ -1,9 +1,10 @@
 local SkinnedMesh = {}
 
-SkinnedMesh.new = function(self, mesh, skeleton)
+SkinnedMesh.new = function(self, mesh, skeleton, actions)
     local ret = {
         mesh = mesh,
-        skeleton = skeleton
+        skeleton = skeleton,
+        actions = actions
     }
 
     ret.render = function(self)
@@ -23,6 +24,7 @@ SkinnedMesh.new = function(self, mesh, skeleton)
             mesh:render()
         end
     end
+
     return ret
 end
 return SkinnedMesh

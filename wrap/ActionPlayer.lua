@@ -17,9 +17,15 @@ function ActionPlayer.new(self, attributes)
         time = 0
     }
 
+    if attributes.loop then
+        ret.loop = true
+    else
+        ret.loop = false
+    end
+
     ret.tick = function(self, deltaT)
         self.time = self.time + deltaT
-        if self.action.loopEnd then
+        if self.action.loopEnd and self.loop then
             local loopStart = self.action.loopStart
             if not loopStart then
                 loopStart = 0 end
