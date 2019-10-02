@@ -7,7 +7,7 @@ SkinnedMesh.new = function(self, mesh, skeleton, actions)
         actions = actions
     }
 
-    ret.render = function(self)
+    ret.render = function(self, scene)
         if self.skeleton then
             for i, binding in ipairs(self.mesh.bindings) do
                 self.skeleton:bind(
@@ -16,7 +16,7 @@ SkinnedMesh.new = function(self, mesh, skeleton, actions)
                     "boneHead",
                     "boneMatrix")
             end
-            mesh:render()
+            mesh:render(scene)
             for i, binding in ipairs(mesh.bindings) do
                 self.skeleton:unbind(binding.material.shader, "boneCount")
             end

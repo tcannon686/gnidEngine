@@ -34,24 +34,30 @@ void CreateTriangle(
     triangle->b = b;
     triangle->c = c;
     
+    /* Calculate edge directions. */
     VectorMinusVectorP(&triangle->ba, &b, &a);
     VectorMinusVectorP(&triangle->cb, &c, &b);
     VectorMinusVectorP(&triangle->ac, &a, &c);
 
+    /* Calculate edge lengths. */
     triangle->len_ba = VectorMagnitudeP(&triangle->ba);
     triangle->len_cb = VectorMagnitudeP(&triangle->cb);
     triangle->len_ac = VectorMagnitudeP(&triangle->ac);
 
+    /* Calculate triangle origin. */
     VectorPlusVectorP(&triangle->origin, &a, &b);
     VectorPlusVectorP(&triangle->origin, &triangle->origin, &c);
     VectorTimesScalarP(&triangle->origin, &triangle->origin, (vecc_t) (1.0 / 3.0));
-    VectorCrossVectorP(&triangle->normal, &triangle->ba, &triangle->cb);
-    VectorNegateP(&triangle->normal, &triangle->normal);
+
+    /* Calculate triangle normal. */
+    VectorCrossVectorP(&triangle->normal, &triangle->cb, &triangle->ba);
     
+    /* Calculate triangle area. */
     triangle->area = VectorMagnitudeP(&triangle->normal);
     VectorTimesScalarP(&triangle->normal, &triangle->normal,
         ((vecc_t) 1.0) / triangle->area);
 
+    /* Normalize the edge directions. */
     VectorNormalizeP(&triangle->ac, &triangle->ac);
     VectorNormalizeP(&triangle->cb, &triangle->cb);
     VectorNormalizeP(&triangle->ba, &triangle->ba);
@@ -70,58 +76,58 @@ void CreateBoundingBox(
 
 int RayBox(bounding_box_t *box, hit_t *hit_ptr, ray_t *ray)
 {
-	vecc_t tmin, tmax, tymin, tymax, tzmin, tzmax;
-	if(ray->d_inverse.x >= 0)
-	{
-		tmin = (box->a.x - ray->o.x) * ray->d_inverse.x;
-		tmax = (box->b.x - ray->o.x) * ray->d_inverse.x;
-	}
-	else
-	{
-		tmin = (box->b.x - ray->o.x) * ray->d_inverse.x;
-		tmax = (box->a.x - ray->o.x) * ray->d_inverse.x;
-	}
-	
-	if(ray->d_inverse.y >= 0)
-	{
-		tymin = (box->a.y - ray->o.y) * ray->d_inverse.y;
-		tymax = (box->b.y - ray->o.y) * ray->d_inverse.y;
-	}
-	else
-	{
-		tymin = (box->b.y - ray->o.y) * ray->d_inverse.y;
-		tymax = (box->a.y - ray->o.y) * ray->d_inverse.y;
-	}
-	
-	if(tmin > tymax || tymin > tmax)
-		return 0;
-	
-	if(tymin > tmin)
-		tmin = tymin;
-	if(tymax < tmax)
-		tmax = tymax;
-	
-	
-	if(ray->d_inverse.z >= 0)
-	{
-		tzmin = (box->a.z - ray->o.z) * ray->d_inverse.z;
-		tzmax = (box->b.z - ray->o.z) * ray->d_inverse.z;
-	}
-	else
-	{
-		tzmin = (box->b.z - ray->o.z) * ray->d_inverse.z;
-		tzmax = (box->a.z - ray->o.z) * ray->d_inverse.z;
-	}
-	if(tmin > tzmax || tzmin > tmax)
-		return 0;
-	
-	
-	if(tzmin > tmin)
-		tmin = tzmin;
-	if(tzmax < tmax)
-		tmax = tzmax;
+    vecc_t tmin, tmax, tymin, tymax, tzmin, tzmax;
+    if(ray->d_inverse.x >= 0)
+    {
+        tmin = (box->a.x - ray->o.x) * ray->d_inverse.x;
+        tmax = (box->b.x - ray->o.x) * ray->d_inverse.x;
+    }
+    else
+    {
+        tmin = (box->b.x - ray->o.x) * ray->d_inverse.x;
+        tmax = (box->a.x - ray->o.x) * ray->d_inverse.x;
+    }
+    
+    if(ray->d_inverse.y >= 0)
+    {
+        tymin = (box->a.y - ray->o.y) * ray->d_inverse.y;
+        tymax = (box->b.y - ray->o.y) * ray->d_inverse.y;
+    }
+    else
+    {
+        tymin = (box->b.y - ray->o.y) * ray->d_inverse.y;
+        tymax = (box->a.y - ray->o.y) * ray->d_inverse.y;
+    }
+    
+    if(tmin > tymax || tymin > tmax)
+        return 0;
+    
+    if(tymin > tmin)
+        tmin = tymin;
+    if(tymax < tmax)
+        tmax = tymax;
+    
+    
+    if(ray->d_inverse.z >= 0)
+    {
+        tzmin = (box->a.z - ray->o.z) * ray->d_inverse.z;
+        tzmax = (box->b.z - ray->o.z) * ray->d_inverse.z;
+    }
+    else
+    {
+        tzmin = (box->b.z - ray->o.z) * ray->d_inverse.z;
+        tzmax = (box->a.z - ray->o.z) * ray->d_inverse.z;
+    }
+    if(tmin > tzmax || tzmin > tmax)
+        return 0;
+    
+    
+    if(tzmin > tmin)
+        tmin = tzmin;
+    if(tzmax < tmax)
+        tmax = tzmax;
 
-	if(tmin > 0)
+    if(tmin > 0)
     {
         if(tmin > hit_ptr->t)
             return 0;
@@ -146,94 +152,94 @@ int RayBox(bounding_box_t *box, hit_t *hit_ptr, ray_t *ray)
     return 0;
 }
 
-vector_t Barycentric(vector_t v, triangle_t *tri)
+/*
+ * Computes the barycentric coordinate of a point on the given triangle.
+ */
+int Barycentric(vector_t *dest, vector_t *v, triangle_t *tri)
 {
-	vector_t ret;
-	vecc_t area_inv = 1.0 / tri->area;
-	
-	vector_t cross;
-	
-    VectorMinusVectorP(&cross, &v, &tri->a);
+    vecc_t area_inv = 1.0 / tri->area;
+    vector_t cross;
+    
+    /* Calculate the signed areas for each edge. */
+    VectorMinusVectorP(&cross, v, &tri->a);
     VectorCrossVectorP(&cross, &cross, &tri->ba);
-
-	if(VectorDotVectorP(&tri->normal, &cross) < 0)
-		ret.z = -VectorMagnitude(cross) * area_inv;
-	else
-		ret.z = VectorMagnitude(cross) * area_inv;
-	
-    VectorMinusVectorP(&cross, &v, &tri->b);
+    if(VectorDotVectorP(&tri->normal, &cross) < 0)
+        dest->z = -VectorMagnitude(cross) * area_inv;
+    else
+        dest->z = VectorMagnitude(cross) * area_inv;
+    
+    VectorMinusVectorP(&cross, v, &tri->b);
     VectorCrossVectorP(&cross, &cross, &tri->cb);
-	if(VectorDotVector(tri->normal, cross) < 0)
-		ret.x = -VectorMagnitude(cross) * area_inv;
-	else
-		ret.x = VectorMagnitude(cross) * area_inv;
-	
-    VectorMinusVectorP(&cross, &v, &tri->c);
+    if(VectorDotVector(tri->normal, cross) < 0)
+        dest->x = -VectorMagnitude(cross) * area_inv;
+    else
+        dest->x = VectorMagnitude(cross) * area_inv;
+    
+    VectorMinusVectorP(&cross, v, &tri->c);
     VectorCrossVectorP(&cross, &cross, &tri->ac);
-	if(VectorDotVector(tri->normal, cross) < 0)
-		ret.y = -VectorMagnitude(cross) * area_inv;
-	else
-		ret.y = VectorMagnitude(cross) * area_inv;
-	
-	ret.w = 0;
-	return ret;
+    if(VectorDotVector(tri->normal, cross) < 0)
+        dest->y = -VectorMagnitude(cross) * area_inv;
+    else
+        dest->y = VectorMagnitude(cross) * area_inv;
+    
+    dest->w = 0;
+
+    /* Return whether or not the point is inside the triangle. */
+    return dest->x > 0 && dest->y > 0 && dest->z > 0;
 }
 
 int RayPlane(triangle_t *tri, hit_t *hit_ptr, ray_t *ray)
 {
-	vecc_t ldotn;
+    vecc_t ldotn;
     if(tri->area == 0)
         return 0;
     ldotn = VectorDotVector(ray->d, tri->normal);
-	if(ldotn == 0)
-		return 0;
-	vecc_t d = VectorDotVector(VectorMinusVector(tri->v0, ray->o), tri->normal);
-	
-	if(d * ldotn < 0)
-		return 0;
-	d /= ldotn;
-	if(d > hit_ptr->t)
-		return 0;
+    if(ldotn == 0)
+        return 0;
+    vecc_t d = VectorDotVector(VectorMinusVector(tri->v0, ray->o), tri->normal);
+    
+    if(d * ldotn < 0)
+        return 0;
+    d /= ldotn;
+    if(d > hit_ptr->t)
+        return 0;
 
-	vector_t pos = VectorPlusVector(ray->o, VectorTimesScalar(ray->d, d));
+    vector_t pos = VectorPlusVector(ray->o, VectorTimesScalar(ray->d, d));
 
-	hit_ptr->t = d;
-	hit_ptr->position = pos;
-	
-	return 1;
+    hit_ptr->t = d;
+    hit_ptr->position = pos;
+    
+    return 1;
 }
 
 int RayTriangle(triangle_t *tri, hit_t *hit_ptr, ray_t *ray)
 {
-	vecc_t ldotn;
+    vecc_t ldotn;
     if(tri->area == 0)
         return 0;
     ldotn = VectorDotVector(ray->d, tri->normal);
-	if(ldotn == 0)
-		return 0;
-	vecc_t d = VectorDotVector(VectorMinusVector(tri->v0, ray->o), tri->normal);
-	
-	if(d * ldotn < 0)
-		return 0;
-	d /= ldotn;
-	if(d > hit_ptr->t)
-		return 0;
+    if(ldotn == 0)
+        return 0;
+    vecc_t d = VectorDotVector(VectorMinusVector(tri->v0, ray->o), tri->normal);
+    
+    if(d * ldotn < 0)
+        return 0;
+    d /= ldotn;
+    if(d > hit_ptr->t)
+        return 0;
 
-	vector_t pos = VectorPlusVector(ray->o, VectorTimesScalar(ray->d, d));
-	vector_t bary = Barycentric(pos, tri);
+    vector_t pos = VectorPlusVector(ray->o, VectorTimesScalar(ray->d, d));
+    vector_t bary;
 
-	if(bary.x < 0
-		|| bary.y < 0
-		|| bary.z < 0)
-	{
-		return 0;
-	}
-	
-	hit_ptr->t = d;
-	hit_ptr->position = pos;
+    /* There was no intersection if the point is not on the triangle. */
+    if(!Barycentric(&bary, &pos, tri))
+        return 0;
+    
+    hit_ptr->t = d;
+    hit_ptr->position = pos;
     hit_ptr->barycentric = bary;
-	
-	return 1;
+    
+    return 1;
 }
 
 vecc_t TrianglePointDistance(
@@ -248,20 +254,18 @@ vecc_t TrianglePointDistance(
 
     VectorMinusVectorP(&va, &v, &self->a);
 
-    // Project the point onto the triangle.
+    /* Project the point onto the triangle. */
     dot = VectorDotVectorP(&self->normal, &va);
     VectorTimesScalarP(&v_proj, &self->normal, -dot);
     VectorPlusVectorP(&v_proj, &v_proj, &v);
     
-    // Calculate the barycentric coordinate.
-    bary = Barycentric(v_proj, self);
-    // If the point is in the triangle.
-    if(bary.x >= 0 && bary.y >= 0 && bary.z >= 0)
+    /* If the point is in the triangle. */
+    if(Barycentric(&bary, &v_proj, self))
     {
         *nearest_pt = v_proj;
     }
-    // If the point is outside of an edge, project it onto that edge, but limit
-    // it to the length of the edge.
+    /* If the point is outside of an edge, project it onto that edge, but limit
+     * it to the length of the edge. */
     else if(bary.x < 0)
     {
         VectorMinusVectorP(&va, &v, &self->b);
@@ -287,6 +291,7 @@ vecc_t TrianglePointDistance(
         VectorPlusVectorP(nearest_pt, nearest_pt, &self->a);
     }
 
+    /* Return the distance to the nearest point. */
     return VectorDistanceP(nearest_pt, &v);
 }
 

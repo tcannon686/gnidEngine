@@ -1,4 +1,5 @@
 
+local Camera = require("wrap/Camera")
 local VertexArray = require("wrap/VertexArray")
 local PointCloud = require("wrap/PointCloud")
 local GameObject = require("wrap/GameObject")
@@ -8,6 +9,7 @@ local Material = require("wrap/Material")
 local Mesh = require("wrap/Mesh")
 local SkinnedMesh = require("wrap/SkinnedMesh")
 local ActionPlayer = require("wrap/ActionPlayer")
+local Scene = require("wrap/Scene")
 
 local keys = require("keys")
 local cursorMode = require("cursorMode")
@@ -64,6 +66,7 @@ function loadMap(name)
     end
 end
 
+
 if config.map then
     mapName = config.map
     octree, e = loadMap(mapName)
@@ -86,12 +89,6 @@ mouseButtonsDown = {}
 window.width = 800
 window.height = 600
 
-projection = Matrix.newPerspective(
-    90 * math.pi / 180,
-    window.width / window.height, 
-    0.1,
-    100.0)
-
 player = {
     position = Vector(0, 0, octree.min.z - 2),
     lookY = 0,
@@ -103,14 +100,22 @@ player = {
     jumpSpeed = 4,
     radius = 0.75,
     headHeight = 1.7,
-    mode = "edit"
+    mode = "edit",
+
+    camera = Camera:new {}
+}
+
+scene = Scene:new {
+    objects = {
+        player.camera,
+        octree
+    },
+    activeCamera = player.camera
 }
 
 player.getHeadPosition = function(self)
     return self.position + (self.headHeight - self.radius) * Vector.up
 end
-
-player.viewMatrix = Matrix.identity
 
 player.selectOctree = function(self, target, point)
 
@@ -139,35 +144,28 @@ player.selectOctree = function(self, target, point)
     }
 end
 
-shaders.default:bind()
-shaders.default.projection = projection
-
-shaders.flat:bind()
-shaders.flat.projection = projection
-
 octree.material = materials.default
 octree:update()
 
 window.cursorMode = cursorMode.DISABLED
 
 function getLookMatrix(lookX, lookY)
-    return Matrix.newRotate(lookY, Vector(1, 0, 0))
-        * Matrix.newRotate(lookX, Vector(0, 1, 0))
+    return Matrix.newRotate(lookX, Vector(0, 1, 0))
+           * Matrix.newRotate(lookY, Vector(1, 0, 0))
 end
 
 function render()
     gl.polygonMode.fill()
-    -- Draw octree.
-    shaders.default.transform = player.viewMatrix
-    octree:render()
-    shaders.default.transform = player.viewMatrix
+    scene:render()
 
     if player.mode == "edit" then
         -- Draw aim.
         if player.aimHit then
             shaders.flat.color = Vector(1, 0, 0, 1)
+            shaders.flat.projection = 
+                scene.activeCamera.projection
             shaders.flat.transform = 
-                player.viewMatrix
+                scene.activeCamera.viewMatrix
                 * Matrix.newTranslate(player.aimHit.position)
                 * Matrix.newScale(0.05 * Vector.one)
                 * Matrix.newTranslate(-0.5 * Vector.one)
@@ -178,11 +176,13 @@ function render()
         
         -- Draw axes.
         if player.selection then
-            drawAxes(player.selection.position)
+            drawAxes(scene, player.selection.position)
             gl.polygonMode.line()
             shaders.flat.color = Vector(1, 1, 0, 1)
+            shaders.flat.projection =
+                scene.activeCamera.projection
             shaders.flat.transform =
-                player.viewMatrix
+                scene.activeCamera.viewMatrix
                 * Matrix.newTranslate(player.selection.min
                     - Vector(0.005, 0.005, 0.005))
                 * Matrix.newScale(player.selection.size
@@ -254,17 +254,17 @@ function update(deltaT)
 
     player.aimHit = {}
     if not octree:raycast(
-        player.aimHit,
-        ray) then
+            player.aimHit,
+            ray) then
         for k, v in pairs(player.aimHit) do
             print(self, k, v)
         end
         player.aimHit = nil
     end
 
-    player.viewMatrix =
-        getLookMatrix(-player.lookX, -player.lookY)
-        * Matrix.newTranslate(-player:getHeadPosition())
+    player.camera.matrix =
+        Matrix.newTranslate(player:getHeadPosition())
+            * getLookMatrix(player.lookX, player.lookY)
 
     if player.mode == "edit" then
         -- Update selection.
@@ -279,8 +279,10 @@ function update(deltaT)
 end
 
 function drawAxis(origin, axis, color)
-    shaders.flat.transform = 
-        player.viewMatrix
+    shaders.flat.projection =
+        scene.activeCamera.projection
+    shaders.flat.transform =
+        scene.activeCamera.viewMatrix
         * Matrix.newTranslate(origin)
         * Matrix.newTranslate(Vector(-0.0125, -0.0125, -0.0125))
         * Matrix.newScale(axis + Vector(0.025, 0.025, 0.025))
@@ -289,13 +291,13 @@ function drawAxis(origin, axis, color)
     cubeMesh.indexArray:render()
 end
 
-function drawAxes(origin)
+function drawAxes(scene, origin)
     drawAxis(origin, Vector(0.5, 0, 0), Vector(1, 0, 0))
     drawAxis(origin, Vector(0, 0.5, 0), Vector(0, 1, 0))
     drawAxis(origin, Vector(0, 0, 0.5), Vector(0, 0, 1))
 
     shaders.flat.transform = 
-        player.viewMatrix
+        scene.activeCamera.viewMatrix
         * Matrix.newTranslate(origin)
         * Matrix.newScale(Vector(0.05, 0.05, 0.05))
         * Matrix.newTranslate(Vector(-0.5, -0.5, -0.5))
@@ -379,10 +381,12 @@ function window.callbacks.key(key, scancode, action, mods)
                     octree.min = octree.min * 2
                     octree.max = octree.max * 2
                     octree:update()
+                    player.selection = nil
                 elseif key == config.keyScaleDown then
                     octree.min = octree.min * 0.5
                     octree.max = octree.max * 0.5
                     octree:update()
+                    player.selection = nil
                 elseif key == config.keyExtrude then
                     local min, max, size, depth
                     target = player.aimHit.target

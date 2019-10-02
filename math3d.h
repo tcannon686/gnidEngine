@@ -95,7 +95,7 @@ void CreateBoundingBox(
 
 void CreateHit(hit_t *hit_ptr);
 
-vector_t Barycentric(vector_t v, triangle_t *tri);
+int Barycentric(vector_t *dest, vector_t *v, triangle_t *tri);
 int RayPlane(triangle_t *self, hit_t *hit_ptr, ray_t *ray);
 int RayTriangle(triangle_t *self, hit_t *hit_ptr, ray_t *ray);
 int RayBox(bounding_box_t *self, hit_t *hit_ptr, ray_t *ray);

@@ -814,8 +814,10 @@ function Octree.new(self, attributes)
         end
     end
     
-    ret.render = function(self)
+    ret.render = function(self, scene)
         for i, binding in ipairs(self.mesh.bindings) do
+            binding.material.shader.transform = scene.activeCamera.viewMatrix
+            binding.material.shader.projection = scene.activeCamera.projection
             binding.material:bind()
             self.mesh.pointCloud:bind(binding.material.shader)
             binding.indexArray:render()
