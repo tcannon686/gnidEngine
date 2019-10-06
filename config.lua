@@ -12,6 +12,8 @@ config = {
     keyUp = keys.KEY_LEFT_SHIFT,
     keyJump = keys.KEY_SPACE,
 
+    mouseButtonFire1 = keys.MOUSE_BUTTON_LEFT,
+
     mapDir = "maps",
     map = "tmp",
 

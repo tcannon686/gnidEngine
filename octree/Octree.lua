@@ -823,6 +823,15 @@ function Octree.new(self, attributes)
             binding.indexArray:render()
         end
     end
+
+    ret.tick = function(self, deltaT, scene)
+        for k, object in pairs(scene.objects) do
+            if object.enablePhysics then
+                object.isGrounded = false
+                self:doPhysics(object)
+            end
+        end
+    end
     
     setmetatable(ret, self.__mt)
     return ret

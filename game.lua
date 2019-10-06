@@ -21,6 +21,7 @@ local cubeMesh = require("mesh/cubeMesh")
 local shaders = require("shaders")
 
 local materials = require("materials")
+local models = require("models")
 
 function saveMap(name)
     local filename
@@ -95,6 +96,7 @@ player = {
     lookX = 0,
     speed = 5,
 
+    enablePhysics = true,
     velocity = Vector(),
     gravity = Vector(),
     jumpSpeed = 4,
@@ -105,9 +107,30 @@ player = {
     camera = Camera:new {}
 }
 
+player.weapon = {
+    model = models.shotgun1,
+    matrix = Matrix.identity
+}
+
+player.weapon.fire1 = function(self)
+    self.currentAnimation = ActionPlayer:new {
+        target = self.model.skeleton,
+        action = self.model.actions.fire1
+    }
+end
+
+player.weapon.tick = function(self, deltaT, scene)
+    if self.currentAnimation then
+        self.currentAnimation:tick(deltaT)
+    end
+end
+
+
 scene = Scene:new {
     objects = {
+        player,
         player.camera,
+        player.weapon,
         octree
     },
     activeCamera = player.camera
@@ -158,6 +181,14 @@ function render()
     gl.polygonMode.fill()
     scene:render()
 
+    -- Draw weapon viewmodel.
+    if player.mode == "play" then
+        player.weapon.model:render(
+            scene,
+            player.weapon.matrix)
+    end
+
+    -- Draw editing stuff.
     if player.mode == "edit" then
         -- Draw aim.
         if player.aimHit then
@@ -193,8 +224,8 @@ function render()
     end
 end
 
-function update(deltaT)
-    direction = Vector()
+player.preTick = function(self, deltaT, scene)
+    local direction = Vector()
 
     if not keysDown[keys.KEY_LEFT_ALT] then
         if keysDown[config.keyLeft] then
@@ -209,20 +240,20 @@ function update(deltaT)
         if keysDown[config.keyBackward] then
             direction.z = direction.z + 1
         end
-        if player.mode == "edit" then
+        if self.mode == "edit" then
             if keysDown[config.keyDown] then
                 direction.y = direction.y - 1
-                player.velocity.y = 0
+                self.velocity.y = 0
             end
             if keysDown[config.keyUp] then
                 direction.y = direction.y + 1
-                player.velocity.y = 0
+                self.velocity.y = 0
             end
         end
-        if player.mode == "play" then
+        if self.mode == "play" then
             if keysDown[config.keyJump] then
-                if player.isGrounded then
-                    player.velocity.y = player.jumpSpeed
+                if self.isGrounded then
+                    self.velocity.y = player.jumpSpeed
                 end
             end
         end
@@ -230,49 +261,56 @@ function update(deltaT)
 
     lenDirection = #direction
     if lenDirection > 0 then
-        direction = Matrix.newRotate(player.lookX, Vector(0, 1, 0))
-            * direction * (player.speed * deltaT / lenDirection)
-        player.position = player.position + direction
+        direction = Matrix.newRotate(self.lookX, Vector(0, 1, 0))
+            * direction * (self.speed * deltaT / lenDirection)
+        self.position = player.position + direction
     end
 
-    player.velocity = player.velocity
-        + player.gravity * deltaT
+    self.velocity = player.velocity
+        + self.gravity * deltaT
 
-    player.isGrounded = false
-    player.position = player.position + player.velocity * deltaT
-    octree:doPhysics(player)
+    self.position = player.position + player.velocity * deltaT
+end
 
-    player.aim = 
-            Vector.three(Matrix.newRotate(player.lookX, Vector(0, 1, 0))
-            * Matrix.newRotate(player.lookY, Vector(1, 0, 0))
+player.postTick = function(self, deltaT, scene)
+    self.aim = 
+            Vector.three(Matrix.newRotate(self.lookX, Vector(0, 1, 0))
+            * Matrix.newRotate(self.lookY, Vector(1, 0, 0))
             * -Vector.forward)
 
     ray = {
-        o = player:getHeadPosition(),
-        d = player.aim
+        o = self:getHeadPosition(),
+        d = self.aim
     }
 
-    player.aimHit = {}
+    self.aimHit = {}
     if not octree:raycast(
-            player.aimHit,
+            self.aimHit,
             ray) then
-        for k, v in pairs(player.aimHit) do
+        for k, v in pairs(self.aimHit) do
             print(self, k, v)
         end
-        player.aimHit = nil
+        self.aimHit = nil
     end
 
-    player.camera.matrix =
-        Matrix.newTranslate(player:getHeadPosition())
-            * getLookMatrix(player.lookX, player.lookY)
+    self.camera.matrix =
+        Matrix.newTranslate(self:getHeadPosition())
+            * getLookMatrix(self.lookX, player.lookY)
 
-    if player.mode == "edit" then
+    self.weapon.matrix =
+        Matrix.newTranslate(self:getHeadPosition())
+        * Matrix.newTranslate(Vector(0, -0.05, 0))
+        * getLookMatrix(self.lookX, player.lookY)
+        * Matrix.newTranslate(Vector(0.25, -0.2, -0.3))
+        * Matrix.newRotate(math.pi, Vector.up)
+
+    if self.mode == "edit" then
         -- Update selection.
         if mouseButtonsDown[config.mouseButtonSelect] then
-            if player.aimHit then
-                player:selectOctree(player.aimHit.target, player.aimHit.position)
+            if self.aimHit then
+                self:selectOctree(player.aimHit.target, player.aimHit.position)
             else
-                player.selection = nil
+                self.selection = nil
             end
         end
     end
@@ -309,7 +347,10 @@ end
 local lastUpdateTime = window.time
 function window.callbacks.update()
     local time = window.time
-    update(time - lastUpdateTime)
+    local elapsedTime = time - lastUpdateTime
+    scene:preTick(elapsedTime)
+    scene:tick(elapsedTime)
+    scene:postTick(elapsedTime)
     lastUpdateTime = time
     render()
 end
@@ -480,6 +521,14 @@ function window.callbacks.mouse(button, action, mods)
                 end
                 octree:update()
                 player.selection = nil
+            end
+        end
+    elseif player.mode == "play" then
+        if action == keys.PRESS
+                and button == config.mouseButtonFire1 then
+            if not player.weapon.currentAnimation
+                    or not player.weapon.currentAnimation.isPlaying then
+                player.weapon:fire1()
             end
         end
     end

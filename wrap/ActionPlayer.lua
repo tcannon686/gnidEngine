@@ -14,7 +14,8 @@ function ActionPlayer.new(self, attributes)
     local ret = {
         action = attributes.action,
         target = attributes.target,
-        time = 0
+        time = 0,
+        isPlaying = false
     }
 
     if attributes.loop then
@@ -25,16 +26,21 @@ function ActionPlayer.new(self, attributes)
 
     ret.tick = function(self, deltaT)
         self.time = self.time + deltaT
-        if self.action.loopEnd and self.loop then
-            local loopStart = self.action.loopStart
-            if not loopStart then
-                loopStart = 0 end
-            repeat
-                local delta = self.time - self.action.loopEnd
-                if delta >= 0 then
-                    self.time = loopStart + delta
-                end
-            until delta < 0
+        self.isPlaying = true
+        if self.action.loopEnd then
+            if loop then
+                local loopStart = self.action.loopStart
+                if not loopStart then
+                    loopStart = 0 end
+                repeat
+                    local delta = self.time - self.action.loopEnd
+                    if delta >= 0 then
+                        self.time = loopStart + delta
+                    end
+                until delta < 0
+            elseif self.time > self.action.loopEnd then
+                self.isPlaying = false
+            end
         end
         self.action:apply(self.target, self.time)
     end

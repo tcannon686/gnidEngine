@@ -16,7 +16,33 @@ function Scene.new(self, attributes)
 
     ret.render = function(self)
         for k, object in pairs(self.objects) do
-            object:render(self)
+            if object.render then
+                object:render(self)
+            end
+        end
+    end
+
+    ret.preTick = function(self, deltaT)
+        for k, object in pairs(self.objects) do
+            if object.preTick then
+                object:preTick(deltaT, self)
+            end
+        end
+    end
+
+    ret.tick = function(self, deltaT)
+        for k, object in pairs(self.objects) do
+            if object.tick then
+                object:tick(deltaT, self)
+            end
+        end
+    end
+
+    ret.postTick = function(self, deltaT)
+        for k, object in pairs(self.objects) do
+            if object.postTick then
+                object:postTick(deltaT, self)
+            end
         end
     end
 

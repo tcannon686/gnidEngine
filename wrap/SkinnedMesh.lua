@@ -1,13 +1,13 @@
 local SkinnedMesh = {}
 
-SkinnedMesh.new = function(self, mesh, skeleton, actions)
+SkinnedMesh.new = function(self, attributes)
     local ret = {
-        mesh = mesh,
-        skeleton = skeleton,
-        actions = actions
+        mesh = attributes.mesh,
+        skeleton = attributes.skeleton,
+        actions = attributes.actions
     }
 
-    ret.render = function(self, scene)
+    ret.render = function(self, scene, transform)
         if self.skeleton then
             for i, binding in ipairs(self.mesh.bindings) do
                 self.skeleton:bind(
@@ -16,13 +16,21 @@ SkinnedMesh.new = function(self, mesh, skeleton, actions)
                     "boneHead",
                     "boneMatrix")
             end
-            mesh:render(scene)
-            for i, binding in ipairs(mesh.bindings) do
+            self.mesh:render(scene, transform)
+            for i, binding in ipairs(self.mesh.bindings) do
                 self.skeleton:unbind(binding.material.shader, "boneCount")
             end
         else
-            mesh:render()
+            self.mesh:render()
         end
+    end
+
+    ret.clone = function(self)
+        return SkinnedMesh:new {
+            mesh = self.mesh,
+            skeleton = self.skeleton,
+            actions = self.actions
+        }
     end
 
     return ret

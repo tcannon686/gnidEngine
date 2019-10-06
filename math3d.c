@@ -185,7 +185,7 @@ int Barycentric(vector_t *dest, vector_t *v, triangle_t *tri)
     dest->w = 0;
 
     /* Return whether or not the point is inside the triangle. */
-    return dest->x > 0 && dest->y > 0 && dest->z > 0;
+    return dest->x >= 0 && dest->y >= 0 && dest->z >= 0;
 }
 
 int RayPlane(triangle_t *tri, hit_t *hit_ptr, ray_t *ray)

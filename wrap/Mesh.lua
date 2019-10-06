@@ -16,10 +16,13 @@ function Mesh.new(self, attributes)
         error("Mesh.new expects bindings.")
     end
 
-    ret.render = function(self, scene)
+    ret.render = function(self, scene, transform)
         for i, binding in ipairs(self.bindings) do
-            binding.material.shader.transform = scene.activeCamera.viewMatrix
-            binding.material.shader.projection = scene.activeCamera.projection
+            binding.material.shader.transform =
+                scene.activeCamera.viewMatrix
+                * transform
+            binding.material.shader.projection =
+                scene.activeCamera.projection
             binding.material:bind()
             self.pointCloud:bind(binding.material.shader)
             binding.indexArray:render()

@@ -3,6 +3,7 @@ local Bone = require("wrap/Bone")
 local Skeleton = require("wrap/Skeleton")
 local SampledAnimationCurve = require("wrap/SampledAnimationCurve")
 local Action = require("wrap/Action")
+local SkinnedMesh = require("wrap/SkinnedMesh")
 local materials = require("materials")
 local tmd = {}
 
@@ -293,7 +294,7 @@ function tmd.parse(str)
     end
 
     -- Create the mesh and skeleton from the data.
-    return {
+    return SkinnedMesh:new {
         mesh = Mesh:new {
             pointCloud = PointCloud:new(state.vertexAttribs),
             bindings = state.bindings

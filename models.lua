@@ -1,4 +1,5 @@
 
+local tmd = require("tmd")
 local models = {}
 
 modelPaths = {
@@ -6,7 +7,7 @@ modelPaths = {
 }
 
 -- Load each model.
-for key, path in modelPaths do
+for key, path in pairs(modelPaths) do
     local results, e = tmd.loadTmd(path)
     if not results then
         error("error: tmd: " .. e .. ".")
