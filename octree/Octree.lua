@@ -380,12 +380,12 @@ function Octree.new(self, attributes)
         local sizeExpanded = maxExpanded - minExpanded
 
         if object.position.x >= minExpanded.x and
-            object.position.y >= minExpanded.y and
-            object.position.z >= minExpanded.z and
-            
-            object.position.x <= maxExpanded.x and
-            object.position.y <= maxExpanded.y and
-            object.position.z <= maxExpanded.z then
+                object.position.y >= minExpanded.y and
+                object.position.z >= minExpanded.z and
+                
+                object.position.x <= maxExpanded.x and
+                object.position.y <= maxExpanded.y and
+                object.position.z <= maxExpanded.z then
             
             if self.children then
                 local halfSize = (max - min) * 0.5
@@ -835,6 +835,14 @@ function Octree.new(self, attributes)
     
     setmetatable(ret, self.__mt)
     return ret
+end
+
+function Octree.toOctree(self, value)
+    if getmetatable(value) == self.__mt then
+        return value
+    else
+        return nil
+    end
 end
 
 return Octree

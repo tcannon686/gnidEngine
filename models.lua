@@ -3,7 +3,9 @@ local tmd = require("tmd")
 local models = {}
 
 modelPaths = {
-    shotgun1 = "models/shotgun1.tmd"
+    shotgun1 = "models/shotgun1.tmd",
+    explosion1 = "models/explosion1.tmd",
+    sphereMonster1 = "models/sphereMonster1.tmd"
 }
 
 -- Load each model.

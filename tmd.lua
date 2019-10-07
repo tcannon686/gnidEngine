@@ -4,6 +4,9 @@ local Skeleton = require("wrap/Skeleton")
 local SampledAnimationCurve = require("wrap/SampledAnimationCurve")
 local Action = require("wrap/Action")
 local SkinnedMesh = require("wrap/SkinnedMesh")
+local IndexArray = require("wrap/IndexArray")
+local VertexArray = require("wrap/VertexArray")
+local PointCloud = require("wrap/PointCloud")
 local materials = require("materials")
 local tmd = {}
 
@@ -149,9 +152,11 @@ cmds[recordTypes.nameBone] = function(state, blockType)
     name = unpackString(state)
     if state.namedBones[name] then
         state.namedBones[name] = state.bones[index]
+        state.bones[index].name = name
         return levels.WARNING, "duplicate bone name \"" .. name .. "\""
     else
         state.namedBones[name] = state.bones[index]
+        state.bones[index].name = name
     end
 end
 

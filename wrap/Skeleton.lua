@@ -45,6 +45,42 @@ function Skeleton.new(self, attributes)
     ret.unbind = function(self, shader, countUniform)
         shader[countUniform] = 0
     end
+
+    ret.clone = function(self)
+        local bones = {}
+        local namedBones = nil
+        local lookup = {}
+
+        if self.namedBones then
+            namedBones = {}
+        end
+
+        for i, bone in ipairs(self.bones) do
+            bones[i] = bone:clone()
+            if bone.children then
+                bones[i].children = {}
+            end
+            lookup[tostring(bone)] = bones[i]
+        end
+        for i, bone in ipairs(self.bones) do
+            if bone.children then
+                for j, child in ipairs(bone.children) do
+                    local newChild = lookup[tostring(child)]
+                    bones[i].children[j] = newChild
+                    newChild.parent =bones[i].children[j]
+                end
+            end
+        end
+        if self.namedBones then
+            for k, bone in pairs(self.namedBones) do
+                namedBones[k] = lookup[tostring(bone)]
+            end
+        end
+        return Skeleton:new {
+            bones = bones,
+            namedBones = namedBones
+        }
+    end
     return ret
 end
 

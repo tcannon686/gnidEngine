@@ -28,7 +28,7 @@ SkinnedMesh.new = function(self, attributes)
     ret.clone = function(self)
         return SkinnedMesh:new {
             mesh = self.mesh,
-            skeleton = self.skeleton,
+            skeleton = self.skeleton:clone(),
             actions = self.actions
         }
     end

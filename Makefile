@@ -5,7 +5,7 @@ CFLAGS = -g -Wall -c -Iglad/include -I/usr/include/lua5.3
 OBJECTS = matrix.o luamatrix.o luagl.o main.o math3d.o luamath3d.o luapng.o
 SOURCES = matrix.c luamatrix.c luagl.c main.c math3d.c luamath3d.c luapng.c
 HEADERS = matrix.h luamatrix.h luagl.h math3d.h luamath3d.h luapng.h
-EXE = game
+EXE = gnid
 
 linux : $(OBJECTS) glad.o lodepng.o
 	$(CC) $(OBJECTS) glad.o lodepng.o\

@@ -17,6 +17,9 @@ function Mesh.new(self, attributes)
     end
 
     ret.render = function(self, scene, transform)
+        if not transform then
+            transform = Matrix.identity
+        end
         for i, binding in ipairs(self.bindings) do
             binding.material.shader.transform =
                 scene.activeCamera.viewMatrix

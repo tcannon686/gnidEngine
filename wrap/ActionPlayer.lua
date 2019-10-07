@@ -10,13 +10,26 @@ function ActionPlayer.new(self, attributes)
     if type(attributes.target) ~= "table" then
         error("ActionPlayer.new expects table with key target.")
     end
+    if attributes.events and type(attributes.events) ~= "table" then
+        error("ActionPlayer.new expects table events with events.")
+    end
     
     local ret = {
         action = attributes.action,
         target = attributes.target,
+        events = attributes.events,
         time = 0,
         isPlaying = false
     }
+
+    if attributes.events then
+        for k, event in pairs(attributes.events) do
+            if event.time == nil or not event.callback then
+                error("ActionPlayer.new expects table events with key event "
+                    .."and key callback")
+            end
+        end
+    end
 
     if attributes.loop then
         ret.loop = true
@@ -25,10 +38,18 @@ function ActionPlayer.new(self, attributes)
     end
 
     ret.tick = function(self, deltaT)
+        if self.events then
+            for i, event in ipairs(self.events) do
+                if self.time < event.time
+                        and self.time + deltaT > event.time then
+                    event.callback()
+                end
+            end
+        end
         self.time = self.time + deltaT
         self.isPlaying = true
         if self.action.loopEnd then
-            if loop then
+            if self.loop then
                 local loopStart = self.action.loopStart
                 if not loopStart then
                     loopStart = 0 end
@@ -43,6 +64,14 @@ function ActionPlayer.new(self, attributes)
             end
         end
         self.action:apply(self.target, self.time)
+    end
+
+    ret.clone = function(self)
+        return ActionPlayer:new {
+            action = self.action,
+            target = self.target,
+            loop = self.loop
+        }
     end
 
     return ret

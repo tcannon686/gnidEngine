@@ -67,6 +67,7 @@ shaders.default = ShaderProgram:new {
         diffuseColor = "vector",
         diffuseTexture = "texture2d",
         enableDiffuseTexture = "boolean",
+        shadeless = "boolean",
         boneCount = "integer",
         boneMatrix = "matrix",
     },
@@ -163,6 +164,8 @@ in vec2 fragTexCo;
 uniform vec4 diffuseColor;
 uniform sampler2D diffuseTexture;
 uniform int enableDiffuseTexture;
+uniform int shadeless;
+
 void main()
 {
     float brightness = dot(fragNormal, -normalize(fragPosition));
@@ -176,7 +179,10 @@ void main()
         alpha = sample.w;
     }
 
-    gl_FragColor = vec4(brightness * color, alpha);
+    if(shadeless == 1)
+        gl_FragColor = vec4(color, alpha);
+    else
+        gl_FragColor = vec4(brightness * color, alpha);
 }
 ]]
     }
