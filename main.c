@@ -149,6 +149,25 @@ static void KeyCallback(GLFWwindow* window,
 	}
 }
 
+static void CharCallback(GLFWwindow* window,
+                         unsigned int character)
+{
+	if(lua_reg_callbacks != 0)
+	{
+		lua_geti(L, LUA_REGISTRYINDEX, lua_reg_callbacks);
+        lua_getfield(L, -1, "char");
+		if(lua_isnil(L, -1))
+		{
+
+			lua_pop(L, 2);
+			return;
+		}
+		lua_pushinteger(L, character);
+		lua_call(L, 1, 0);
+        lua_pop(L, 1);
+	}
+}
+
 static void MouseMoveCallback(GLFWwindow* window,
                               double x, double y)
 {
@@ -215,6 +234,7 @@ int main(int argc, char **argv)
 	
 	glfwMakeContextCurrent(window);
 	glfwSetKeyCallback(window, KeyCallback);
+	glfwSetCharCallback(window, CharCallback);
 	glfwSetMouseButtonCallback(window, MouseCallback);
 	glfwSetCursorPosCallback(window, MouseMoveCallback);
     

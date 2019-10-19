@@ -21,7 +21,7 @@ SkinnedMesh.new = function(self, attributes)
                 self.skeleton:unbind(binding.material.shader, "boneCount")
             end
         else
-            self.mesh:render()
+            self.mesh:render(scene, transform)
         end
     end
 

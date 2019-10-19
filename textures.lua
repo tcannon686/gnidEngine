@@ -11,5 +11,6 @@ local textures = {
     wood2 = Texture2D:loadPng("textures/Wood2.png"),
     wood3 = Texture2D:loadPng("textures/Wood3.png"),
     sphereMonster1 = Texture2D:loadPng("textures/SphereMonster1.png"),
+    monospace1 = Texture2D:loadPng("textures/Monospace1.png"),
 }
 return textures

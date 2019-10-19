@@ -214,8 +214,9 @@ cmds[recordTypes.curveSample] = function(state, blockType)
 end
 
 cmds[recordTypes.playbackData] = function(state, blockType)
-    local sampleRate = unpackNext(state, "<B")
+    local sampleRate, lerp = unpackNext(state, "<BB")
     state.sampleRate = sampleRate
+    state.lerp = lerp ~= 0
 end
 
 function parseRecord(state)
@@ -245,6 +246,7 @@ function tmd.parse(str)
         boneIndex = 1,
         hasMore = true,
         sampleRate = 24,
+        lerp = false,
         str = str
     }
     while state.hasMore do
@@ -286,7 +288,7 @@ function tmd.parse(str)
             local animCurve = SampledAnimationCurve:new {
                 samples = curve,
                 sampleRate = state.sampleRate,
-                lerp = true,
+                lerp = state.lerp,
                 dataPath = { "bones", curve.boneIndex, "matrix" }
             }
             curves[i] = animCurve

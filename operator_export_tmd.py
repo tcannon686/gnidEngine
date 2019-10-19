@@ -61,16 +61,18 @@ def write_model(context, filepath, use_some_setting):
         settings='RENDER')
     
     # Find if the mesh has an armature.
-    armature = object.find_armature().copy()
-    armature.data = armature.data.copy()
-    
-    # Make a copy of it and convert it into the correct space.
-    armature_data = armature.data
-    armature_data.transform(coord_transform * armature.matrix_world)
-    bone_name_indices = {}
+    armature = object.find_armature()
     if armature:
-        for i, bone in enumerate(armature_data.bones):
-            bone_name_indices[bone.name] = i
+        armature = armature.copy()
+        armature.data = armature.data.copy()
+        
+        # Make a copy of it and convert it into the correct space.
+        armature_data = armature.data
+        armature_data.transform(coord_transform * armature.matrix_world)
+        bone_name_indices = {}
+        if armature:
+            for i, bone in enumerate(armature_data.bones):
+                bone_name_indices[bone.name] = i
     
     # Triangulate.
     bm = bmesh.new()
@@ -242,8 +244,9 @@ def write_model(context, filepath, use_some_setting):
                             struct.pack('<ffffffffffffffff', *sample))
     
     # Clean up armature.
-    bpy.data.objects.remove(armature)
-    bpy.data.armatures.remove(armature_data)
+    if armature:
+        bpy.data.objects.remove(armature)
+        bpy.data.armatures.remove(armature_data)
 
     write_record(f, record_types['done'], b'')
     f.close()

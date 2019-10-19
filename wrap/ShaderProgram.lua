@@ -9,6 +9,9 @@ function ShaderProgram.__mt.__index(self, k, v)
     local uniform = rawget(self, "__uniforms")[k]
     if uniform then
         return uniform end
+    local attrib = rawget(self, "__vertexAttributes")[k]
+    if attrib then
+        return attrib end
     return rawget(self, k)
 end
 

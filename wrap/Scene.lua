@@ -3,6 +3,8 @@ local Octree = require("octree/Octree")
 
 local Scene = {}
 
+local shaders = require("shaders")
+
 function Scene.new(self, attributes)
     if type(attributes.activeCamera) ~= "table" then
         error("Scene.new expects table with key activeCamera.")
@@ -11,50 +13,35 @@ function Scene.new(self, attributes)
         error("Scene.new expects table with key objects.")
     end
 
-    local objects = {
-        __objects = {},
-        __octrees = {}
-    }
+    local objectListMt = {}
+    objectListMt.__pairs = function(t, k)
+        return next, rawget(t, "__data")
+    end
+    objectListMt.__newindex = function(t, k)
+        error("Scene objects list cannot be modified directly.")
+    end
+    objectListMt.__len = function(t, k)
+        local count = 0
+        for t, v in pairs(t, "__data") do
+            count = count + 1
+        end
+        return count
+    end
+
+    objects = { __data = {} }
+    lights = { __data = {} }
     for k, object in pairs(attributes.objects) do
-        local octree = Octree:toOctree(object)
-        if octree then
-            objects.__octrees[tostring(octree)] = octree
-        else
-            objects.__objects[tostring(object)] = object
+        objects.__data[tostring(object)] = object
+        if object.light then
+            lights.__data[tostring(object)] = object
         end
     end
-    local objectsMt = {}
-    objectsMt.__pairs = function(t, k)
-        return function(t, k)
-            if k == nil then
-                return next(rawget(t, "__objects"))
-            else
-                local objects
-                local octrees
-                
-                objects = rawget(t, "__objects")
-                octrees = rawget(t, "__octrees")
-
-                if objects[k] then
-                    local val, nextKey = next(objects, k)
-                    if val == nil then
-                        return next(octrees)
-                    else
-                        return val, nextKey
-                    end
-                else
-                    return next(octrees, k)
-                end
-            end
-        end, objects, nil
-    end
-    objectsMt.__newindex = function(t, k)
-        error("Scene object.objects cannot be modified directly.")
-    end
-    setmetatable(objects, objectsMt)
+    setmetatable(objects, objectListMt)
+    setmetatable(lights, objectListMt)
 
     local ret = {
         objects = objects,
+        lights = lights,
         activeCamera = attributes.activeCamera
     }
     
@@ -62,11 +49,9 @@ function Scene.new(self, attributes)
         if type(object) ~= "table" then
             error("Scene.add expects object to add.")
         end
-        local octree = Octree:toOctree(object)
-        if octree then
-            rawget(self.objects, "__octrees")[tostring(octree)] = octree
-        else
-            rawget(self.objects, "__objects")[tostring(object)] = object
+        rawget(self.objects, "__data")[tostring(object)] = object
+        if object.light then
+            rawget(self.lights, "__data")[tostring(object)] = object
         end
     end
 
@@ -75,11 +60,27 @@ function Scene.new(self, attributes)
             error("Scene.remove expects object to remove.")
         end
         local name = tostring(object)
-        rawget(self.objects, "__objects")[name] = nil
-        rawget(self.objects, "__octrees")[name] = nil
+        rawget(self.objects, "__data")[name] = nil
+        rawget(self.lights, "__data")[name] = nil
     end
 
     ret.render = function(self)
+        -- Update the lights for each shader.
+        for name, shader in pairs(shaders) do
+            if shader.lightCount ~= nil then
+                shader.lightCount = #self.lights
+                lightIndex = 1
+                for k, object in pairs(self.lights) do
+                    local position = 
+                        self.activeCamera.viewMatrix
+                            * object.position:homo()
+                    shader.lightPositionAndDistance[lightIndex] =
+                        position:three()
+                            + Vector.fourth * object.light.distance
+                    lightIndex = lightIndex + 1
+                end
+            end
+        end
         for k, object in pairs(self.objects) do
             if object.render then
                 object:render(self)
@@ -109,6 +110,18 @@ function Scene.new(self, attributes)
                 object:postTick(deltaT, self)
             end
         end
+    end
+
+    ret.raycast = function(self, hit, ray)
+        result = false
+        for k, object in pairs(self.objects) do
+            if object.raycast then
+                if object:raycast(hit, ray) then
+                    result = true
+                end
+            end
+        end
+        return result
     end
 
     return ret

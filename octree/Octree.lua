@@ -837,6 +837,14 @@ function Octree.new(self, attributes)
     return ret
 end
 
+function Octree.isOctree(self, value)
+    if getmetatable(value) == self.__mt then
+        return true
+    else
+        return false
+    end
+end
+
 function Octree.toOctree(self, value)
     if getmetatable(value) == self.__mt then
         return value

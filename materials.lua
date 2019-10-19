@@ -31,6 +31,13 @@ local materials = {
             enableDiffuseTexture = false,
             shadeless = false
         }),
+    light1 = Material:new(
+        shaders.default,
+        {
+            diffuseColor = Vector(1, 1, 0),
+            enableDiffuseTexture = false,
+            shadeless = true
+        }),
     flash1 = Material:new(
         shaders.default,
         {
@@ -114,6 +121,13 @@ local materials = {
             diffuseTexture = textures.wood3,
             enableDiffuseTexture = true,
             shadeless = false
+        }),
+    monospace1 = Material:new(
+        shaders.default,
+        {
+            diffuseTexture = textures.monospace1,
+            enableDiffuseTexture = true,
+            shadeless = true
         }),
     sphereMonster1 = Material:new(
         shaders.default,

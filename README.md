@@ -64,8 +64,13 @@ end. When the program starts, press escape to regain control of your cursor.
 | Alt E                 | Save map.                          |
 | P                     | Double map size.                   |
 | O                     | Halve map size.                    |
-| M                     | Next octree material.              |
-| N                     | Previous octree material.          |
+| M                     | Use selected material.             |
+| M left                | Select next material.              |
+| M right               | Select previous material.          |
+| Q                     | Place object (hold for preview).   |
+| Q left                | Select next object.                |
+| Q right               | Select previous object.            |
+| \`                    | Open console.                      |
 
 ## Editing
 See above for editing controls. Currently, there is no undo button. The name of

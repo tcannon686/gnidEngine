@@ -16,12 +16,18 @@ void CreateHit(hit_t *hit_ptr)
 
 void CreateRay(ray_t *ray, vector_t o, vector_t d)
 {
-    ray->o = o;
-    ray->d = d;
+    VectorThreeP(&ray->o, &o);
+    VectorThreeP(&ray->d, &d);
     ray->d_inverse.x = ((vecc_t) 1.0) / d.x;
     ray->d_inverse.y = ((vecc_t) 1.0) / d.y;
     ray->d_inverse.z = ((vecc_t) 1.0) / d.z;
     ray->d_inverse.w = (vecc_t) 0.0;
+}
+
+void CreateSphere(sphere_t *sphere, vector_t origin, vecc_t radius)
+{
+    VectorThreeP(&sphere->origin, &origin);
+    sphere->radius = radius;
 }
 
 void CreateTriangle(
@@ -30,9 +36,9 @@ void CreateTriangle(
     vector_t b,
     vector_t c)
 {
-    triangle->a = a;
-    triangle->b = b;
-    triangle->c = c;
+    VectorThreeP(&triangle->a, &a);
+    VectorThreeP(&triangle->b, &b);
+    VectorThreeP(&triangle->c, &c);
     
     /* Calculate edge directions. */
     VectorMinusVectorP(&triangle->ba, &b, &a);
@@ -47,7 +53,10 @@ void CreateTriangle(
     /* Calculate triangle origin. */
     VectorPlusVectorP(&triangle->origin, &a, &b);
     VectorPlusVectorP(&triangle->origin, &triangle->origin, &c);
-    VectorTimesScalarP(&triangle->origin, &triangle->origin, (vecc_t) (1.0 / 3.0));
+    VectorTimesScalarP(
+        &triangle->origin,
+        &triangle->origin,
+        (vecc_t) (1.0 / 3.0));
 
     /* Calculate triangle normal. */
     VectorCrossVectorP(&triangle->normal, &triangle->cb, &triangle->ba);
@@ -186,6 +195,47 @@ int Barycentric(vector_t *dest, vector_t *v, triangle_t *tri)
 
     /* Return whether or not the point is inside the triangle. */
     return dest->x >= 0 && dest->y >= 0 && dest->z >= 0;
+}
+
+int RaySphere(sphere_t *sphere, hit_t *hit_ptr, ray_t *ray)
+{
+    vector_t oc;
+    vector_t l;
+    vecc_t l_dot_oc;
+    vecc_t norm_oc_squared;
+    vecc_t discriminant;
+    vecc_t root;
+    vecc_t tmin, tmax, t;
+    
+    VectorNormalizeP(&l, &ray->d);
+    VectorMinusVectorP(&oc, &ray->o, &sphere->origin);
+    norm_oc_squared = VectorDotVectorP(&oc, &oc);
+    l_dot_oc = VectorDotVectorP(&l, &oc);
+
+    discriminant = l_dot_oc * l_dot_oc
+        + sphere->radius * sphere->radius - norm_oc_squared;
+
+    if(discriminant < 0)
+        return 0;
+    
+    root = (vecc_t) sqrt(discriminant);
+
+    tmin = -l_dot_oc - (vecc_t) root;
+    tmax = -l_dot_oc + (vecc_t) root;
+    
+    if(tmin < 0)
+        t = tmax;
+    else
+        t = tmin;
+
+    if(t < hit_ptr->t)
+    {
+        hit_ptr->t = t;
+        VectorTimesScalarP(&hit_ptr->position, &l, hit_ptr->t);
+        VectorPlusVectorP(&hit_ptr->position, &hit_ptr->position, &ray->o);
+        return 1;
+    }
+    return 0;
 }
 
 int RayPlane(triangle_t *tri, hit_t *hit_ptr, ray_t *ray)

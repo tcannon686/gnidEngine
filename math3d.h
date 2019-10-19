@@ -21,6 +21,12 @@ typedef struct ray
 	vector_t d_inverse;
 } ray_t;
 
+typedef struct sphere
+{
+    vector_t origin;
+    vecc_t radius;
+} sphere_t;
+
 typedef struct triangle
 {
 	union
@@ -82,6 +88,7 @@ typedef struct triangle
 } triangle_t;
 
 void CreateRay(ray_t *ray, vector_t o, vector_t d);
+void CreateSphere(sphere_t *sphere, vector_t origin, vecc_t radius);
 void CreateTriangle(
     triangle_t *triangle,
     vector_t a,
@@ -96,6 +103,7 @@ void CreateBoundingBox(
 void CreateHit(hit_t *hit_ptr);
 
 int Barycentric(vector_t *dest, vector_t *v, triangle_t *tri);
+int RaySphere(sphere_t *sphere, hit_t *hit_ptr, ray_t *ray);
 int RayPlane(triangle_t *self, hit_t *hit_ptr, ray_t *ray);
 int RayTriangle(triangle_t *self, hit_t *hit_ptr, ray_t *ray);
 int RayBox(bounding_box_t *self, hit_t *hit_ptr, ray_t *ray);

@@ -20,7 +20,7 @@ function Camera.new(self, attributes)
     local ret = {}
     if attributes.matrix then
         ret.__matrix = attributes.matrix
-        ret.viewMatrix = ret.matrix:inverse()
+        ret.viewMatrix = ret.__matrix:inverse()
     else
         ret.__matrix = Matrix.identity
         ret.viewMatrix = Matrix.identity
@@ -32,6 +32,8 @@ function Camera.new(self, attributes)
             window.width / window.height, 
             0.1,
             100.0)
+    else
+        ret.projection = attributes.projection
     end
 
     ret.render = function(self, scene)

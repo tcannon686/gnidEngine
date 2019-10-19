@@ -7,6 +7,59 @@
 #include "luamath3d.h"
 #include "math3d.h"
 
+// math3d.raySphere(hit, c, r, o, d)
+int _G_math3d_raySphere(lua_State *L)
+{
+    vector_t *c, *o, *d;
+    vecc_t r;
+    lua_Number t;
+    int has_t, isnum;
+    sphere_t sphere;
+    ray_t ray;
+    hit_t hit;
+
+    if(!lua_istable(L, 1))
+        return luaL_error(L, "_G_math3d_raySphere expects table hit.");
+    
+    c = lua_tovectorptr(L, 2);
+    if(c == NULL)
+        return luaL_error(L, "_G_math3d_raySphere expects vector c.");
+
+    r = (vecc_t) lua_tonumberx(L, 3, &isnum);
+    if(!isnum)
+        return luaL_error(L, "_G_math3d_raySphere expects number r.");
+
+    o = lua_tovectorptr(L, 4);
+    if(o == NULL)
+        return luaL_error(L, "_G_math3d_raySphere expects vector o.");
+    
+    d = lua_tovectorptr(L, 5);
+    if(d == NULL)
+        return luaL_error(L, "_G_math3d_raySphere expects vector d.");
+
+    lua_getfield(L, 1, "t");
+    t = lua_tonumberx(L, -1, &has_t);
+    if(has_t)
+        hit.t = (vecc_t) t;
+    else
+        CreateHit(&hit);
+
+    CreateSphere(&sphere, *c, r);
+    CreateRay(&ray, *o, *d);
+    if(RaySphere(&sphere, &hit, &ray))
+    {
+        lua_pushnumber(L, (lua_Number) hit.t);
+        lua_setfield(L, 1, "t");
+        *lua_newvector(L) = hit.position;
+        lua_setfield(L, 1, "position");
+        *lua_newvector(L) = hit.barycentric;
+        lua_pushboolean(L, 1);
+        return 1;
+    }
+    lua_pushboolean(L, 0);
+    return 1;
+}
+
 // math3d.rayBox(hit, a, b, o, d)
 int _G_math3d_rayBox(lua_State *L)
 {
@@ -239,6 +292,7 @@ int _G_math3d_lerp(lua_State *L)
 }
 
 static const luaL_Reg math3d_funcs[] = {
+    { "raySphere", _G_math3d_raySphere },
     { "rayBox", _G_math3d_rayBox },
     { "rayTriangle", _G_math3d_rayTriangle },
     { "trianglePointDistance", _G_math3d_trianglePointDistance },

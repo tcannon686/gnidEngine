@@ -70,6 +70,8 @@ shaders.default = ShaderProgram:new {
         shadeless = "boolean",
         boneCount = "integer",
         boneMatrix = "matrix",
+        lightCount = "integer",
+        lightPositionAndDistance = "vector"
     },
 
     code = {
@@ -79,6 +81,7 @@ shaders.default = ShaderProgram:new {
 in vec4 vertex;
 in vec4 normal;
 in vec4 texCo;
+
 in vec4 boneWeights1;
 in vec4 boneWeights2;
 in vec4 boneWeights3;
@@ -97,6 +100,7 @@ uniform mat4 projection;
 
 uniform int boneCount;
 uniform mat4 boneMatrix[32];
+
 
 float getBoneWeight(int index)
 {
@@ -158,17 +162,23 @@ void main()
         fragment =
 [[
 #version 130
+
+uniform mat4 projection;
+
 in vec3 fragPosition;
 in vec3 fragNormal;
 in vec2 fragTexCo;
+
 uniform vec4 diffuseColor;
 uniform sampler2D diffuseTexture;
 uniform int enableDiffuseTexture;
 uniform int shadeless;
 
+uniform int lightCount;
+uniform vec4 lightPositionAndDistance[32];
+
 void main()
 {
-    float brightness = dot(fragNormal, -normalize(fragPosition));
     vec3 color = diffuseColor.xyz;
     float alpha = diffuseColor.w;
     
@@ -182,7 +192,17 @@ void main()
     if(shadeless == 1)
         gl_FragColor = vec4(color, alpha);
     else
+    {
+        float brightness = 0;
+        vec3 l;
+        for(int i = 0; i < lightCount; i ++)
+        {
+            l = lightPositionAndDistance[i].xyz - fragPosition;
+            brightness += dot(normalize(l), fragNormal)
+                * clamp(lightPositionAndDistance[i].w / dot(l, l), 0, 1);
+        }
         gl_FragColor = vec4(brightness * color, alpha);
+    }
 }
 ]]
     }

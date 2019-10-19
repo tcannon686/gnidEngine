@@ -23,8 +23,12 @@ config = {
     keyScaleUp = keys.KEY_P,
     keyScaleDown = keys.KEY_O,
     keyExtrude = keys.KEY_E,
-    keyNextMaterial = keys.KEY_M,
-    keyPreviousMaterial = keys.KEY_N,
+    keyNext = keys.KEY_RIGHT,
+    keyMaterial = keys.KEY_M,
+    keyPrevious = keys.KEY_LEFT,
+    keyCreateObject = keys.KEY_Q,
+    keyCommand = keys.KEY_GRAVE_ACCENT,
+    keyLight = keys.KEY_L,
     mouseButtonSelect = keys.MOUSE_BUTTON_LEFT,
     mouseButtonRemove = keys.MOUSE_BUTTON_RIGHT
 }
