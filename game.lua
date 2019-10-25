@@ -38,7 +38,11 @@ function saveMap(name)
     end
     file = io.open(filename, 'w')
     if file then
-        octree:toLua(file, materials)
+        local r, e
+        r, e = scene:toLua(file, materials)
+        if not r then
+            print("Error writing map: " .. e)
+        end
         file:close()
         print(string.format("Wrote file \"%s\".", filename))
     else
@@ -55,9 +59,11 @@ function loadMap(name)
         filename = name .. ".lua"
     end
     local fun, e = loadfile(filename, "bt", {
+        Scene = Scene,
         Octree = Octree,
         Vector = Vector,
         Matrix = Matrix,
+        objects = objects,
         materials = materials
     })
 
@@ -73,22 +79,52 @@ function loadMap(name)
     end
 end
 
+function createMap()
+    scene = Scene:new {
+        objects = {
+            Octree:new {},
+        },
+    }
+end
+
 
 if config.map then
     mapName = config.map
-    octree, e = loadMap(mapName)
-    if not octree then
+    scene, e = loadMap(mapName)
+    if not scene then
         print("Error loading map: " .. e)
-        octree = Octree:new {}
-        octree.min = Vector(-8, -8, -8)
-        octree.max = Vector(8, 8, 8)
+        createMap()
     end
 else
     mapName = os.date("tmp_%Y_%m_%d_%H%M")
-    octree = Octree:new {}
-    octree.min = Vector(-8, -8, -8)
-    octree.max = Vector(8, 8, 8)
+    createMap()
 end
+
+if config.mode then
+    scene.mode = config.mode
+else
+    scene.mode = "play"
+end
+
+octree = scene.octrees[1]
+player = Player:new {
+    position = Vector(0, 0, octree.min.z - 2)
+}
+
+-- Find playerSpawn, and spawn player there.
+for k, object in pairs(scene.objects) do
+    if object.playerSpawn then
+        player.position = object.position
+        player.lookX = object.lookX
+        player.lookY = object.lookY
+    end
+end
+
+scene:add(player.camera)
+scene:add(player.weapon)
+scene:add(player)
+
+scene.activeCamera = player.camera
 
 keysDown = {}
 mouseButtonsDown = {}
@@ -96,19 +132,6 @@ mouseButtonsDown = {}
 window.width = 800
 window.height = 600
 
-player = Player:new {
-    position = Vector(0, 0, octree.min.z - 2)
-}
-
-scene = Scene:new {
-    objects = {
-        player,
-        player.camera,
-        player.weapon,
-        octree
-    },
-    activeCamera = player.camera
-}
 
 uiCamera = Camera:new {
     projection = Matrix.newOrthographic(
@@ -148,14 +171,14 @@ function render()
     scene:render()
 
     -- Draw weapon viewmodel.
-    if player.mode == "play" then
+    if scene.mode == "play" then
         player.weapon.model:render(
             scene,
             player.weapon.matrix)
     end
 
     -- Draw editing stuff.
-    if player.mode == "edit" then
+    if scene.mode == "edit" then
         -- Draw aim.
         if player.aimHit then
             shaders.flat.color = Vector(1, 0, 0, 1)
@@ -191,11 +214,21 @@ function render()
         -- Draw preview of object to add.
         if keysDown[config.keyCreateObject] and not player.waitForCommand then
             gl.polygonMode.fill()
-            previewModel = objects[player.currentObjectKey].previewModel
-            if previewModel and player.aimHit then
-                previewModel:render(
-                    scene,
-                    Matrix.newTranslate(player.aimHit.position + Vector.up))
+            if player.aimHit and Octree:isOctree(player.aimHit.target) then
+                local direction = player.aimHit.normal
+                if direction:dot(player.aim) > 0 then
+                    direction = -direction
+                end
+                previewModel = objects[player.currentObjectKey].previewModel
+                if previewModel and player.aimHit then
+                    previewModel:render(
+                        scene,
+                        Matrix.newTranslate(
+                            player.aimHit.position
+                            + direction
+                                * objects[player.currentObjectKey]
+                                    .previewDistance))
+                end
             end
         end
         
@@ -330,18 +363,18 @@ function window.callbacks.key(key, scancode, action, mods)
         keysDown[key] = true
 
         if key == keys.KEY_G then
-            if player.mode == "edit" and not player.waitForCommand then
+            if scene.mode == "edit" and not player.waitForCommand then
                 player.gravity = Vector(0, -9.8, 0)
-                player.mode = "play"
+                scene.mode = "play"
             else
                 player.gravity = Vector()
                 player.velocity = Vector()
-                player.mode = "edit"
+                scene.mode = "edit"
             end
         end
 
 
-        if player.mode == "edit" and not player.waitForCommand then
+        if scene.mode == "edit" and not player.waitForCommand then
             if keysDown[keys.KEY_LEFT_ALT] then
                 if key == keys.KEY_E then
                     saveMap(mapName)
@@ -380,6 +413,23 @@ function window.callbacks.key(key, scancode, action, mods)
                                 + direction * 0.25
                         end
                     end
+
+                    if s.object then
+                        if s.object.lookX then
+                            if keysDown[config.keyNext] then
+                                s.object.lookX = s.object.lookX + math.pi / 8
+                            elseif keysDown[config.keyPrevious] then
+                                s.object.lookX = s.object.lookX - math.pi / 8
+                            end
+                        end
+                        if s.object.lookY then
+                            if keysDown[config.keyRotateUp] then
+                                s.object.lookY = s.object.lookY + math.pi / 8
+                            elseif keysDown[config.keyRotateDown] then
+                                s.object.lookY = s.object.lookY - math.pi / 8
+                            end
+                        end
+                    end
                 end
             elseif not player.waitForCommand then
                 if key == config.keySubdivide then
@@ -408,13 +458,21 @@ function window.callbacks.key(key, scancode, action, mods)
                     player.selection = nil
                 elseif key == config.keyExtrude then
                     local min, max, size, depth
-                    target = player.aimHit.target
-                    min, max, size, depth = octree:calcBounds(target)
-                    octree:createAround(
-                        (min + max) * 0.5
-                            - player.aim:normalize() * size,
-                        depth)
-                    octree:update()
+                    if player.aimHit then
+                        local target = player.aimHit.target
+                        if Octree:isOctree(target) then
+                            min, max, size, depth = octree:calcBounds(target)
+                            local direction = player.aimHit.normal
+                            if direction:dot(player.aim) > 0 then
+                                direction = -direction
+                            end
+                            octree:createAround(
+                                (min + max) * 0.5
+                                    + direction * size,
+                                depth)
+                            octree:update()
+                        end
+                    end
                 elseif key == config.keyMaterial then
                     if player.selection and player.selection.octree then
                         player.selection.octree.material =
@@ -475,12 +533,22 @@ function window.callbacks.key(key, scancode, action, mods)
             window.cursorMode = cursorMode.NORMAL
         end
 
-        if player.mode == 'edit' and not player.waitForCommand then
+        if scene.mode == 'edit' and not player.waitForCommand then
             if key == config.keyCreateObject then
                 if player.aimHit then
-                    scene:add(objects[player.currentObjectKey]:new {
-                        position = player.aimHit.position + Vector.up
-                    })
+                    if player.aimHit
+                            and Octree:isOctree(player.aimHit.target) then
+                        local direction = player.aimHit.normal
+                        if direction:dot(player.aim) > 0 then
+                            direction = -direction
+                        end
+                        scene:add(objects[player.currentObjectKey]:new {
+                            position = player.aimHit.position
+                                + direction
+                                    * objects[player.currentObjectKey]
+                                        .previewDistance
+                        })
+                    end
                 end
             end
         end
@@ -511,7 +579,7 @@ function window.callbacks.mouse(button, action, mods)
     elseif action == keys.RELEASE then
         mouseButtonsDown[button] = false
     end
-    if player.mode == "edit" then
+    if scene.mode == "edit" then
         if button == config.mouseButtonRemove
                 and action == keys.PRESS then
             if player.aimHit then
@@ -530,7 +598,7 @@ function window.callbacks.mouse(button, action, mods)
                 player.selection = nil
             end
         end
-    elseif player.mode == "play" then
+    elseif scene.mode == "play" then
         if action == keys.PRESS
                 and button == config.mouseButtonFire1 then
             if not player.weapon.currentAnimation

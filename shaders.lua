@@ -198,7 +198,7 @@ void main()
         for(int i = 0; i < lightCount; i ++)
         {
             l = lightPositionAndDistance[i].xyz - fragPosition;
-            brightness += dot(normalize(l), fragNormal)
+            brightness += clamp(dot(normalize(l), fragNormal), 0, 1)
                 * clamp(lightPositionAndDistance[i].w / dot(l, l), 0, 1);
         }
         gl_FragColor = vec4(brightness * color, alpha);

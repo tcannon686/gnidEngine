@@ -6,9 +6,6 @@ local Scene = {}
 local shaders = require("shaders")
 
 function Scene.new(self, attributes)
-    if type(attributes.activeCamera) ~= "table" then
-        error("Scene.new expects table with key activeCamera.")
-    end
     if type(attributes.objects) ~= "table" then
         error("Scene.new expects table with key objects.")
     end
@@ -17,8 +14,19 @@ function Scene.new(self, attributes)
     objectListMt.__pairs = function(t, k)
         return next, rawget(t, "__data")
     end
-    objectListMt.__newindex = function(t, k)
+    objectListMt.__newindex = function(t, k, v)
         error("Scene objects list cannot be modified directly.")
+    end
+    objectListMt.__index = function(t, k)
+        if type(k) == "number" then
+            local i = 1
+            for k1, v in pairs(t) do
+                if i >= k then return v end
+                i = i + 1
+            end
+        else
+            return rawget(t, k)
+        end
     end
     objectListMt.__len = function(t, k)
         local count = 0
@@ -30,18 +38,24 @@ function Scene.new(self, attributes)
 
     objects = { __data = {} }
     lights = { __data = {} }
+    octrees = { __data = {} }
     for k, object in pairs(attributes.objects) do
         objects.__data[tostring(object)] = object
         if object.light then
             lights.__data[tostring(object)] = object
         end
+        if Octree:isOctree(object) then
+            octrees.__data[tostring(object)] = object
+        end
     end
     setmetatable(objects, objectListMt)
     setmetatable(lights, objectListMt)
+    setmetatable(octrees, objectListMt)
 
     local ret = {
         objects = objects,
         lights = lights,
+        octrees = octrees,
         activeCamera = attributes.activeCamera
     }
     
@@ -53,6 +67,9 @@ function Scene.new(self, attributes)
         if object.light then
             rawget(self.lights, "__data")[tostring(object)] = object
         end
+        if Octree:isOctree(object) then
+            rawget(self.octrees, "__data")[tostring(object)] = object
+        end
     end
 
     ret.remove = function(self, object)
@@ -62,9 +79,14 @@ function Scene.new(self, attributes)
         local name = tostring(object)
         rawget(self.objects, "__data")[name] = nil
         rawget(self.lights, "__data")[name] = nil
+        rawget(self.octrees, "__data")[name] = nil
     end
 
-    ret.render = function(self)
+    ret.render = function(self, objectFilter)
+        if self.activeCamera == nil then
+            print("warning: no active camera.")
+            return
+        end
         -- Update the lights for each shader.
         for name, shader in pairs(shaders) do
             if shader.lightCount ~= nil then
@@ -82,46 +104,74 @@ function Scene.new(self, attributes)
             end
         end
         for k, object in pairs(self.objects) do
-            if object.render then
-                object:render(self)
+            if not objectFilter or objectFilter(object) then
+                if object.render then
+                    object:render(self)
+                end
             end
         end
     end
 
-    ret.preTick = function(self, deltaT)
+    ret.preTick = function(self, deltaT, objectFilter)
         for k, object in pairs(self.objects) do
-            if object.preTick then
-                object:preTick(deltaT, self)
+            if not objectFilter or objectFilter(object) then
+                if object.preTick then
+                    object:preTick(deltaT, self)
+                end
             end
         end
     end
 
-    ret.tick = function(self, deltaT)
+    ret.tick = function(self, deltaT, objectFilter)
         for k, object in pairs(self.objects) do
-            if object.tick then
-                object:tick(deltaT, self)
+            if not objectFilter or objectFilter(object) then
+                if object.tick then
+                    object:tick(deltaT, self)
+                end
             end
         end
     end
 
-    ret.postTick = function(self, deltaT)
+    ret.postTick = function(self, deltaT, objectFilter)
         for k, object in pairs(self.objects) do
-            if object.postTick then
-                object:postTick(deltaT, self)
+            if not objectFilter or objectFilter(object) then
+                if object.postTick then
+                    object:postTick(deltaT, self)
+                end
             end
         end
     end
 
-    ret.raycast = function(self, hit, ray)
+    ret.raycast = function(self, hit, ray, objectFilter)
         result = false
         for k, object in pairs(self.objects) do
-            if object.raycast then
-                if object:raycast(hit, ray) then
-                    result = true
+            if not objectFilter or objectFilter(object) then
+                if object.raycast then
+                    if object:raycast(hit, ray) then
+                        result = true
+                    end
                 end
             end
         end
         return result
+    end
+
+    ret.toLua = function(self, out, materials)
+        local r, e
+
+        r, e = out:write("return Scene:new{objects={")
+        if not r then return false, e end
+        for k, object in pairs(self.objects) do
+            if object.toLua then
+                r, e = object:toLua(out, materials)
+                if not r then return false, e end
+                r, e = out:write(",")
+                if not r then return false, e end
+            end
+        end
+        r, e = out:write("}}")
+        if not r then return false, e end
+        return true
     end
 
     return ret

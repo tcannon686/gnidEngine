@@ -129,6 +129,13 @@ local materials = {
             enableDiffuseTexture = true,
             shadeless = true
         }),
+    playerSpawn1 = Material:new(
+        shaders.default,
+        {
+            enableDiffuseTexture = false,
+            shadeless = true,
+            diffuseColor = Vector(0.0, 1.0, 0.0)
+        }),
     sphereMonster1 = Material:new(
         shaders.default,
         {

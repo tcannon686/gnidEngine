@@ -227,6 +227,9 @@ int RaySphere(sphere_t *sphere, hit_t *hit_ptr, ray_t *ray)
         t = tmax;
     else
         t = tmin;
+    
+    if(t < 0)
+        return 0;
 
     if(t < hit_ptr->t)
     {
@@ -288,6 +291,7 @@ int RayTriangle(triangle_t *tri, hit_t *hit_ptr, ray_t *ray)
     hit_ptr->t = d;
     hit_ptr->position = pos;
     hit_ptr->barycentric = bary;
+    hit_ptr->normal = tri->normal;
     
     return 1;
 }

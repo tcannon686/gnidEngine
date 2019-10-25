@@ -60,16 +60,24 @@ end. When the program starts, press escape to regain control of your cursor.
 | Alt D                 | Move corner right.                 |
 | Alt left shift        | Move corner up.                    |
 | Alt left control      | Move corner down.                  |
+| Alt W                 | Move object forward.               |
+| Alt A                 | Move object left.                  |
+| Alt S                 | Move object back.                  |
+| Alt D                 | Move object right.                 |
+| Alt Left              | Rotate object left.                |
+| Alt Right             | Rotate object right.               |
 | E                     | Extrude octree.                    |
 | Alt E                 | Save map.                          |
 | P                     | Double map size.                   |
 | O                     | Halve map size.                    |
 | M                     | Use selected material.             |
-| M left                | Select next material.              |
-| M right               | Select previous material.          |
+| M left                | Select previous material.          |
+| M right               | Select next material.              |
 | Q                     | Place object (hold for preview).   |
-| Q left                | Select next object.                |
-| Q right               | Select previous object.            |
+| Q left                | Select previous object.            |
+| Q right               | Select next object.                |
+| L left                | Decrease light distance.           |
+| L right               | Increase light distance.           |
 | \`                    | Open console.                      |
 
 ## Editing
@@ -81,7 +89,7 @@ will be saved.
 ## Exporting models
 The engine features its own file format for models and skeletons called tmd,
 which stands for Tom's Model Data. The format is super simple, and not very
-efficient, but it gets the job done. A blender script is included to export
+efficient, but it gets the job done. A Blender script is included to export
 models. It is `operator_export_tmd.py`. It only supports exporting a single
 model and armature. The format also exports all of the animation actions! Yay!
 

@@ -127,10 +127,6 @@ function Octree.new(self, attributes)
     ret.toLua = function(self, out, materials)
         local r, e
 
-        if self.root == self then
-            r, e = out:write("return ")
-            if not r then return false, e end
-        end
         r, e = out:write("Octree:new{")
         if not r then return false, e end
         if self.children then
@@ -619,9 +615,21 @@ function Octree.new(self, attributes)
     end
 
     ret.raycastQuad = function(self, hit, quad, ray)
-        if math3d.rayTriangle(hit, quad[1], quad[2], quad[3], ray.o, ray.d) then
+        if math3d.rayTriangle(
+                hit,
+                quad[1],
+                quad[2],
+                quad[3],
+                ray.o,
+                ray.d) then
             return true
-        elseif math3d.rayTriangle(hit, quad[3], quad[4], quad[1], ray.o, ray.d) then
+        elseif math3d.rayTriangle(
+                hit,
+                quad[3],
+                quad[4],
+                quad[1],
+                ray.o,
+                ray.d) then
             return true
         end
         return false
