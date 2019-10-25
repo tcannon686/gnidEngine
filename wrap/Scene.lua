@@ -1,4 +1,6 @@
 
+local KdTree = require("wrap/KdTree")
+
 local Octree = require("octree/Octree")
 
 local Scene = {}
@@ -123,6 +125,7 @@ function Scene.new(self, attributes)
     end
 
     ret.tick = function(self, deltaT, objectFilter)
+        self.kdTree = KdTree:new(self.objects)
         for k, object in pairs(self.objects) do
             if not objectFilter or objectFilter(object) then
                 if object.tick then
@@ -143,17 +146,7 @@ function Scene.new(self, attributes)
     end
 
     ret.raycast = function(self, hit, ray, objectFilter)
-        result = false
-        for k, object in pairs(self.objects) do
-            if not objectFilter or objectFilter(object) then
-                if object.raycast then
-                    if object:raycast(hit, ray) then
-                        result = true
-                    end
-                end
-            end
-        end
-        return result
+        return self.kdTree:raycast(hit, ray, objectFilter)
     end
 
     ret.toLua = function(self, out, materials)
