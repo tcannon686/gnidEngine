@@ -222,3 +222,4 @@ void VectorNormalizeP(vector_t *dest, vector_t *left);
 int VectorEqualsVectorP(vector_t *left, vector_t *right);
 void VectorClampP(vector_t *dest, vector_t *left);
 
+void VectorReflectP(vector_t *dest, vector_t *i, vector_t *n);

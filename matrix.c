@@ -1159,6 +1159,7 @@ void VectorReflectP(vector_t *dest, vector_t *i, vector_t *n)
     VectorTimesScalarP(dest, n, 2 * VectorDotVectorP(n, i));
     VectorMinusVectorP(dest, dest, i);
 }
+
 // End vector pointer
 
 vector_t vec2(vecc_t x, vecc_t y)
