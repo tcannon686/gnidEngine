@@ -50,13 +50,16 @@ function PointCloud.new(self, attributes)
     end
 
     ret.bind = function(self, shader)
-        s = ShaderProgram:toShaderProgram(shader)
-        if s == nil then
-            error("PointCloud.bind expects a shader program.")
-        end
+        if PointCloud.__active ~= self then
+            s = ShaderProgram:toShaderProgram(shader)
+            if s == nil then
+                error("PointCloud.bind expects a shader program.")
+            end
 
-        for key, value in pairs(self.vertexArrays) do
-            s[key] = value
+            for key, value in pairs(self.vertexArrays) do
+                s[key] = value
+            end
+            PointCloud.__active = self
         end
     end
 

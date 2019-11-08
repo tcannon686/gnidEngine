@@ -1,6 +1,7 @@
 local Material = {}
 
 local materialId = 1
+Material.__active = nil
 
 function Material.new(self, shader, values)
     local ret = {}
@@ -12,9 +13,12 @@ function Material.new(self, shader, values)
     materialId = materialId + 1
 
     ret.bind = function(self)        
-        self.shader:bind()
-        for key, value in pairs(self.values) do
-            self.shader[key] = value
+        if Material.currentBoundMaterial ~= self then
+            self.shader:bind()
+            for key, value in pairs(self.values) do
+                self.shader[key] = value
+            end
+            Material.__active = self
         end
     end
     return ret

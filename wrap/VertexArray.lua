@@ -43,10 +43,13 @@ function VertexArray.new(self, vertices)
     end
 
     ret.bind = function(self, index)
-        gl.buffer.array.bind(self.__buffer)
-        self:update()
-        if index then
-            gl.vertexAttrib.pointer(index, 4, 'f', false, 0, 0)
+        if VertexArray.__active ~= self or self.__needsUpdate then
+            gl.buffer.array.bind(self.__buffer)
+            self:update()
+            if index then
+                gl.vertexAttrib.pointer(index, 4, 'f', false, 0, 0)
+            end
+            VertexArray.__active = self
         end
     end
 

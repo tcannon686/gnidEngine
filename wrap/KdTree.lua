@@ -1,12 +1,7 @@
 
 local KdTree = {}
 
-function KdTree.new(self, objects, axisIndex)
-    if not axisIndex then
-        axisIndex = 1 end
-    local axis = Vector()
-    axis[axisIndex] = 1
-
+function KdTree.new(self, objects)
     function calcBounds(object)
         if object.max and object.min then
             return {
@@ -26,6 +21,7 @@ function KdTree.new(self, objects, axisIndex)
     end
 
     local ret = {}
+    local average = Vector.new(0, 0, 0)
 
     -- Calculate the bounds of the tree.
     for k, object in pairs(objects) do
@@ -37,6 +33,7 @@ function KdTree.new(self, objects, axisIndex)
     for k, object in pairs(objects) do
         local bounds = calcBounds(object)
         if bounds then
+            average = average + bounds.position
             if bounds.max.x > ret.bounds.max.x then
                 ret.bounds.max.x = bounds.max.x end
             if bounds.max.y > ret.bounds.max.y then
@@ -55,6 +52,24 @@ function KdTree.new(self, objects, axisIndex)
     ret.bounds.position = (ret.bounds.min + ret.bounds.max) * 0.5
     ret.bounds.size = ret.bounds.max - ret.bounds.min
 
+    average = average * (1 / #objects)
+    local axis
+
+    -- Split along longest axis.
+    if ret.bounds.size.x >= ret.bounds.size.y then
+        if ret.bounds.size.x >= ret.bounds.size.z then
+            axis = Vector.right
+        else
+            axis = Vector.forward
+        end
+    else
+        if ret.bounds.size.y >= ret.bounds.size.z then
+            axis = Vector.up
+        else
+            axis = Vector.forward
+        end
+    end
+
     local onLeft = {}
     local onLeftIndex = 0
     local onRight = {}
@@ -63,7 +78,7 @@ function KdTree.new(self, objects, axisIndex)
     for k, object in pairs(objects) do
         local bounds = calcBounds(object)
         if bounds then
-            if (bounds.position - ret.bounds.position):dot(axis) < 0 then
+            if (bounds.position - average):dot(axis) < 0 then
                 onLeftIndex = onLeftIndex + 1
                 onLeft[onLeftIndex] = object
             else
@@ -78,8 +93,63 @@ function KdTree.new(self, objects, axisIndex)
     elseif onRightIndex == 0 then
         ret.objects = onLeft
     else
-        ret.left = self:new(onLeft, (axisIndex + 1) % 4 + 1)
-        ret.right = self:new(onRight, (axisIndex + 1) % 4 + 1)
+        ret.left = self:new(onLeft)
+        ret.right = self:new(onRight)
+    end
+
+    -- Find leaf nodes that intersect the given bounds. callback sohuld be a
+    -- function of function(node) -> true|false.
+    function ret.intersect(self, callback, bounds)
+        if self.bounds.max.x >= bounds.min.x
+                and self.bounds.max.y >= bounds.min.y
+                and self.bounds.max.z >= bounds.min.z
+
+                and self.bounds.min.x <= bounds.max.z
+                and self.bounds.min.y <= bounds.max.y
+                and self.bounds.min.z <= bounds.max.z then
+
+            -- If a leaf node, call the callback.
+            if self.objects then
+                if callback then
+                    return callback(self)
+                else
+                    return true
+                end
+            else
+                local ret = false
+                if self.left and self.left:intersect(callback, bounds) then
+                    ret = true end
+                if self.right and self.right:intersect(callback, bounds) then
+                    ret = true end
+                return ret
+            end
+        end
+    end
+
+    -- Calculates all of the intersections. One intersection per object.
+    -- callback should be a function(a, b).
+    function ret.calcIntersections(self, callback, root, visited)
+        if not visited then
+            visited = {} end
+        if not root then
+            root = self end
+
+        if self.objects then
+            -- When we find an intersection, do the callback funciton.
+            root:intersect(function(node)
+                if not visited[tostring(node)] then
+                    callback(self, node)
+                end
+            end, self.bounds)
+            visited[tostring(self)] = true
+        else
+            if self.left then
+                self.left:calcIntersections(callback)
+            end
+            if self.right then
+                self.right:calcIntersections(callback)
+            end
+        end
     end
 
     function ret.raycast(self, hit, ray, objectFilter)

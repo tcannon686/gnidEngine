@@ -142,7 +142,7 @@ int _G_matrix_newTranslate(lua_State *L)
     
     if(lua_isvector(L, 1))
     {
-        *(lua_newmatrix(L)) = NewTranslateMatrix(*(vector_t *)lua_topointer(L, 1));
+        NewTranslateMatrixP(lua_newmatrix(L), *(vector_t *)lua_topointer(L, 1));
         return 1;
     }
     else
@@ -153,7 +153,7 @@ int _G_matrix_newScale(lua_State *L)
 {
     if(lua_isvector(L, 1))
     {
-        *(lua_newmatrix(L)) = NewScaleMatrix(*(vector_t *)lua_topointer(L, 1));
+        NewScaleMatrixP(lua_newmatrix(L), *(vector_t *)lua_topointer(L, 1));
         return 1;
     }
     else
@@ -164,10 +164,10 @@ int _G_matrix_newRotate(lua_State *L)
 {
     if(lua_isnumber(L, 1) && lua_isvector(L, 2))
     {
-        *(lua_newmatrix(L)) =
-            NewRotateMatrix(
-                lua_tonumber(L, 1),
-                *(vector_t *)lua_topointer(L, 2));
+        NewRotateMatrixP(
+            lua_newmatrix(L),
+            lua_tonumber(L, 1),
+            *(vector_t *)lua_topointer(L, 2));
         return 1;
     }
     else
@@ -183,14 +183,14 @@ int _G_matrix_newOrthographic(lua_State *L)
         && lua_isnumber(L, 5)
         && lua_isnumber(L, 6))
     {
-        *(lua_newmatrix(L)) =
-            NewOrthographicMatrix(
-                lua_tonumber(L, 1),
-                lua_tonumber(L, 2),
-                lua_tonumber(L, 3),
-                lua_tonumber(L, 4),
-                lua_tonumber(L, 5),
-                lua_tonumber(L, 6));
+        NewOrthographicMatrixP(
+            lua_newmatrix(L),
+            lua_tonumber(L, 1),
+            lua_tonumber(L, 2),
+            lua_tonumber(L, 3),
+            lua_tonumber(L, 4),
+            lua_tonumber(L, 5),
+            lua_tonumber(L, 6));
         return 1;
     }
     else
@@ -206,14 +206,14 @@ int _G_matrix_newFrustrum(lua_State *L)
         && lua_isnumber(L, 5)
         && lua_isnumber(L, 6))
     {
-        *(lua_newmatrix(L)) =
-            NewFrustrumMatrix(
-                lua_tonumber(L, 1),
-                lua_tonumber(L, 2),
-                lua_tonumber(L, 3),
-                lua_tonumber(L, 4),
-                lua_tonumber(L, 5),
-                lua_tonumber(L, 6));
+        NewFrustrumMatrixP(
+            lua_newmatrix(L),
+            lua_tonumber(L, 1),
+            lua_tonumber(L, 2),
+            lua_tonumber(L, 3),
+            lua_tonumber(L, 4),
+            lua_tonumber(L, 5),
+            lua_tonumber(L, 6));
         return 1;
     }
     else
@@ -227,12 +227,12 @@ int _G_matrix_newPerspective(lua_State *L)
         && lua_isnumber(L, 3)
         && lua_isnumber(L, 4))
     {
-        *(lua_newmatrix(L)) =
-            NewPerspectiveMatrix(
-                lua_tonumber(L, 1),
-                lua_tonumber(L, 2),
-                lua_tonumber(L, 3),
-                lua_tonumber(L, 4));
+        NewPerspectiveMatrixP(
+            lua_newmatrix(L),
+            lua_tonumber(L, 1),
+            lua_tonumber(L, 2),
+            lua_tonumber(L, 3),
+            lua_tonumber(L, 4));
         return 1;
     }
     else
@@ -245,11 +245,11 @@ int _G_matrix_newLookAt(lua_State *L)
         && lua_isvector(L, 2)
         && lua_isvector(L, 3))
     {
-        *(lua_newmatrix(L)) =
-            NewLookAtMatrix(
-                *(vector_t *)lua_topointer(L, 1),
-                *(vector_t *)lua_topointer(L, 2),
-                *(vector_t *)lua_topointer(L, 3));
+        NewLookAtMatrixP(
+            lua_newmatrix(L),
+            *(vector_t *)lua_topointer(L, 1),
+            *(vector_t *)lua_topointer(L, 2),
+            *(vector_t *)lua_topointer(L, 3));
         return 1;
     }
     else

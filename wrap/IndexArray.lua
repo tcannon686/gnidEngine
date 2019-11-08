@@ -58,8 +58,11 @@ function IndexArray.new(self, elements)
     end
 
     ret.bind = function(self)
-        gl.buffer.element.bind(self.__buffer)
-        self:update()
+        if IndexArray.__active ~= self or self.__needsUpdate then
+            gl.buffer.element.bind(self.__buffer)
+            self:update()
+            IndexArray.__active = self
+        end
     end
 
     ret.update = function(self)

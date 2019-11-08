@@ -31,23 +31,22 @@ function Scene.new(self, attributes)
         end
     end
     objectListMt.__len = function(t, k)
-        local count = 0
-        for t, v in pairs(t, "__data") do
-            count = count + 1
-        end
-        return count
+        return rawget(t, "__count")
     end
 
-    objects = { __data = {} }
-    lights = { __data = {} }
-    octrees = { __data = {} }
+    objects = { __data = {}, __count = 0 }
+    lights = { __data = {}, __count = 0 }
+    octrees = { __data = {}, __count = 0 }
     for k, object in pairs(attributes.objects) do
         objects.__data[tostring(object)] = object
+        objects.__count = objects.__count + 1
         if object.light then
             lights.__data[tostring(object)] = object
+            lights.__count = lights.__count + 1
         end
         if Octree:isOctree(object) then
             octrees.__data[tostring(object)] = object
+            octrees.__count = octrees.__count + 1
         end
     end
     setmetatable(objects, objectListMt)
@@ -65,12 +64,16 @@ function Scene.new(self, attributes)
         if type(object) ~= "table" then
             error("Scene.add expects object to add.")
         end
-        rawget(self.objects, "__data")[tostring(object)] = object
+        local name = tostring(object)
+        rawget(self.objects, "__data")[name] = object
+        rawset(self.objects, "__count", rawget(self.objects, "__count") + 1)
         if object.light then
-            rawget(self.lights, "__data")[tostring(object)] = object
+            rawget(self.lights, "__data")[name] = object
+            rawset(self.lights, "__count", rawget(self.lights, "__count") + 1)
         end
         if Octree:isOctree(object) then
-            rawget(self.octrees, "__data")[tostring(object)] = object
+            rawget(self.octrees, "__data")[name] = object
+            rawset(self.octrees, "__count", rawget(self.octrees, "__count") + 1)
         end
     end
 
@@ -80,8 +83,15 @@ function Scene.new(self, attributes)
         end
         local name = tostring(object)
         rawget(self.objects, "__data")[name] = nil
-        rawget(self.lights, "__data")[name] = nil
-        rawget(self.octrees, "__data")[name] = nil
+        rawset(self.objects, "__count", rawget(self.objects, "__count") - 1)
+        if object.light then
+            rawget(self.lights, "__data")[name] = nil
+            rawset(self.lights, "__count", rawget(self.lights, "__count") - 1)
+        end
+        if Octree:isOctree(object) then
+            rawget(self.octrees, "__data")[name] = nil
+            rawset(self.octrees, "__count", rawget(self.octrees, "__count") - 1)
+        end
     end
 
     ret.render = function(self, objectFilter)
@@ -126,6 +136,8 @@ function Scene.new(self, attributes)
 
     ret.tick = function(self, deltaT, objectFilter)
         self.kdTree = KdTree:new(self.objects)
+        self.kdTree:calcIntersections(function(a, b)
+        end)
         for k, object in pairs(self.objects) do
             if not objectFilter or objectFilter(object) then
                 if object.tick then

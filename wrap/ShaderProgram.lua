@@ -153,12 +153,12 @@ function ShaderProgram.new(self, attributes)
         if ShaderProgram.__active ~= self then
             ShaderProgram.__active = self
             gl.shader.use(self.__program)
-        end
-        for name, attrib in pairs(self.__vertexAttributes) do
-            if attrib.location < 0 then
-                error("invalid vertex attrib " .. name .. ".")
+            for name, attrib in pairs(self.__vertexAttributes) do
+                if attrib.location < 0 then
+                    error("invalid vertex attrib " .. name .. ".")
+                end
+                gl.vertexAttrib.enable(attrib.location)
             end
-            gl.vertexAttrib.enable(attrib.location)
         end
     end
 

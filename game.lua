@@ -2,7 +2,6 @@
 local Camera = require("wrap/Camera")
 local VertexArray = require("wrap/VertexArray")
 local PointCloud = require("wrap/PointCloud")
-local GameObject = require("wrap/GameObject")
 local IndexArray = require("wrap/IndexArray")
 local Octree = require("octree/Octree")
 local Material = require("wrap/Material")
@@ -366,9 +365,11 @@ function window.callbacks.key(key, scancode, action, mods)
             if scene.mode == "edit" and not player.waitForCommand then
                 player.gravity = Vector(0, -9.8, 0)
                 scene.mode = "play"
+                player.enablePhysics = true
             else
                 player.gravity = Vector()
                 player.velocity = Vector()
+                player.enablePhysics = false
                 scene.mode = "edit"
             end
         end

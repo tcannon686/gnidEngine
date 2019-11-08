@@ -845,6 +845,151 @@ matrix_t NewLookAtMatrix(vector_t eye, vector_t center, vector_t up)
         0,        0,        0,        1);
 }
 
+void NewMatrixP(
+    matrix_t *dest,
+	vecc_t m11, vecc_t m12, vecc_t m13, vecc_t m14,
+	vecc_t m21, vecc_t m22, vecc_t m23, vecc_t m24,
+	vecc_t m31, vecc_t m32, vecc_t m33, vecc_t m34,
+	vecc_t m41, vecc_t m42, vecc_t m43, vecc_t m44)
+{
+    dest->m11 = m11;
+    dest->m12 = m12;
+    dest->m13 = m13;
+    dest->m14 = m14;
+    dest->m21 = m21;
+    dest->m22 = m22;
+    dest->m23 = m23;
+    dest->m24 = m24;
+    dest->m31 = m31;
+    dest->m32 = m32;
+    dest->m33 = m33;
+    dest->m34 = m34;
+    dest->m41 = m41;
+    dest->m42 = m42;
+    dest->m43 = m43;
+    dest->m44 = m44;
+}
+
+void NewTranslateMatrixP(matrix_t *dest, vector_t t)
+{
+    NewMatrixP(
+        dest,
+        1, 0, 0, t.x,
+        0, 1, 0, t.y,
+        0, 0, 1, t.z,
+        0, 0, 0, 1);
+}
+void NewScaleMatrixP(matrix_t *dest, vector_t s)
+{
+    NewMatrixP(
+        dest,
+        s.x,    0,        0,        0,
+        0,        s.y,    0,        0,
+        0,        0,        s.z,    0,
+        0,        0,        0,        1);
+}
+
+void NewRotateMatrixP(matrix_t *dest, vecc_t angle, vector_t axis)
+{
+    vecc_t s = sin(angle);
+    vecc_t c = cos(angle);
+    vecc_t x = axis.x;
+    vecc_t y = axis.y;
+    vecc_t z = axis.z;
+    NewMatrixP(
+        dest,
+        x*x*(1-c)+c,    x*y*(1-c)-z*s,    x*z*(1-c)+y*s,    0,
+        y*x*(1-c)+z*s,    y*y*(1-c)+c,    y*z*(1-c)-x*s,    0,
+        x*z*(1-c)-y*s,    y*z*(1-c)+x*s,    z*z*(1-c)+c,    0,
+        0,                0,                0,                1);    
+}
+
+void NewOrthographicMatrixP(
+    matrix_t *dest, 
+    vecc_t left, vecc_t right, vecc_t bottom, vecc_t top,
+    vecc_t near, vecc_t far)
+{
+    vecc_t tx;
+    vecc_t ty;
+    vecc_t tz;
+    
+    tx = -(right + left) / (right - left);
+    ty = -(top + bottom) / (top - bottom);
+    tz = -(far + near) / (far - near);
+    
+    NewMatrixP(
+        dest,
+        2 / (right - left),    0,                    0,                    tx,
+        0,                    2 / (top - bottom),    0,                    ty,
+        0,                    0,                    2 / (far - near),    tz,
+        0,                    0,                    0,                    1);
+}
+
+void NewFrustrumMatrixP(
+    matrix_t *dest, 
+    vecc_t left, vecc_t right, vecc_t bottom, vecc_t top,
+    vecc_t near, vecc_t far)
+{
+
+    vecc_t A;
+    vecc_t B;
+    vecc_t C;
+    vecc_t D;
+
+    A = (right + left) / (right - left);
+    B = (top + bottom) / (top - bottom);
+    C = -(far + near) / (far - near);
+    D = -2 * far * near / (far - near);
+
+    NewMatrixP(
+        dest,
+        2 * near / (left - right),    0,                            A,                    0,
+        0,                            2 * near / (top - bottom),    B,                    0,
+        0,                            0,                            C,                    D,
+        0,                            0,                            -1,                    0);
+}
+
+void NewPerspectiveMatrixP(
+    matrix_t *dest, 
+    vecc_t fovy,
+    vecc_t aspect,
+    vecc_t near,
+    vecc_t far)
+{
+    vecc_t f;
+    vecc_t A;
+    vecc_t B;
+    
+    f = 1 / tan(fovy / 2);
+    A = (far + near) / (near - far);
+    B = 2 * far * near / (near - far);
+    
+    NewMatrixP(
+        dest,
+        f / aspect,        0,                0,                0,
+        0,                f,                0,                0,
+        0,                0,                A,                B,
+        0,                0,                -1,                0);
+}
+
+void NewLookAtMatrixP(matrix_t *dest, vector_t eye, vector_t center, vector_t up)
+{
+    vector_t f;
+    vector_t UP;
+    vector_t s;
+    vector_t u;
+    f = VectorNormalize(VectorThree(VectorMinusVector(center, eye)));
+    UP = VectorNormalize(VectorThree(up));
+    s = VectorCrossVector(f, UP);
+    u = VectorCrossVector(VectorNormalize(s), f);
+    NewMatrixP(
+        dest,
+        s.x,    s.y,    s.z,    -eye.x,
+        u.x,    u.y,    u.z,    -eye.y,
+        -f.x,    -f.y,    -f.z,    -eye.z,
+        0,        0,        0,        1);
+}
+
 vector_t EmptyVector()
 {
     vector_t ret;

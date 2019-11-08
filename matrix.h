@@ -151,6 +151,32 @@ matrix_t NewPerspectiveMatrix(
 	vecc_t far);
 matrix_t NewLookAtMatrix(vector_t eye, vector_t center, vector_t up);
 
+void NewMatrixP(
+    matrix_t *dest,
+	vecc_t m11, vecc_t m12, vecc_t m13, vecc_t m14,
+	vecc_t m21, vecc_t m22, vecc_t m23, vecc_t m24,
+	vecc_t m31, vecc_t m32, vecc_t m33, vecc_t m34,
+	vecc_t m41, vecc_t m42, vecc_t m43, vecc_t m44);
+
+void NewTranslateMatrixP(matrix_t *dest, vector_t translate);
+void NewScaleMatrixP(matrix_t *dest, vector_t scale);
+void NewRotateMatrixP(matrix_t *dest, vecc_t angle, vector_t axis);
+void NewOrthographicMatrixP(
+    matrix_t *dest, 
+	vecc_t left, vecc_t right, vecc_t bottom, vecc_t top,
+	vecc_t near, vecc_t far);
+void NewFrustrumMatrixP(
+    matrix_t *dest, 
+	vecc_t left, vecc_t right, vecc_t bottom, vecc_t top,
+	vecc_t near, vecc_t far);
+void NewPerspectiveMatrixP(
+    matrix_t *dest, 
+	vecc_t fovy,
+	vecc_t aspect,
+	vecc_t near,
+	vecc_t far);
+void NewLookAtMatrixP(matrix_t *dest, vector_t eye, vector_t center, vector_t up);
+
 void MatrixPlusMatrixP(matrix_t *dest, matrix_t *left, matrix_t *right);
 void MatrixMinusMatrixP(matrix_t *dest, matrix_t *left, matrix_t *right);
 
