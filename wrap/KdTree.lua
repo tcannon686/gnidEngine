@@ -1,12 +1,11 @@
-
 local KdTree = {}
 
 function KdTree.new(self, objects)
     function calcBounds(object)
         if object.max and object.min then
             return {
-                max = object.max,
-                min = object.min,
+                max = object.max * Vector.one,
+                min = object.min * Vector.one,
                 position = (object.max + object.min) * 0.5,
                 size = object.max - object.min
             }
@@ -14,7 +13,7 @@ function KdTree.new(self, objects)
             return {
                 max = object.position + object.radius * Vector.one,
                 min = object.position - object.radius * Vector.one,
-                position = object.position,
+                position = object.position * Vector.one,
                 size = 2 * object.radius * Vector.one
             }
         end
@@ -78,7 +77,7 @@ function KdTree.new(self, objects)
     for k, object in pairs(objects) do
         local bounds = calcBounds(object)
         if bounds then
-            if (bounds.position - average):dot(axis) < 0 then
+            if (bounds.position - average):three():dot(axis) < 0 then
                 onLeftIndex = onLeftIndex + 1
                 onLeft[onLeftIndex] = object
             else
@@ -97,14 +96,14 @@ function KdTree.new(self, objects)
         ret.right = self:new(onRight)
     end
 
-    -- Find leaf nodes that intersect the given bounds. callback sohuld be a
+    -- Find leaf nodes that intersect the given bounds. callback should be a
     -- function of function(node) -> true|false.
     function ret.intersect(self, callback, bounds)
         if self.bounds.max.x >= bounds.min.x
                 and self.bounds.max.y >= bounds.min.y
                 and self.bounds.max.z >= bounds.min.z
 
-                and self.bounds.min.x <= bounds.max.z
+                and self.bounds.min.x <= bounds.max.x
                 and self.bounds.min.y <= bounds.max.y
                 and self.bounds.min.z <= bounds.max.z then
 
@@ -136,18 +135,38 @@ function KdTree.new(self, objects)
 
         if self.objects then
             -- When we find an intersection, do the callback funciton.
+            visited[tostring(self)] = true
             root:intersect(function(node)
                 if not visited[tostring(node)] then
                     callback(self, node)
+                    return true
                 end
             end, self.bounds)
-            visited[tostring(self)] = true
         else
             if self.left then
-                self.left:calcIntersections(callback)
+                self.left:calcIntersections(callback, root, visited)
             end
             if self.right then
-                self.right:calcIntersections(callback)
+                self.right:calcIntersections(callback, root, visited)
+            end
+        end
+    end
+
+    function ret.printTree(self, indentation)
+        if not indentation then
+            indentation = ''
+        end
+        print(indentation .. tostring(self.bounds.size))
+        if self.objects then
+            print(indentation .. "#objects: " .. #self.objects)
+        else
+            if self.left then
+                print(indentation .. "left: ")
+                self.left:printTree(indentation .. ' ')
+            end
+            if self.right then
+                print(indentation .. "right: ")
+                self.left:printTree(indentation .. ' ')
             end
         end
     end

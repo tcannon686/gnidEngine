@@ -537,7 +537,7 @@ int _G_vector_index(lua_State *L)
     if(lua_isnumber(L, 2))
     {
         lua_pushnumber(L,
-            ((vector_t *)lua_topointer(L, 1))->m[lua_tointeger(L, 2) + 1]);
+            ((vector_t *)lua_topointer(L, 1))->m[lua_tointeger(L, 2) - 1]);
         return 1;
     }
     else

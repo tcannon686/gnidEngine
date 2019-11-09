@@ -833,12 +833,12 @@ function Octree.new(self, attributes)
     end
 
     ret.tick = function(self, deltaT, scene)
-        for k, object in pairs(scene.objects) do
+        --[[for k, object in pairs(scene.objects) do
             if object.enablePhysics then
                 object.isGrounded = false
                 self:doPhysics(object)
             end
-        end
+        end]]
     end
     
     setmetatable(ret, self.__mt)

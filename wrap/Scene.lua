@@ -136,7 +136,36 @@ function Scene.new(self, attributes)
 
     ret.tick = function(self, deltaT, objectFilter)
         self.kdTree = KdTree:new(self.objects)
+        -- Physics
         self.kdTree:calcIntersections(function(a, b)
+            for kA, objA in pairs(a.objects) do
+                for kB, objB in pairs(b.objects) do
+                    if Octree:isOctree(objA) then
+                        if objB.enablePhysics then
+                            objB.isGrounded = false
+                            objA:doPhysics(objB)
+                        end
+                    elseif Octree:isOctree(objB) then
+                        if objA.enablePhysics then
+                            objA.isGrounded = false
+                            objB:doPhysics(objA)
+                        end
+                    else
+                        if objA.enablePhysics and objB.enablePhysics then
+                            if objA.radius and objB.radius then
+                                local ab = (objA.position - objB.position)
+                                local len = #ab:three()
+                                if len < objA.radius + objB.radius then
+                                    ab = ab * ((len - objA.radius - objB.radius)
+                                        / len)
+                                    objA.position = objA.position - ab
+                                    objB.position = objB.position + ab
+                                end
+                            end
+                        end
+                    end
+                end
+            end
         end)
         for k, object in pairs(self.objects) do
             if not objectFilter or objectFilter(object) then

@@ -268,6 +268,7 @@ local lastUpdateTime = window.time
 function window.callbacks.update()
     local time = window.time
     local elapsedTime = time - lastUpdateTime
+
     scene:preTick(elapsedTime)
     scene:tick(elapsedTime)
     scene:postTick(elapsedTime)
