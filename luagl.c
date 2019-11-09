@@ -13,7 +13,8 @@ typedef enum
     SHADER,
     PROGRAM,
     BUFFER,
-    TEXTURE
+    TEXTURE,
+    VERTEX_ARRAY
 } luagl_type_t;
 
 typedef struct
@@ -34,6 +35,12 @@ typedef struct
     luagl_type_t luagl_type;           // Should be BUFFER
     GLuint id;
 } luagl_buffer_t;
+
+typedef struct
+{
+    luagl_type_t luagl_type;           // Should be BUFFER
+    GLuint id;
+} luagl_vertex_array_t;
 
 typedef struct
 {
@@ -498,6 +505,36 @@ int _G_gl_vertexAttrib_getLocation(lua_State *L)
     return 1;
 }
 
+int _G_gl_vertexArray_new(lua_State *L)
+{
+    luagl_vertex_array_t *va;
+
+    va = (luagl_vertex_array_t *) lua_newuserdata(
+            L,
+            sizeof(luagl_vertex_array_t));
+    va->luagl_type = VERTEX_ARRAY;
+    glGenVertexArrays(1, &va->id);
+
+    LuaGlThrowGlErrors(L);
+    return 1;
+}
+
+int _G_gl_vertexArray_bind(lua_State *L)
+{
+    luagl_vertex_array_t *va;
+
+    va = lua_touserdata(L, 1);
+    if(va == NULL || va->luagl_type != VERTEX_ARRAY)
+    {
+        return luaL_error(L,
+                "gl.buffer.array.bind expects luagl_vertex_array_t.");
+    }
+
+    glBindVertexArray(va->id);
+    LuaGlThrowGlErrors(L);
+    return 0;
+}
+
 int _G_gl_buffer_element_subData(lua_State *L)
 {
     const char *data;
@@ -871,6 +908,11 @@ static const luaL_Reg gl_vertexAttrib_funcs[] = {
     { NULL, NULL }
 };
 
+static const luaL_Reg gl_vertexArray_funcs[] = {
+    { "new", _G_gl_vertexArray_new },
+    { "bind", _G_gl_vertexArray_bind }
+};
+
 static const luaL_Reg gl_uniform_funcs[] = {
     { "getLocation", _G_gl_uniform_getLocation },
     { "set", _G_gl_uniform_set },
@@ -930,6 +972,10 @@ int luaopen_gl(lua_State *L)
 
     luaL_newlib(L, gl_texture2d_funcs);
     lua_setfield(L, -2, "texture2d");
+
+    luaL_newlib(L, gl_vertexArray_funcs);
+    lua_setfield(L, -2, "vertexArray");
+
     return 1;
 }
 
