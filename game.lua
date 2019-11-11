@@ -1,4 +1,10 @@
 
+-- TODO make multiple VAs per mesh? Or binding? I'm sure this could be improved.
+-- Not a great way of doing this (using one vertex array for the whole program),
+-- but good enough for now.
+vertexArray = gl.vertexArray.new()
+gl.vertexArray.bind(vertexArray)
+
 local Camera = require("wrap/Camera")
 local VertexArray = require("wrap/VertexArray")
 local PointCloud = require("wrap/PointCloud")

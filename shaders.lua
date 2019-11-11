@@ -17,7 +17,8 @@ shaders.flat = ShaderProgram:new {
     code = {
         vertex = 
 [[
-#version 130
+#version 330
+
 in vec4 vertex;
 in vec4 normal;
 
@@ -34,13 +35,16 @@ void main()
 ]],
         fragment =
 [[
-#version 130
+#version 330
+
 in vec4 fragNormal;
+out vec4 fragColor;
+
 uniform vec4 color;
 
 void main()
 {
-    gl_FragColor = color;
+    fragColor = color;
 }
 ]]
     }
@@ -77,7 +81,8 @@ shaders.default = ShaderProgram:new {
     code = {
         vertex = 
 [[
-#version 130
+#version 330
+
 in vec4 vertex;
 in vec4 normal;
 in vec4 texCo;
@@ -161,13 +166,15 @@ void main()
 ]],
         fragment =
 [[
-#version 130
+#version 330
 
 uniform mat4 projection;
 
 in vec3 fragPosition;
 in vec3 fragNormal;
 in vec2 fragTexCo;
+
+out vec4 fragColor;
 
 uniform vec4 diffuseColor;
 uniform sampler2D diffuseTexture;
@@ -190,7 +197,7 @@ void main()
     }
 
     if(shadeless == 1)
-        gl_FragColor = vec4(color, alpha);
+        fragColor = vec4(color, alpha);
     else
     {
         float brightness = 0;
@@ -201,7 +208,7 @@ void main()
             brightness += clamp(dot(normalize(l), fragNormal), 0, 1)
                 * clamp(lightPositionAndDistance[i].w / dot(l, l), 0, 1);
         }
-        gl_FragColor = vec4(brightness * color, alpha);
+        fragColor = vec4(brightness * color, alpha);
     }
 }
 ]]

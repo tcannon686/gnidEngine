@@ -223,6 +223,11 @@ int main(int argc, char **argv)
 	
 	glfwDefaultWindowHints();
 	glfwWindowHint(GLFW_RESIZABLE, 0);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
     window_width = 640;
     window_height = 480;
     window = glfwCreateWindow(window_width, window_height, "Game", NULL, NULL);
