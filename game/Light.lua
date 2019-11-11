@@ -2,7 +2,7 @@ local Light = {}
 local models = require("models")
 
 Light.previewModel = models.light1
-Light.previewDistance = 0.5
+Light.spawnDistance = 0.5
 
 function Light.new(self, attributes)
     local ret = {

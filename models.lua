@@ -7,7 +7,8 @@ modelPaths = {
     explosion1 = "models/explosion1.tmd",
     sphereMonster1 = "models/sphereMonster1.tmd",
     playerSpawn1 = "models/playerSpawn1.tmd",
-    light1 = "models/light1.tmd"
+    objectSpawn1 = "models/objectSpawn1.tmd",
+    light1 = "models/light1.tmd",
 }
 
 -- Load each model.

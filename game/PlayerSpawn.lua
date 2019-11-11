@@ -2,7 +2,7 @@ local PlayerSpawn = {}
 local models = require("models")
 
 PlayerSpawn.previewModel = models.playerSpawn1
-PlayerSpawn.previewDistance = 0.75
+PlayerSpawn.spawnDistance = 0.75
 
 function PlayerSpawn.new(self, attributes)
     local ret = {

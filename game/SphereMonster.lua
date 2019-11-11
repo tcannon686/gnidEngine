@@ -8,11 +8,11 @@ local Explosion = require("game/Explosion")
 local SphereMonster = {}
 
 SphereMonster.previewModel = models.sphereMonster1
-SphereMonster.previewDistance = 0.6
+SphereMonster.spawnDistance = 0.6
 
 function SphereMonster.new(self, attributes)
     if not attributes then
-        error("Explosion.new expects table attributes.")
+        error("SphereMonster.new expects table attributes.")
     end
     local ret = {
         mesh = models.sphereMonster1:clone(),
@@ -51,6 +51,13 @@ function SphereMonster.new(self, attributes)
         ret.position = attributes.position
     else
         ret.position = Vector(0, 0, 0)
+    end
+
+    if attributes.lookX then
+        ret.lookX = attributes.lookX
+    end
+    if attributes.lookY then
+        ret.lookY = attributes.lookY
     end
 
     ret.currentAnimation = ActionPlayer:new {

@@ -219,20 +219,31 @@ function render()
         -- Draw preview of object to add.
         if keysDown[config.keyCreateObject] and not player.waitForCommand then
             gl.polygonMode.fill()
-            if player.aimHit and Octree:isOctree(player.aimHit.target) then
-                local direction = player.aimHit.normal
-                if direction:dot(player.aim) > 0 then
-                    direction = -direction
-                end
-                previewModel = objects[player.currentObjectKey].previewModel
-                if previewModel and player.aimHit then
+            if player.aimHit then
+                local previewModel =
+                    objects[player.currentObjectKey].previewModel
+                if Octree:isOctree(player.aimHit.target) then
+                    local direction = player.aimHit.normal
+                    if direction:dot(player.aim) > 0 then
+                        direction = -direction
+                    end
+                    if previewModel then
+                        previewModel:render(
+                            scene,
+                            Matrix.newTranslate(
+                                player.aimHit.position
+                                + direction
+                                    * objects[player.currentObjectKey]
+                                        .spawnDistance))
+                    end
+                elseif player.aimHit.target.acceptObject then
                     previewModel:render(
                         scene,
                         Matrix.newTranslate(
-                            player.aimHit.position
-                            + direction
+                            player.aimHit.target.position
+                            + Vector.up
                                 * objects[player.currentObjectKey]
-                                    .previewDistance))
+                                    .spawnDistance))
                 end
             end
         end
@@ -553,18 +564,23 @@ function window.callbacks.key(key, scancode, action, mods)
         if scene.mode == 'edit' and not player.waitForCommand then
             if key == config.keyCreateObject then
                 if player.aimHit then
-                    if player.aimHit
-                            and Octree:isOctree(player.aimHit.target) then
-                        local direction = player.aimHit.normal
-                        if direction:dot(player.aim) > 0 then
-                            direction = -direction
+                    if player.aimHit then
+                        if Octree:isOctree(player.aimHit.target) then
+                            local direction = player.aimHit.normal
+                            if direction:dot(player.aim) > 0 then
+                                direction = -direction
+                            end
+                            scene:add(objects[player.currentObjectKey]:new {
+                                position = player.aimHit.position
+                                    + direction
+                                        * objects[player.currentObjectKey]
+                                            .spawnDistance
+                            })
+                        elseif player.aimHit.target.acceptObject then
+                            player.aimHit.target:acceptObject(
+                                player.currentObjectKey,
+                                objects[player.currentObjectKey])
                         end
-                        scene:add(objects[player.currentObjectKey]:new {
-                            position = player.aimHit.position
-                                + direction
-                                    * objects[player.currentObjectKey]
-                                        .previewDistance
-                        })
                     end
                 end
             end
