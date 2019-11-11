@@ -334,6 +334,7 @@ function Octree.new(self, attributes)
         local n = (tri[2] - tri[1]):cross(tri[3] - tri[1]):normalize()
         if n:dot(hintNormal) < 0 then
             n = -n end
+
         local distance, nearest = math3d.trianglePointDistance(
             tri[1],
             tri[2],

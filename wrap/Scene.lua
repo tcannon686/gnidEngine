@@ -136,6 +136,16 @@ function Scene.new(self, attributes)
 
     ret.tick = function(self, deltaT, objectFilter)
         self.kdTree = KdTree:new(self.objects)
+        for k, object in pairs(self.objects) do
+            if not objectFilter or objectFilter(object) then
+                if object.tick then
+                    object:tick(deltaT, self)
+                    if object.position then
+                        object.position.w = 0
+                    end
+                end
+            end
+        end
         -- Physics
         self.kdTree:calcIntersections(function(a, b)
             for kA, objA in pairs(a.objects) do
@@ -167,13 +177,6 @@ function Scene.new(self, attributes)
                 end
             end
         end)
-        for k, object in pairs(self.objects) do
-            if not objectFilter or objectFilter(object) then
-                if object.tick then
-                    object:tick(deltaT, self)
-                end
-            end
-        end
     end
 
     ret.postTick = function(self, deltaT, objectFilter)
