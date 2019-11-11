@@ -26,11 +26,13 @@ function Player.new(self, attributes)
         lookX = 0,
         speed = 5,
 
-        enablePhysics = true,
-        velocity = Vector(),
-        gravity = Vector(0, -9.8, 0),
+        physics = {
+            enabled = true,
+            radius = 0.75,
+            velocity = Vector(),
+            gravity = Vector(0, -9.8, 0),
+        },
         jumpSpeed = 4,
-        radius = 0.75,
         headHeight = 1.7,
 
         currentMaterialKey = "default",
@@ -83,7 +85,8 @@ function Player.new(self, attributes)
     end
 
     player.getHeadPosition = function(self)
-        return self.position + (self.headHeight - self.radius) * Vector.up
+        return self.position
+            + (self.headHeight - self.physics.radius) * Vector.up
     end
 
     player.selectOctree = function(self, target, point)
@@ -116,8 +119,8 @@ function Player.new(self, attributes)
     player.selectObject = function(self, target)
         self.selection = {
             position = target.position,
-            min = target.position - target.radius * Vector.one,
-            size = Vector.one * target.radius * 2,
+            min = target.position - target.physics.radius * Vector.one,
+            size = Vector.one * target.physics.radius * 2,
             object = target
         }
     end
@@ -141,17 +144,17 @@ function Player.new(self, attributes)
             if scene.mode == "edit" then
                 if keysDown[config.keyDown] then
                     direction.y = direction.y - 1
-                    self.velocity.y = 0
+                    self.physics.velocity.y = 0
                 end
                 if keysDown[config.keyUp] then
                     direction.y = direction.y + 1
-                    self.velocity.y = 0
+                    self.physics.velocity.y = 0
                 end
             end
             if scene.mode == "play" then
                 if keysDown[config.keyJump] then
                     if self.isGrounded then
-                        self.velocity.y = player.jumpSpeed
+                        self.physics.velocity.y = player.jumpSpeed
                     end
                 end
             end
@@ -164,10 +167,12 @@ function Player.new(self, attributes)
             self.position = player.position + direction
         end
 
-        self.velocity = self.velocity
-            + self.gravity * deltaT
+        if self.physics.enabled then
+            self.physics.velocity = self.physics.velocity
+                + self.physics.gravity * deltaT
+        end
 
-        self.position = self.position + self.velocity * deltaT
+        self.position = self.position + self.physics.velocity * deltaT
     end
 
     player.postTick = function(self, deltaT, scene)
@@ -213,8 +218,8 @@ function Player.new(self, attributes)
             if self.selection and self.selection.object then
                 self.selection.position = self.selection.object.position
                 self.selection.min = self.selection.object.position
-                    - self.selection.object.radius * Vector.one
-                self.selection.size = self.selection.object.radius
+                    - self.selection.object.physics.radius * Vector.one
+                self.selection.size = self.selection.object.physics.radius
                     * Vector.one * 2
             end
             -- Update selection.

@@ -16,9 +16,12 @@ function SphereMonster.new(self, attributes)
     end
     local ret = {
         mesh = models.sphereMonster1:clone(),
-        radius = 0.6,
-        enablePhysics = true,
-        gravity = Vector(0, -9.8, 0),
+        physics = {
+            enabled = true,
+            radius = 0.6,
+            gravity = Vector(0, -9.8, 0),
+            velocity = Vector(),
+        },
         lookX = 0,
         walkSpeed = 4.0
     }
@@ -27,7 +30,7 @@ function SphereMonster.new(self, attributes)
         if math3d.raySphere(
                 hit,
                 self.position,
-                self.radius,
+                self.physics.radius,
                 ray.o,
                 ray.d) then
             hit.target = self
@@ -49,7 +52,6 @@ function SphereMonster.new(self, attributes)
     else
         ret.position = Vector(0, 0, 0)
     end
-    ret.velocity = Vector()
 
     ret.currentAnimation = ActionPlayer:new {
         target = ret.mesh.skeleton,
@@ -59,17 +61,17 @@ function SphereMonster.new(self, attributes)
     ret.render = function(self, scene)
         self.mesh:render(scene,
             Matrix.newTranslate(self.position
-                - Vector.up * self.radius)
+                - Vector.up * self.physics.radius)
             * Matrix.newRotate(self.lookX, Vector.up))
     end
     ret.preTick = function(self, deltaT, scene)
-        self.velocity = self.velocity
-            + self.gravity * deltaT
+        self.physics.velocity = self.physics.velocity
+            + self.physics.gravity * deltaT
         self.lookX = self.lookX + deltaT
         self.position = self.position
             - Matrix.newRotate(self.lookX, Vector.up)
                 * Vector.forward * deltaT * self.walkSpeed
-        self.position = self.position + self.velocity * deltaT
+        self.position = self.position + self.physics.velocity * deltaT
     end
     ret.tick = function(self, deltaT, scene)
         self.currentAnimation:tick(deltaT)

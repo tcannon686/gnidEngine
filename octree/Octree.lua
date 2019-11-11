@@ -341,12 +341,13 @@ function Octree.new(self, attributes)
             tri[3],
             object.position)
         
-        if distance < object.radius then
+        if distance < object.physics.radius then
             local dir = (object.position - nearest):normalize()
-            object.position = nearest + dir * object.radius
-            local vPar = object.velocity:dot(dir) * dir
-            local vPerp = object.velocity - vPar
-            object.velocity = object.velocity - vPar - vPerp * 0.05
+            object.position = nearest + dir * object.physics.radius
+            local vPar = object.physics.velocity:dot(dir) * dir
+            local vPerp = object.physics.velocity - vPar
+            object.physics.velocity = object.physics.velocity
+                - vPar - vPerp * 0.05
             if dir:dot(Vector.up) > 0.5 then
                 object.isGrounded = true
             end
@@ -372,8 +373,8 @@ function Octree.new(self, attributes)
         
         local size = max - min
 
-        local minExpanded = min - object.radius * Vector.one
-        local maxExpanded = max + object.radius * Vector.one
+        local minExpanded = min - object.physics.radius * Vector.one
+        local maxExpanded = max + object.physics.radius * Vector.one
         local sizeExpanded = maxExpanded - minExpanded
 
         if object.position.x >= minExpanded.x and
@@ -831,15 +832,6 @@ function Octree.new(self, attributes)
             self.mesh.pointCloud:bind(binding.material.shader)
             binding.indexArray:render()
         end
-    end
-
-    ret.tick = function(self, deltaT, scene)
-        --[[for k, object in pairs(scene.objects) do
-            if object.enablePhysics then
-                object.isGrounded = false
-                self:doPhysics(object)
-            end
-        end]]
     end
     
     setmetatable(ret, self.__mt)

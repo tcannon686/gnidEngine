@@ -11,7 +11,10 @@ function PlayerSpawn.new(self, attributes)
         lookX = 0,
         lookY = 0,
         previewModel = self.previewModel,
-        radius = 0.75,
+        physics = {
+            enabled = false,
+            radius = 0.75,
+        },
         editOnly = true,
     }
 
@@ -29,7 +32,8 @@ function PlayerSpawn.new(self, attributes)
         if scene.mode == "edit" then
             self.previewModel:render(
                 scene,
-                Matrix.newTranslate(self.position - self.radius * Vector.up)
+                Matrix.newTranslate(self.position
+                        - self.physics.radius * Vector.up)
                    * Matrix.newRotate(self.lookX, Vector(0, 1, 0))
                    * Matrix.newRotate(self.lookY, Vector(1, 0, 0)))
         end
@@ -39,7 +43,7 @@ function PlayerSpawn.new(self, attributes)
         if math3d.raySphere(
                 hit,
                 self.position,
-                self.radius,
+                self.physics.radius,
                 ray.o,
                 ray.d) then
             hit.target = self

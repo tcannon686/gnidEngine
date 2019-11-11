@@ -9,7 +9,10 @@ function Light.new(self, attributes)
         light = { distance = 1.0 },
         position = Vector(),
         previewModel = self.previewModel,
-        radius = 0.5,
+        physics = {
+            enabled = false,
+            radius = 0.5,
+        },
         editOnly = true
     }
 
@@ -47,7 +50,7 @@ function Light.new(self, attributes)
         if math3d.raySphere(
                 hit,
                 self.position,
-                self.radius,
+                self.physics.radius,
                 ray.o,
                 ray.d) then
             hit.target = self

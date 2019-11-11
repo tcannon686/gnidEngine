@@ -151,22 +151,27 @@ function Scene.new(self, attributes)
             for kA, objA in pairs(a.objects) do
                 for kB, objB in pairs(b.objects) do
                     if Octree:isOctree(objA) then
-                        if objB.enablePhysics then
+                        if objB.physics and objB.physics.enabled then
                             objB.isGrounded = false
                             objA:doPhysics(objB)
                         end
                     elseif Octree:isOctree(objB) then
-                        if objA.enablePhysics then
+                        if objA.physics and objA.physics.enabled then
                             objA.isGrounded = false
                             objB:doPhysics(objA)
                         end
                     else
-                        if objA.enablePhysics and objB.enablePhysics then
-                            if objA.radius and objB.radius then
+                        if objA.physics and objB.physics and
+                                objA.physics.enabled and objB.physics.enabled
+                                then
+                            if objA.physics.radius and objB.physics.radius then
                                 local ab = (objA.position - objB.position)
                                 local len = #ab:three()
-                                if len < objA.radius + objB.radius then
-                                    ab = ab * ((len - objA.radius - objB.radius)
+                                if len < objA.physics.radius
+                                        + objB.physics.radius then
+                                    ab = ab * ((len
+                                        - objA.physics.radius
+                                        - objB.physics.radius)
                                         / len)
                                     objA.position = objA.position - ab
                                     objB.position = objB.position + ab
