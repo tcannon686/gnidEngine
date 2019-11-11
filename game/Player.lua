@@ -165,6 +165,7 @@ function Player.new(self, attributes)
             direction = Matrix.newRotate(self.lookX, Vector(0, 1, 0))
                 * direction * (self.speed * deltaT / lenDirection)
             self.position = player.position + direction
+            self.physics.velocity = self.physics.velocity * Vector.up
         end
 
         if self.physics.enabled then

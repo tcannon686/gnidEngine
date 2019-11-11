@@ -50,34 +50,34 @@ end. When the program starts, press escape to regain control of your cursor.
 ### Editing
 | Key                   | Action                             |
 | --------------------- | ---------------------------------- |
-| G                     | Switch mode (edit/game).           |
-| Left mouse            | Select octree.                     |
-| Right mouse           | Remove octree.                     |
-| R                     | Subdivide octree.                  |
 | Alt W                 | Move corner forward.               |
 | Alt A                 | Move corner left.                  |
 | Alt S                 | Move corner back.                  |
 | Alt D                 | Move corner right.                 |
-| Alt left shift        | Move corner up.                    |
-| Alt left control      | Move corner down.                  |
+| Alt Left Shift        | Move corner up.                    |
+| Alt Left Control      | Move corner down.                  |
 | Alt W                 | Move object forward.               |
 | Alt A                 | Move object left.                  |
 | Alt S                 | Move object back.                  |
 | Alt D                 | Move object right.                 |
 | Alt Left              | Rotate object left.                |
 | Alt Right             | Rotate object right.               |
-| E                     | Extrude octree.                    |
 | Alt E                 | Save map.                          |
-| P                     | Double map size.                   |
-| O                     | Halve map size.                    |
+| E                     | Extrude octree.                    |
+| G                     | Switch mode (edit/game).           |
+| L Left                | Decrease light distance.           |
+| L Right               | Increase light distance.           |
+| Left Mouse            | Select.                            |
 | M                     | Use selected material.             |
-| M left                | Select previous material.          |
-| M right               | Select next material.              |
+| M Left                | Select previous material.          |
+| M Right               | Select next material.              |
 | Q                     | Place object (hold for preview).   |
-| Q left                | Select previous object.            |
-| Q right               | Select next object.                |
-| L left                | Decrease light distance.           |
-| L right               | Increase light distance.           |
+| Q Left                | Select previous object.            |
+| Q Right               | Select next object.                |
+| R                     | Subdivide octree.                  |
+| Right Mouse           | Remove.                            |
+| Z Left                | Halve map size.                    |
+| Z Right               | Double map size.                   |
 | \`                    | Open console.                      |
 
 ## Editing

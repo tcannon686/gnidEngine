@@ -20,8 +20,7 @@ config = {
 -- Editor keys
     keySubdivide = keys.KEY_R,
     keyUnsubdivide = keys.KEY_Y,
-    keyScaleUp = keys.KEY_P,
-    keyScaleDown = keys.KEY_O,
+    keyScale = keys.KEY_Z,
     keyExtrude = keys.KEY_E,
     keyNext = keys.KEY_RIGHT,
     keyPrevious = keys.KEY_LEFT,

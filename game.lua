@@ -370,12 +370,10 @@ function window.callbacks.key(key, scancode, action, mods)
 
         if key == keys.KEY_G then
             if scene.mode == "edit" and not player.waitForCommand then
-                player.gravity = Vector(0, -9.8, 0)
                 scene.mode = "play"
                 player.physics.enabled = true
             else
-                player.gravity = Vector()
-                player.velocity = Vector()
+                player.physics.velocity = Vector()
                 player.physics.enabled = false
                 scene.mode = "edit"
             end
@@ -454,16 +452,6 @@ function window.callbacks.key(key, scancode, action, mods)
                             player.selection.octree.parent)
                         player.selection.octree:unsubdivide()
                     end
-                elseif key == config.keyScaleUp then
-                    octree.min = octree.min * 2
-                    octree.max = octree.max * 2
-                    octree:update()
-                    player.selection = nil
-                elseif key == config.keyScaleDown then
-                    octree.min = octree.min * 0.5
-                    octree.max = octree.max * 0.5
-                    octree:update()
-                    player.selection = nil
                 elseif key == config.keyExtrude then
                     local min, max, size, depth
                     if player.aimHit then
@@ -507,6 +495,16 @@ function window.callbacks.key(key, scancode, action, mods)
                             player.selection.object.light.distance = 
                                 player.selection.object.light.distance + 1
                         end
+                    elseif keysDown[config.keyScale] then
+                        octree.min = octree.min * 2
+                        octree.max = octree.max * 2
+                        octree:update()
+                        -- Move objects.
+                        for k, object in pairs(scene.objects) do
+                            if object.position then
+                                object.position = object.position * 2
+                            end
+                        end
                     end
                 elseif key == config.keyPrevious then
                     if keysDown[config.keyMaterial] then
@@ -527,6 +525,17 @@ function window.callbacks.key(key, scancode, action, mods)
                                 and player.selection.object.light then
                             player.selection.object.light.distance = 
                                 player.selection.object.light.distance - 1
+                        end
+                    elseif keysDown[config.keyScale] then
+                        octree.min = octree.min * 0.5
+                        octree.max = octree.max * 0.5
+                        octree:update()
+
+                        -- Move objects.
+                        for k, object in pairs(scene.objects) do
+                            if object.position then
+                                object.position = object.position * 0.5
+                            end
                         end
                     end
                 elseif key == config.keyCommand then
