@@ -12,6 +12,7 @@ function ObjectSpawn.new(self, attributes)
             objectKey = nil,
             count = 1,
             spawnCount = 0,
+            spawnedObjects = {},
         },
         position = Vector(),
         lookX = 0,
@@ -75,18 +76,27 @@ function ObjectSpawn.new(self, attributes)
         if scene then
             local objectSpawn = self.objectSpawn
             if scene.mode == "edit" then
-                objectSpawn.spawnCount = 0
+                if objectSpawn.spawnCount > 0 then
+                    for i, spawnedObject in ipairs(objectSpawn.spawnedObjects) do
+                        scene:remove(spawnedObject)
+                    end
+                    objectSpawn.spawnCount = 0
+                    objectSpawn.spawnedObjects = {}
+                end
             elseif scene.mode == "play" then
                 if objectSpawn.spawnCount < objectSpawn.count then
-                    objectSpawn.spawnCount = objectSpawn.spawnCount + 1
-                    scene:add(objectSpawn.object:new {
+                    local spawnedObject = objectSpawn.object:new {
                         position = self.position +
                                 (objectSpawn.object.spawnDistance
                                         - self.physics.radius)
                                     * Vector.up,
                         lookX = self.lookX,
                         lookY = self.lookY
-                    })
+                    }
+                    scene:add(spawnedObject)
+
+                    objectSpawn.spawnCount = objectSpawn.spawnCount + 1
+                    objectSpawn.spawnedObjects[objectSpawn.spawnCount] = spawnedObject
                 end
             end
         end

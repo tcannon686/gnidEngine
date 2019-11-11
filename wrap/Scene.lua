@@ -94,6 +94,10 @@ function Scene.new(self, attributes)
         end
     end
 
+    ret.contains = function(self, object)
+        return self.objects[tostring(object)] ~= nil
+    end
+
     ret.render = function(self, objectFilter)
         if self.activeCamera == nil then
             print("warning: no active camera.")
@@ -112,6 +116,10 @@ function Scene.new(self, attributes)
                         position:three()
                             + Vector.fourth * object.light.distance
                     lightIndex = lightIndex + 1
+                    if lightIndex >= 32 then
+                        print("warning: too many lights!")
+                        break
+                    end
                 end
             end
         end
