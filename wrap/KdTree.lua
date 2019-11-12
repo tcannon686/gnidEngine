@@ -14,7 +14,7 @@ function KdTree.new(self, objects)
             return {
                 max = object.position + object.physics.radius * Vector.one,
                 min = object.position - object.physics.radius * Vector.one,
-                position = object.position * 1,
+                position = object.position,
                 size = 2 * object.physics.radius * Vector.one
             }
         end
@@ -113,9 +113,9 @@ function KdTree.new(self, objects)
                 end
             else
                 local ret = false
-                if self.left and self.left:intersect(callback, bounds) then
+                if self.left:intersect(callback, bounds) then
                     ret = true end
-                if self.right and self.right:intersect(callback, bounds) then
+                if self.right:intersect(callback, bounds) then
                     ret = true end
                 return ret
             end
@@ -154,10 +154,108 @@ function KdTree.new(self, objects)
                 end
             end, self.bounds)
         else
-            -- If the left and right nodes don't overlap, then we only have to
-            -- check from each respective node downward.
             self.left:calcIntersections(callback, root, visited)
             self.right:calcIntersections(callback, root, visited)
+        end
+    end
+
+    function ret.update(self)
+        if self.objects then
+            local updated = false
+            local min = self.bounds.min
+            local max = self.bounds.max
+            for k, object in ipairs(self.objects) do
+                local bounds = calcBounds(object)
+                if bounds.min.x < min.x then
+                    min.x = bounds.min.x
+                    updated = true
+                end
+                if bounds.min.y < min.y then
+                    min.y = bounds.min.y
+                    updated = true
+                end
+                if bounds.min.z < min.z then
+                    min.z = bounds.min.z
+                    updated = true
+                end
+
+                if bounds.max.x > max.x then
+                    max.x = bounds.max.x
+                    updated = true
+                end
+                if bounds.max.y > max.y then
+                    max.y = bounds.max.y
+                    updated = true
+                end
+                if bounds.max.z > max.z then
+                    max.z = bounds.max.z
+                    updated = true
+                end
+            end
+            return updated
+        else
+            local updated = false
+            local min = self.bounds.min
+            local max = self.bounds.max
+
+            if self.left:update() then
+                local bounds = self.left.bounds
+                if bounds.min.x < min.x then
+                    min.x = bounds.min.x
+                    updated = true
+                end
+                if bounds.min.y < min.y then
+                    min.y = bounds.min.y
+                    updated = true
+                end
+                if bounds.min.z < min.z then
+                    min.z = bounds.min.z
+                    updated = true
+                end
+
+                if bounds.max.x > max.x then
+                    max.x = bounds.max.x
+                    updated = true
+                end
+                if bounds.max.y > max.y then
+                    max.y = bounds.max.y
+                    updated = true
+                end
+                if bounds.max.z > max.z then
+                    max.z = bounds.max.z
+                    updated = true
+                end
+            end
+
+            if self.right:update() then
+                local bounds = self.right.bounds
+                if bounds.min.x < min.x then
+                    min.x = bounds.min.x
+                    updated = true
+                end
+                if bounds.min.y < min.y then
+                    min.y = bounds.min.y
+                    updated = true
+                end
+                if bounds.min.z < min.z then
+                    min.z = bounds.min.z
+                    updated = true
+                end
+
+                if bounds.max.x > max.x then
+                    max.x = bounds.max.x
+                    updated = true
+                end
+                if bounds.max.y > max.y then
+                    max.y = bounds.max.y
+                    updated = true
+                end
+                if bounds.max.z > max.z then
+                    max.z = bounds.max.z
+                    updated = true
+                end
+            end
+            return updated
         end
     end
 
@@ -177,6 +275,18 @@ function KdTree.new(self, objects)
                 print(indentation .. "right: ")
                 self.left:printTree(indentation .. ' ')
             end
+        end
+    end
+
+    function ret.calcDepth(self, depth)
+        if not depth then
+            depth = 0 end
+        depth = depth + 1
+        if self.objects then
+            return depth
+        else
+            return math.max(self.right:calcDepth(depth),
+                            self.left:calcDepth(depth))
         end
     end
 

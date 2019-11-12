@@ -186,6 +186,34 @@ function Scene.new(self, attributes)
                                 end
                             end
                         end
+                        if objA.trigger and objB.physics and
+                                objA.trigger.enabled and objB.physics.enabled
+                                then
+                            if objA.trigger.radius and objB.physics.radius then
+                                local ab = (objA.position - objB.position)
+                                local len = #ab:three()
+                                if len < objA.physics.radius
+                                        + objB.physics.radius then
+                                    if objA.onTriggerStay then
+                                        objA.onTriggerStay(objB)
+                                    end
+                                end
+                            end
+                        end
+                        if objB.trigger and objA.physics and
+                                objB.trigger.enabled and objA.physics.enabled
+                                then
+                            if objB.trigger.radius and objA.physics.radius then
+                                local ab = (objA.position - objB.position)
+                                local len = #ab:three()
+                                if len < objB.physics.radius
+                                        + objA.physics.radius then
+                                    if objB.onTriggerStay then
+                                        objB.onTriggerStay(objA)
+                                    end
+                                end
+                            end
+                        end
                     end
                 end
             end

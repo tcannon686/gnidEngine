@@ -73,6 +73,13 @@ local materials = {
             enableDiffuseTexture = true,
             shadeless = false
         }),
+    dirt1 = Material:new(
+        shaders.default,
+        {
+            diffuseTexture = textures.dirt1,
+            enableDiffuseTexture = true,
+            shadeless = false
+        }),
     metal1 = Material:new(
         shaders.default,
         {
@@ -98,6 +105,13 @@ local materials = {
         shaders.default,
         {
             diffuseTexture = textures.snow1,
+            enableDiffuseTexture = true,
+            shadeless = false
+        }),
+    stone1 = Material:new(
+        shaders.default,
+        {
+            diffuseTexture = textures.stone1,
             enableDiffuseTexture = true,
             shadeless = false
         }),

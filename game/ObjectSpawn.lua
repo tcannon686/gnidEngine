@@ -75,28 +75,32 @@ function ObjectSpawn.new(self, attributes)
     ret.preTick = function(self, deltaT, scene)
         if scene then
             local objectSpawn = self.objectSpawn
-            if scene.mode == "edit" then
-                if objectSpawn.spawnCount > 0 then
-                    for i, spawnedObject in ipairs(objectSpawn.spawnedObjects) do
-                        scene:remove(spawnedObject)
+            if objectSpawn.object then
+                if scene.mode == "edit" then
+                    if objectSpawn.spawnCount > 0 then
+                        for i, spawnedObject in ipairs(
+                                objectSpawn.spawnedObjects) do
+                            scene:remove(spawnedObject)
+                        end
+                        objectSpawn.spawnCount = 0
+                        objectSpawn.spawnedObjects = {}
                     end
-                    objectSpawn.spawnCount = 0
-                    objectSpawn.spawnedObjects = {}
-                end
-            elseif scene.mode == "play" then
-                if objectSpawn.spawnCount < objectSpawn.count then
-                    local spawnedObject = objectSpawn.object:new {
-                        position = self.position +
-                                (objectSpawn.object.spawnDistance
-                                        - self.physics.radius)
-                                    * Vector.up,
-                        lookX = self.lookX,
-                        lookY = self.lookY
-                    }
-                    scene:add(spawnedObject)
+                elseif scene.mode == "play" then
+                    if objectSpawn.spawnCount < objectSpawn.count then
+                        local spawnedObject = objectSpawn.object:new {
+                            position = self.position +
+                                    (objectSpawn.object.spawnDistance
+                                            - self.physics.radius)
+                                        * Vector.up,
+                            lookX = self.lookX,
+                            lookY = self.lookY
+                        }
+                        scene:add(spawnedObject)
 
-                    objectSpawn.spawnCount = objectSpawn.spawnCount + 1
-                    objectSpawn.spawnedObjects[objectSpawn.spawnCount] = spawnedObject
+                        objectSpawn.spawnCount = objectSpawn.spawnCount + 1
+                        objectSpawn.spawnedObjects[objectSpawn.spawnCount] =
+                            spawnedObject
+                    end
                 end
             end
         end
