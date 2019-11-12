@@ -4,8 +4,8 @@ function KdTree.new(self, objects)
     function calcBounds(object)
         if object.max and object.min then
             return {
-                max = object.max * Vector.one,
-                min = object.min * Vector.one,
+                max = object.max,
+                min = object.min,
                 position = (object.max + object.min) * 0.5,
                 size = object.max - object.min
             }
@@ -14,7 +14,7 @@ function KdTree.new(self, objects)
             return {
                 max = object.position + object.physics.radius * Vector.one,
                 min = object.position - object.physics.radius * Vector.one,
-                position = object.position * Vector.one,
+                position = object.position * 1,
                 size = 2 * object.physics.radius * Vector.one
             }
         end
@@ -30,6 +30,9 @@ function KdTree.new(self, objects)
             break
         end
     end
+    ret.bounds.min = ret.bounds.min * 1
+    ret.bounds.max = ret.bounds.max * 1
+
     for k, object in pairs(objects) do
         local bounds = calcBounds(object)
         if bounds then
@@ -153,9 +156,8 @@ function KdTree.new(self, objects)
         else
             -- If the left and right nodes don't overlap, then we only have to
             -- check from each respective node downward.
-            local newRoot = root
-            self.left:calcIntersections(callback, newRoot, visited)
-            self.right:calcIntersections(callback, newRoot, visited)
+            self.left:calcIntersections(callback, root, visited)
+            self.right:calcIntersections(callback, root, visited)
         end
     end
 

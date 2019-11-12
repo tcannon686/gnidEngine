@@ -156,11 +156,17 @@ commandText = Text:new {
     position = Vector(0, 0),
     scale = Vector.one * 10
 }
+statsText = Text:new {
+    text = "",
+    position = Vector(0, window.height - 10),
+    scale = Vector.one * 10
+}
 uiScene = Scene:new {
     objects = {
         uiCamera,
         commandText,
-        historyText
+        historyText,
+        statsText
     },
     activeCamera = uiCamera
 }
@@ -282,9 +288,17 @@ function drawAxes(scene, origin)
 end
 
 local lastUpdateTime = window.time
+local nextStatsTime = window.time
+
 function window.callbacks.update()
     local time = window.time
     local elapsedTime = time - lastUpdateTime
+
+    if window.time >= nextStatsTime then
+        statsText.text = "FPS: " .. math.floor(1 / elapsedTime) .. "\n"
+                      .. "GC: " .. math.floor(collectgarbage("count"))
+        nextStatsTime = nextStatsTime + 0.25
+    end
 
     scene:preTick(elapsedTime)
     scene:tick(elapsedTime)
