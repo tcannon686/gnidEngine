@@ -100,14 +100,7 @@ function KdTree.new(self, objects)
     -- Find leaf nodes that intersect the given bounds. callback should be a
     -- function of function(node) -> true|false.
     function ret.intersect(self, callback, bounds)
-        if self.bounds.max.x >= bounds.min.x
-                and self.bounds.max.y >= bounds.min.y
-                and self.bounds.max.z >= bounds.min.z
-
-                and self.bounds.min.x <= bounds.max.x
-                and self.bounds.min.y <= bounds.max.y
-                and self.bounds.min.z <= bounds.max.z then
-
+        if self:overlaps(bounds) then
             -- If a leaf node, call the callback.
             if self.objects then
                 if callback then
@@ -124,6 +117,20 @@ function KdTree.new(self, objects)
                 return ret
             end
         end
+    end
+
+    -- Returns whether the bounds of the tree overlap the given bounds.
+    function ret.overlaps(self, bounds)
+        if self.bounds.max.x >= bounds.min.x
+                and self.bounds.max.y >= bounds.min.y
+                and self.bounds.max.z >= bounds.min.z
+
+                and self.bounds.min.x <= bounds.max.x
+                and self.bounds.min.y <= bounds.max.y
+                and self.bounds.min.z <= bounds.max.z then
+            return true
+        end
+        return false
     end
 
     -- Calculates all of the intersections. One intersection per object.
@@ -144,12 +151,11 @@ function KdTree.new(self, objects)
                 end
             end, self.bounds)
         else
-            if self.left then
-                self.left:calcIntersections(callback, root, visited)
-            end
-            if self.right then
-                self.right:calcIntersections(callback, root, visited)
-            end
+            -- If the left and right nodes don't overlap, then we only have to
+            -- check from each respective node downward.
+            local newRoot = root
+            self.left:calcIntersections(callback, newRoot, visited)
+            self.right:calcIntersections(callback, newRoot, visited)
         end
     end
 
