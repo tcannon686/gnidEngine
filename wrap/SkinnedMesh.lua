@@ -26,11 +26,14 @@ SkinnedMesh.new = function(self, attributes)
     end
 
     ret.clone = function(self)
-        return SkinnedMesh:new {
+        local t = {
             mesh = self.mesh,
-            skeleton = self.skeleton:clone(),
             actions = self.actions
         }
+        if self.skeleton then
+            t.skeleton = self.skeleton:clone()
+        end
+        return SkinnedMesh:new(t)
     end
 
     return ret

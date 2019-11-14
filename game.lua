@@ -181,13 +181,6 @@ function render()
     gl.polygonMode.fill()
     scene:render()
 
-    -- Draw weapon viewmodel.
-    if scene.mode == "play" then
-        player.weapon.model:render(
-            scene,
-            player.weapon.matrix)
-    end
-
     -- Draw editing stuff.
     if scene.mode == "edit" then
         -- Draw aim.
@@ -648,10 +641,7 @@ function window.callbacks.mouse(button, action, mods)
     elseif scene.mode == "play" then
         if action == keys.PRESS
                 and button == config.mouseButtonFire1 then
-            if not player.weapon.currentAnimation
-                    or not player.weapon.currentAnimation.isPlaying then
-                player.weapon:fire1(scene)
-            end
+            player.weapon:fire1(scene)
         end
     end
 end

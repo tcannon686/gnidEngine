@@ -71,6 +71,8 @@ shaders.default = ShaderProgram:new {
         diffuseColor = "vector",
         diffuseTexture = "texture2d",
         enableDiffuseTexture = "boolean",
+        specularColor = "vector",
+        specularExponent = "number",
         shadeless = "boolean",
         boneCount = "integer",
         boneMatrix = "matrix",
@@ -180,6 +182,8 @@ uniform vec4 diffuseColor;
 uniform sampler2D diffuseTexture;
 uniform int enableDiffuseTexture;
 uniform int shadeless;
+uniform vec4 specularColor;
+uniform float specularExponent;
 
 uniform int lightCount;
 uniform vec4 lightPositionAndDistance[32];
@@ -200,15 +204,31 @@ void main()
         fragColor = vec4(color, alpha);
     else
     {
+        vec3 diffuse;
+        vec3 specular = vec3(0);
+
         float brightness = 0;
-        vec3 l;
         for(int i = 0; i < lightCount; i ++)
         {
-            l = lightPositionAndDistance[i].xyz - fragPosition;
+            vec3 l = lightPositionAndDistance[i].xyz - fragPosition;
+            float attenuation = clamp(lightPositionAndDistance[i].w
+                / dot(l, l), 0, 1);
             brightness += clamp(dot(normalize(l), fragNormal), 0, 1)
-                * clamp(lightPositionAndDistance[i].w / dot(l, l), 0, 1);
+                * attenuation;
+
+            if(specularColor.w > 0)
+            {
+                vec3 r = reflect(normalize(l), fragNormal);
+                specular += specularColor.w * specularColor.xyz
+                    * clamp(pow(dot(r, vec3(0, 0, -1)), specularExponent),
+                        0, 1)
+                    * attenuation;
+            }
         }
-        fragColor = vec4(brightness * color, alpha);
+        diffuse = brightness * color;
+
+        fragColor = vec4(
+            diffuse + specular, alpha);
     }
 }
 ]]

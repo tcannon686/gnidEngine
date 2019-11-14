@@ -19,7 +19,7 @@ function ActionPlayer.new(self, attributes)
         target = attributes.target,
         events = attributes.events,
         time = 0,
-        isPlaying = false
+        isPlaying = true
     }
 
     if attributes.events then
@@ -47,7 +47,6 @@ function ActionPlayer.new(self, attributes)
             end
         end
         self.time = self.time + deltaT
-        self.isPlaying = true
         if self.action.loopEnd then
             if self.loop then
                 local loopStart = self.action.loopStart

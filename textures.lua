@@ -1,6 +1,7 @@
 local Texture2D = require("wrap/Texture2D")
 
 local textures = {
+    arm1 = Texture2D:loadPng("textures/Arm1.png"),
     test1 = Texture2D:loadPng("textures/Test1.png"),
     brick1 = Texture2D:loadPng("textures/Brick1.png"),
     concrete1 = Texture2D:loadPng("textures/Concrete1.png"),

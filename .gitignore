@@ -3,3 +3,4 @@ gnid.exe
 *~
 *.o
 .*.swp
+.*.swo

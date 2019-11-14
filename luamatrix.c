@@ -1121,6 +1121,14 @@ int luaopen_vector(lua_State *L)
     lua_setfield(L, -2, "one");
 
     lua_pushcfunction(L, _G_vector_new);
+    lua_pushnumber(L, 0);
+    lua_pushnumber(L, 0);
+    lua_pushnumber(L, 0);
+    lua_pushnumber(L, 0);
+    lua_call(L, 4, 1);
+    lua_setfield(L, -2, "zero");
+
+    lua_pushcfunction(L, _G_vector_new);
     lua_pushnumber(L, 1);
     lua_pushnumber(L, 0);
     lua_pushnumber(L, 0);

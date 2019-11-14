@@ -37,7 +37,7 @@ function ShaderProgram.__mt.__newindex(self, k, v)
             error("unknown shader key '" .. k .. "'.")
         end
     elseif uniform.uniformType == "number" then
-        gl.uniform.set(uniform.location, v)
+        gl.uniform.set(uniform.location, v + 0.0)
     elseif uniform.uniformType == "integer" then
         gl.uniform.set(uniform.location, math.tointeger(v))
     elseif uniform.uniformType == "boolean" then

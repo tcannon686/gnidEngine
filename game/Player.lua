@@ -46,41 +46,45 @@ function Player.new(self, attributes)
     end
 
     player.weapon = {
-        model = models.shotgun1:clone(),
+        arms = models.arm1:clone(),
+        model = models.pistol1:clone(),
         matrix = Matrix.identity,
-        player = player
+        player = player,
+    }
+    player.weapon.armsIdleAnimation = ActionPlayer:new {
+        target = player.weapon.arms.skeleton,
+        action = player.weapon.arms.actions.pistolHold1,
+        loop = true
     }
 
     player.weapon.fire1 = function(self, scene)
-        self.currentAnimation = ActionPlayer:new {
-            target = self.model.skeleton,
-            action = self.model.actions.fire1,
-            events = {
-                {
-                    time = 0.01,
-                    callback = function()
-                        -- Add the explosion effect.
-                        scene:add(Explosion:new {
-                            matrix = self.matrix
-                                    * self.model.skeleton
-                                          .namedBones.projectileExit.matrixLocal
-                                    * Matrix.newScale(Vector(0.3, 0.3, 0.3))
-                        })
-
-                        -- Deal damage to whatever we are aiming at.
-                        if self.player.aimHit and self.player.aimHit.target
-                                and self.player.aimHit.target.takeDamage then
-                            self.player.aimHit.target:takeDamage(scene, 10)
-                        end
-                    end
-                }
-            }
+        if self.player.aimHit then
+            if self.player.aimHit.target.takeDamage then
+                self.player.aimHit.target:takeDamage(scene, 10)
+            end
+        end
+        self.armsFireAnimation = ActionPlayer:new {
+            target = self.arms.skeleton,
+            action = self.arms.actions.pistolFire1,
         }
     end
 
     player.weapon.tick = function(self, deltaT, scene)
-        if self.currentAnimation then
-            self.currentAnimation:tick(deltaT)
+        if self.armsIdleAnimation then
+            self.armsIdleAnimation:tick(deltaT)
+        end
+        if self.weaponIdleAnimation then
+            self.weaponIdleAnimation:tick(deltaT)
+        end
+        if self.armsFireAnimation
+                and self.armsFireAnimation.isPlaying then
+            self.armsFireAnimation:tick(deltaT)
+            self.armsIdleAnimation.time = 0
+        end
+        if self.weaponFireAnimation
+                and self.weaponFireAnimation.isPlaying then
+            self.weaponFireAnimation:tick(deltaT)
+            self.weaponIdleAnimation.time = 0
         end
     end
 
@@ -211,7 +215,6 @@ function Player.new(self, attributes)
             Matrix.newTranslate(self:getHeadPosition())
             * Matrix.newTranslate(Vector(0, -0.05, 0))
             * getLookMatrix(self.lookX, player.lookY)
-            * Matrix.newTranslate(Vector(0.25, -0.2, -0.3))
             * Matrix.newRotate(math.pi, Vector.up)
 
         if scene.mode == "edit" then
@@ -239,6 +242,18 @@ function Player.new(self, attributes)
                     self.selection = nil
                 end
             end
+        end
+    end
+    player.render = function(self, scene)
+        if scene.mode == "play" then
+            self.weapon.arms:render(
+                scene,
+                self.weapon.matrix)
+
+            self.weapon.model:render(
+                scene,
+                self.weapon.matrix
+                    * self.weapon.arms.skeleton.namedBones.trigger.matrixLocal)
         end
     end
     return player
