@@ -22,9 +22,19 @@ function SphereMonster.new(self, attributes)
             gravity = Vector(0, -9.8, 0),
             velocity = Vector(),
         },
+        trigger = {
+            enabled = true,
+            radius = 5
+        },
         lookX = 0,
         walkSpeed = 4.0
     }
+
+    ret.onTriggerStay = function(self, other)
+        if other.player then
+            self.target = other
+        end
+    end
 
     ret.raycast = function(self, hit, ray)
         if math3d.raySphere(
@@ -74,10 +84,13 @@ function SphereMonster.new(self, attributes)
     ret.preTick = function(self, deltaT, scene)
         self.physics.velocity = self.physics.velocity
             + self.physics.gravity * deltaT
-        self.lookX = self.lookX + deltaT
-        self.position = self.position
-            - Matrix.newRotate(self.lookX, Vector.up)
-                * Vector.forward * deltaT * self.walkSpeed
+        if self.target then
+            local delta = self.position - self.target.position
+            self.lookX = math.atan2(delta.x, delta.z)
+            self.position = self.position
+                - Matrix.newRotate(self.lookX, Vector.up)
+                    * Vector.forward * deltaT * self.walkSpeed
+        end
         self.position = self.position + self.physics.velocity * deltaT
     end
     ret.tick = function(self, deltaT, scene)

@@ -192,10 +192,10 @@ function Scene.new(self, attributes)
                             if objA.trigger.radius and objB.physics.radius then
                                 local ab = (objA.position - objB.position)
                                 local len = #ab:three()
-                                if len < objA.physics.radius
+                                if len < objA.trigger.radius
                                         + objB.physics.radius then
                                     if objA.onTriggerStay then
-                                        objA.onTriggerStay(objB)
+                                        objA:onTriggerStay(objB)
                                     end
                                 end
                             end
@@ -206,10 +206,10 @@ function Scene.new(self, attributes)
                             if objB.trigger.radius and objA.physics.radius then
                                 local ab = (objA.position - objB.position)
                                 local len = #ab:three()
-                                if len < objB.physics.radius
-                                        + objA.physics.radius then
+                                if len < objA.physics.radius
+                                        + objB.trigger.radius then
                                     if objB.onTriggerStay then
-                                        objB.onTriggerStay(objA)
+                                        objB:onTriggerStay(objA)
                                     end
                                 end
                             end

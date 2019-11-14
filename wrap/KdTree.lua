@@ -9,11 +9,22 @@ function KdTree.new(self, objects)
                 position = (object.max + object.min) * 0.5,
                 size = object.max - object.min
             }
-        elseif object.position and object.physics and
-                object.physics.radius then
+        elseif object.position and (object.physics and
+                object.physics.radius or object.trigger
+                and object.trigger.radius)
+                then
+            local radius = 0
+            if object.physics and object.physics.radius then
+                radius = object.physics.radius
+            end
+            if object.trigger and object.trigger.radius then
+                if object.trigger.radius > radius then
+                    radius = object.trigger.radius
+                end
+            end
             return {
-                max = object.position + object.physics.radius * Vector.one,
-                min = object.position - object.physics.radius * Vector.one,
+                max = object.position + radius * Vector.one,
+                min = object.position - radius * Vector.one,
                 position = object.position,
                 size = 2 * object.physics.radius * Vector.one
             }

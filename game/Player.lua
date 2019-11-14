@@ -26,6 +26,7 @@ function Player.new(self, attributes)
         lookX = 0,
         speed = 5,
 
+        player = {},
         physics = {
             enabled = true,
             radius = 0.75,
