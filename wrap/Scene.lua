@@ -115,16 +115,18 @@ function Scene.new(self, attributes)
                 shader.lightCount = #self.lights
                 lightIndex = 1
                 for k, object in pairs(self.lights) do
-                    local position = 
-                        self.activeCamera.viewMatrix
-                            * object.position:homo()
-                    shader.lightPositionAndDistance[lightIndex] =
-                        position:three()
-                            + Vector.fourth * object.light.distance
-                    lightIndex = lightIndex + 1
-                    if lightIndex >= 32 then
-                        print("warning: too many lights!")
-                        break
+                    if object.light.enabled then
+                        local position = 
+                            self.activeCamera.viewMatrix
+                                * object.position:homo()
+                        shader.lightPositionAndDistance[lightIndex] =
+                            position:three()
+                                + Vector.fourth * object.light.distance
+                        lightIndex = lightIndex + 1
+                        if lightIndex > 32 then
+                            print("warning: too many lights!")
+                            break
+                        end
                     end
                 end
             end

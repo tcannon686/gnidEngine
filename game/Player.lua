@@ -4,6 +4,8 @@ local Camera = require("wrap/Camera")
 local ActionPlayer = require("wrap/ActionPlayer")
 local Scene = require("wrap/Scene")
 local Explosion = require("game/Explosion")
+local Light = require("game/Light")
+local Pistol = require("game/Pistol")
 
 local keys = require("keys")
 
@@ -42,66 +44,17 @@ function Player.new(self, attributes)
         camera = Camera:new {},
     }
 
+    function player.useWeapon(weapon)
+        player.weapon = weapon
+        weapon. player = player
+    end
+
+    player.useWeapon(Pistol:new {})
+
     if attributes.position then
         player.position = attributes.position
     end
 
-    player.weapon = {
-        arms = models.arm1:clone(),
-        model = models.pistol1:clone(),
-        matrix = Matrix.identity,
-        player = player,
-    }
-    player.weapon.armsIdleAnimation = ActionPlayer:new {
-        target = player.weapon.arms.skeleton,
-        action = player.weapon.arms.actions.pistolHold1,
-        loop = true
-    }
-    player.weapon.weaponIdleAnimation = ActionPlayer:new {
-        target = player.weapon.model.skeleton,
-        action = player.weapon.model.actions.idle1,
-        loop = true
-    }
-
-    player.weapon.fire1 = function(self, scene)
-        if (not self.armsFireAnimation
-                or not self.armsFireAnimation.isPlaying)
-            and (not self.weaponFireAnimation
-                or not self.weaponFireAnimation.isPlaying) then
-            if self.player.aimHit then
-                if self.player.aimHit.target.takeDamage then
-                    self.player.aimHit.target:takeDamage(scene, 10)
-                end
-            end
-            self.armsFireAnimation = ActionPlayer:new {
-                target = self.arms.skeleton,
-                action = self.arms.actions.pistolFire1,
-            }
-            self.weaponFireAnimation = ActionPlayer:new {
-                target = self.model.skeleton,
-                action = self.model.actions.fire1,
-            }
-        end
-    end
-
-    player.weapon.tick = function(self, deltaT, scene)
-        if self.armsIdleAnimation then
-            self.armsIdleAnimation:tick(deltaT)
-        end
-        if self.weaponIdleAnimation then
-            self.weaponIdleAnimation:tick(deltaT)
-        end
-        if self.armsFireAnimation
-                and self.armsFireAnimation.isPlaying then
-            self.armsFireAnimation:tick(deltaT)
-            self.armsIdleAnimation.time = 0
-        end
-        if self.weaponFireAnimation
-                and self.weaponFireAnimation.isPlaying then
-            self.weaponFireAnimation:tick(deltaT)
-            self.weaponIdleAnimation.time = 0
-        end
-    end
 
     player.getHeadPosition = function(self)
         return self.position
@@ -260,19 +213,6 @@ function Player.new(self, attributes)
         end
     end
     player.render = function(self, scene, pass)
-        if scene.mode == "play" then
-            if pass == scene.passes.opaque then
-                self.weapon.arms:render(
-                    scene,
-                    self.weapon.matrix)
-            elseif pass == scene.passes.transparent then
-                self.weapon.model:render(
-                    scene,
-                    self.weapon.matrix
-                        * self.weapon.arms.skeleton.namedBones
-                            .trigger.matrixLocal)
-            end
-        end
     end
     return player
 end

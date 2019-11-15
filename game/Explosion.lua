@@ -11,7 +11,10 @@ function Explosion.new(self, attributes)
     local ret = {
         matrix = attributes.matrix,
         mesh = models.explosion1:clone(),
-        light = { distance = 1.0 },
+        light = {
+            enabled = true,
+            distance = 1.0
+        },
         position = attributes.matrix * Vector(0, 0, 0, 1)
     }
     ret.currentAnimation = ActionPlayer:new {

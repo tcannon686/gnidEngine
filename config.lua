@@ -15,7 +15,7 @@ config = {
     mouseButtonFire1 = keys.MOUSE_BUTTON_LEFT,
 
     mapDir = "maps",
-    map = "tmp",
+    map = "e1m1",
 
 -- Editor keys
     keySubdivide = keys.KEY_R,

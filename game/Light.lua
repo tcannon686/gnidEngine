@@ -6,8 +6,11 @@ Light.spawnDistance = 0.5
 
 function Light.new(self, attributes)
     local ret = {
-        light = { distance = 1.0 },
-        position = Vector(),
+        light = {
+            enabled = true,
+            distance = 1.0
+        },
+        position = Vector.zero,
         previewModel = self.previewModel,
         physics = {
             enabled = false,
@@ -21,6 +24,9 @@ function Light.new(self, attributes)
     end
     if attributes.distance then
         ret.light.distance = attributes.distance
+    end
+    if attributes.enabled then
+        ret.light.enabled = attributes.enabled
     end
 
     ret.toLua = function(self, out)
