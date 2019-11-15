@@ -57,17 +57,31 @@ function Player.new(self, attributes)
         action = player.weapon.arms.actions.pistolHold1,
         loop = true
     }
+    player.weapon.weaponIdleAnimation = ActionPlayer:new {
+        target = player.weapon.model.skeleton,
+        action = player.weapon.model.actions.idle1,
+        loop = true
+    }
 
     player.weapon.fire1 = function(self, scene)
-        if self.player.aimHit then
-            if self.player.aimHit.target.takeDamage then
-                self.player.aimHit.target:takeDamage(scene, 10)
+        if (not self.armsFireAnimation
+                or not self.armsFireAnimation.isPlaying)
+            and (not self.weaponFireAnimation
+                or not self.weaponFireAnimation.isPlaying) then
+            if self.player.aimHit then
+                if self.player.aimHit.target.takeDamage then
+                    self.player.aimHit.target:takeDamage(scene, 10)
+                end
             end
+            self.armsFireAnimation = ActionPlayer:new {
+                target = self.arms.skeleton,
+                action = self.arms.actions.pistolFire1,
+            }
+            self.weaponFireAnimation = ActionPlayer:new {
+                target = self.model.skeleton,
+                action = self.model.actions.fire1,
+            }
         end
-        self.armsFireAnimation = ActionPlayer:new {
-            target = self.arms.skeleton,
-            action = self.arms.actions.pistolFire1,
-        }
     end
 
     player.weapon.tick = function(self, deltaT, scene)
@@ -245,16 +259,19 @@ function Player.new(self, attributes)
             end
         end
     end
-    player.render = function(self, scene)
+    player.render = function(self, scene, pass)
         if scene.mode == "play" then
-            self.weapon.arms:render(
-                scene,
-                self.weapon.matrix)
-
-            self.weapon.model:render(
-                scene,
-                self.weapon.matrix
-                    * self.weapon.arms.skeleton.namedBones.trigger.matrixLocal)
+            if pass == scene.passes.opaque then
+                self.weapon.arms:render(
+                    scene,
+                    self.weapon.matrix)
+            elseif pass == scene.passes.transparent then
+                self.weapon.model:render(
+                    scene,
+                    self.weapon.matrix
+                        * self.weapon.arms.skeleton.namedBones
+                            .trigger.matrixLocal)
+            end
         end
     end
     return player

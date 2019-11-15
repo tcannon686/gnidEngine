@@ -866,6 +866,19 @@ int _G_gl_texture2d_data(lua_State *L)
     return 0;
 }
 
+int _G_gl_blend_enable()
+{
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    return 0;
+}
+
+int _G_gl_blend_disable()
+{
+    glDisable(GL_BLEND);
+    return 0;
+}
+
 static const luaL_Reg gl_buffer_element_funcs[] = {
     { "bind", _G_gl_buffer_element_bind },
     { "data", _G_gl_buffer_element_data },
@@ -935,6 +948,11 @@ static const luaL_Reg gl_texture2d_funcs[] = {
     { "data", _G_gl_texture2d_data }
 };
 
+static const luaL_Reg gl_blend_funcs[] = {
+    { "enable", _G_gl_blend_enable },
+    { "disable", _G_gl_blend_disable }
+};
+
 static const luaL_Reg gl_funcs[] = {
     { NULL, NULL }
 };
@@ -975,6 +993,9 @@ int luaopen_gl(lua_State *L)
 
     luaL_newlib(L, gl_vertexArray_funcs);
     lua_setfield(L, -2, "vertexArray");
+
+    luaL_newlib(L, gl_blend_funcs);
+    lua_setfield(L, -2, "blend");
 
     return 1;
 }

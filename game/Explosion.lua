@@ -20,8 +20,10 @@ function Explosion.new(self, attributes)
         loop = false
     }
     ret.currentAnimation:tick(0)
-    ret.render = function(self, scene)
-        self.mesh:render(scene, self.matrix)
+    ret.render = function(self, scene, pass)
+        if pass == scene.passes.opaque then
+            self.mesh:render(scene, self.matrix)
+        end
     end
     ret.tick = function(self, deltaT, scene)
         self.currentAnimation:tick(deltaT)

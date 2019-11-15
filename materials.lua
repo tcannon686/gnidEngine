@@ -172,6 +172,14 @@ local materials = {
             shadeless = true,
             specularColor = Vector.zero
         }),
+    muzzleFlare1 = Material:new(
+        shaders.default,
+        {
+            diffuseTexture = textures.muzzleFlare1,
+            enableDiffuseTexture = true,
+            shadeless = true,
+            specularColor = Vector.zero
+        }),
     objectSpawn1 = Material:new(
         shaders.default,
         {
@@ -179,6 +187,15 @@ local materials = {
             shadeless = true,
             diffuseColor = Vector(1.0, 0.0, 1.0),
             specularColor = Vector.zero
+        }),
+    pistol1 = Material:new(
+        shaders.default,
+        {
+            diffuseTexture = textures.pistol1,
+            enableDiffuseTexture = true,
+            shadeless = false,
+            specularColor = Vector.one,
+            specularExponent = 10
         }),
     playerSpawn1 = Material:new(
         shaders.default,

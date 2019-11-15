@@ -98,6 +98,12 @@ function Scene.new(self, attributes)
         return self.objects[tostring(object)] ~= nil
     end
 
+    ret.passCount = 2
+    ret.passes = {
+        opaque = 1,
+        transparent = 2,
+    }
+
     ret.render = function(self, objectFilter)
         if self.activeCamera == nil then
             print("warning: no active camera.")
@@ -123,11 +129,19 @@ function Scene.new(self, attributes)
                 end
             end
         end
-        for k, object in pairs(self.objects) do
-            if not objectFilter or objectFilter(object) then
-                if object.render then
-                    object:render(self)
+        for pass = 1, self.passCount do
+            if pass == self.passes.transparent then
+                gl.blend.enable()
+            end
+            for k, object in pairs(self.objects) do
+                if not objectFilter or objectFilter(object) then
+                    if object.render then
+                        object:render(self, pass)
+                    end
                 end
+            end
+            if pass == self.passes.transparent then
+                gl.blend.disable()
             end
         end
     end

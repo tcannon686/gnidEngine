@@ -75,11 +75,13 @@ function SphereMonster.new(self, attributes)
         action = ret.mesh.actions.run1,
         loop = true
     }
-    ret.render = function(self, scene)
-        self.mesh:render(scene,
-            Matrix.newTranslate(self.position
-                - Vector.up * self.physics.radius)
-            * Matrix.newRotate(self.lookX, Vector.up))
+    ret.render = function(self, scene, pass)
+        if pass == scene.passes.opaque then
+            self.mesh:render(scene,
+                Matrix.newTranslate(self.position
+                    - Vector.up * self.physics.radius)
+                * Matrix.newRotate(self.lookX, Vector.up))
+        end
     end
     ret.preTick = function(self, deltaT, scene)
         self.physics.velocity = self.physics.velocity

@@ -28,8 +28,8 @@ function PlayerSpawn.new(self, attributes)
         ret.lookY = attributes.lookY
     end
 
-    ret.render = function(self, scene)
-        if scene.mode == "edit" then
+    ret.render = function(self, scene, pass)
+        if scene.mode == "edit" and pass == scene.passes.opaque then
             self.previewModel:render(
                 scene,
                 Matrix.newTranslate(self.position
