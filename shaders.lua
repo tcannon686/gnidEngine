@@ -75,9 +75,9 @@ shaders.default = ShaderProgram:new {
         specularExponent = "number",
         shadeless = "boolean",
         boneCount = "integer",
-        boneMatrix = "matrix",
+        boneMatrix = "matrix[32]",
         lightCount = "integer",
-        lightPositionAndDistance = "vector"
+        lightPositionAndDistance = "vector[32]"
     },
 
     code = {

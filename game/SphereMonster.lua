@@ -83,6 +83,8 @@ function SphereMonster.new(self, attributes)
                 * Matrix.newRotate(self.lookX, Vector.up))
         end
     end
+    ret.onCollisionStay = function(self, other)
+    end
     ret.preTick = function(self, deltaT, scene)
         self.physics.velocity = self.physics.velocity
             + self.physics.gravity * deltaT

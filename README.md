@@ -10,11 +10,11 @@ I can tell, the word was made up. It has nothing to do with the engine, I just
 needed a name, and gnid sounded cool.
 
 ## Compiling
-The program can be compiled using GCC or MinGW on Windows. I have not tested it
-on other platforms, although it should be possible with a little changing of the
-Makefile. Install the dependencies listed below, and then run `make linux` or
-`make windows` depending on your platform. I have only tested it on Ubuntu and
-Windows 10.
+The program can be compiled using GCC or MinGW on Windows. I have also been
+testing it on Mac (thanks to Zach Booth for allowing me to borrow his Mac) but
+this is still a WIP, and I have not tested it on other platforms, although it
+should be possible with a little changing of the Makefile. Install the
+dependencies listed below, then run `make`.
 
 ### Dependencies
  - Lua 5.3

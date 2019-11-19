@@ -199,6 +199,10 @@ function Scene.new(self, attributes)
                                         / len)
                                     objA.position = objA.position - ab
                                     objB.position = objB.position + ab
+                                    if objB.onCollisionStay then
+                                        objB:onCollisionStay(objA) end
+                                    if objA.onCollisionStay then
+                                        objA:onCollisionStay(objB) end
                                 end
                             end
                         end

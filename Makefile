@@ -1,7 +1,7 @@
 
-
 CC = gcc
-CFLAGS = -g -Wall -c -Iglad/include -I/usr/include/lua5.3
+CFLAGS = -g -Wall -c -Iglad/include -I/usr/include/lua5.3\
+		 -I/usr/local/include/lua5.3
 OBJECTS = matrix.o luamatrix.o luagl.o main.o math3d.o luamath3d.o luapng.o
 SOURCES = matrix.c luamatrix.c luagl.c main.c math3d.c luamath3d.c luapng.c
 HEADERS = matrix.h luamatrix.h luagl.h math3d.h luamath3d.h luapng.h
@@ -13,6 +13,7 @@ LIBS = -llua5.3 -lglfw3 -lGL -ldl -lX11 -lm -lpthread
 EXE = gnid
 else ifneq (,$(findstring Darwin, $(UNAME)))
 LIBS = -llua5.3 -lglfw -framework OpenGL -lm -lpthread
+EXE = gnid
 else
 LIBS = -llua -lglfw3 -lopengl32 -lglu32 -lgdi32
 EXE = gnid.exe
@@ -33,3 +34,4 @@ $(OBJECTS) : $(SOURCES) $(HEADERS)
 
 clean :
 	rm -f $(OBJECTS) $(EXE) glad.o
+

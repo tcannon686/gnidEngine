@@ -21,7 +21,7 @@ function ShaderProgram.__mt.__newindex(self, k, v)
 
     self:bind()
     
-    -- Verify type is correct.
+    -- If the key is a vertex attribute.
     if uniform == nil then
         -- Maybe it is an attribute.
         local attrib = rawget(self, "__vertexAttributes")[k]
@@ -36,38 +36,14 @@ function ShaderProgram.__mt.__newindex(self, k, v)
         else
             error("unknown shader key '" .. k .. "'.")
         end
-    elseif uniform.uniformType == "number" then
-        gl.uniform.set(uniform.location, v + 0.0)
-    elseif uniform.uniformType == "integer" then
-        gl.uniform.set(uniform.location, math.tointeger(v))
-    elseif uniform.uniformType == "boolean" then
-        if v then
-            gl.uniform.set(uniform.location, 1)
+    -- If the key is a uniform.
+    else
+        if rawget(uniform, "count") ~= nil then
+            error("shader key '" .. k
+                .. "' cannot be set because it is an array.")
         else
-            gl.uniform.set(uniform.location, 0)
-        end
-    elseif uniform.uniformType == "vector" then
-        val = Vector.toVector(v)
-
-        if val then
-            gl.uniform.set(uniform.location, val)
-        else
-            error("shader key " .. k .. " expects vector.")
-        end
-    elseif uniform.uniformType == "matrix" then
-        val = Matrix.toMatrix(v)
-        if val then
-            gl.uniform.set(uniform.location, val)
-        else
-            error("shader key " .. k .. " expects matrix.")
-        end
-    elseif uniform.uniformType == "texture2d" then
-        val = Texture2D:toTexture2D(v)
-        if val then
-            val:bind()
-            gl.uniform.set(uniform.location, 0)
-        else
-            error("shader key " .. k .. " expects Texture2D.")
+            rawget(uniform, "set")(uniform,
+                rawget(uniform, "location"), v)
         end
     end
 end
@@ -75,7 +51,7 @@ end
 local uniformArrayMt = {}
 function uniformArrayMt.__newindex(t, k, v)
     if type(k) == "number" then
-        gl.uniform.set(t.location + k - 1, v)
+        rawget(t, "set")(t, rawget(t, "locations")[k], v)
     else
         error("uniform index must be a number.")
     end
@@ -127,26 +103,105 @@ function ShaderProgram.new(self, attributes)
 
     ret.__uniforms = {}
     -- Verify each uniform has a valid type.
-    for uniform, uniformType in pairs(attributes.uniforms) do
+    for uniformName, uniformTypeStr in pairs(attributes.uniforms) do
+        local uniformType, arrStart = uniformTypeStr:match("([^%[]+)()")
+        if not uniformType then
+            error("invalid uniform type string '" .. uniformTypeStr .. "'")
+        end
+
+        local uniform = {
+            uniformType = uniformType,
+            name = uniformName
+        }
+        
+        -- Set the set function for the uniform based on the type.
         if uniformType == 'vector' then
+            uniform.set = function(self, location, value)
+                local v = Vector.toVector(value)
+                if v then
+                    gl.uniform.set(location, v)
+                else
+                    error("uniform '" .. self.name .. "' expects vector")
+                end
+            end
         elseif uniformType == 'matrix' then
+            uniform.set = function(self, location, value)
+                local v = Matrix.toMatrix(value)
+                if v then
+                    gl.uniform.set(location, v)
+                else
+                    error("uniform '" .. self.name .. "' expects matrix")
+                end
+            end
         elseif uniformType  == 'integer' then
+            uniform.set = function(self, location, value)
+                if type(value) == 'number'
+                        and math.type(value) == 'integer' then
+                    gl.uniform.set(location, math.tointeger(value))
+                else
+                    error("uniform '" .. self.name .. "' expects integer")
+                end
+            end
         elseif uniformType == 'number' then
+            uniform.set = function(self, location, value)
+                if type(value) == 'number' then
+                    gl.uniform.set(location, value + 0.0)
+                end
+            end
         elseif uniformType == 'texture2d' then
+            uniform.set = function(self, location, value)
+                local val = Texture2D:toTexture2D(value)
+                if val then
+                    val:bind()
+                    gl.uniform.set(location, 0)
+                else
+                    error("uniform '" .. self.name .. "' expects Texture2D")
+                end
+            end
         elseif uniformType == 'boolean' then
+            uniform.set = function(self, location, value)
+                if value then
+                    gl.uniform.set(location, 1)
+                else
+                    gl.uniform.set(location, 0)
+                end
+            end
         else
             error("ShaderProgram.new attribute 'uniforms' must be a "
                .. "table of names with types of 'vector', 'matrix', 'integer' "
-               .. "'number', 'boolean', or 'texture2d'.")
+               .. "'number', 'boolean', or 'texture2d', got '"
+               .. uniformType .. "'")
         end
-        ret.__uniforms[uniform] = {
-            uniformType = uniformType,
-            location = gl.uniform.getLocation(ret.__program, uniform)
-        }
-        if ret.__uniforms[uniform].location < 0 then
-            error("invalid uniform " .. uniform)
+
+        -- If the uniform is an array, find the location for each item in the
+        -- array.
+        if arrStart - 1 ~= #uniformTypeStr then
+            local count = tonumber(uniformTypeStr:match("%[(%d+)%]", arrStart))
+            if not count then
+                error("invalid uniform type string '" .. uniformTypeStr .. "'")
+            end
+            uniform.count = count
+            uniform.locations = {}
+            for i = 1, count do
+                uniform.locations[i] = gl.uniform.getLocation(
+                    ret.__program,
+                    uniformName .. "[" .. (i - 1) .. "]")
+                if uniform.locations[i] == -1 then
+                    error("invalid uniform "
+                        .. uniformName .. "[" .. (i - 1) .. "]")
+                end
+            end
+            setmetatable(uniform, uniformArrayMt)
+        -- Otherwise just get the uniform's location.
+        else
+            uniform.location = gl.uniform.getLocation(
+                ret.__program, uniformName)
+            if uniform.location < 0 then
+                error("invalid uniform " .. uniformName)
+            end
         end
-        setmetatable(ret.__uniforms[uniform], uniformArrayMt)
+
+        ret.__uniforms[uniformName] = uniform
     end
 
     ret.bind = function(self)
