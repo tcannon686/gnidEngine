@@ -75,6 +75,7 @@ function Scene.new(self, attributes)
             rawget(self.octrees, "__data")[name] = object
             rawset(self.octrees, "__count", rawget(self.octrees, "__count") + 1)
         end
+        self.kdTree = KdTree:new(self.objects)
     end
 
     ret.remove = function(self, object)
@@ -92,6 +93,7 @@ function Scene.new(self, attributes)
             rawget(self.octrees, "__data")[name] = nil
             rawset(self.octrees, "__count", rawget(self.octrees, "__count") - 1)
         end
+        self.kdTree = KdTree:new(self.objects)
     end
 
     ret.contains = function(self, object)
@@ -159,7 +161,6 @@ function Scene.new(self, attributes)
     end
 
     ret.tick = function(self, deltaT, objectFilter)
-        self.kdTree = KdTree:new(self.objects)
         for k, object in pairs(self.objects) do
             if not objectFilter or objectFilter(object) then
                 if object.tick then
@@ -169,6 +170,11 @@ function Scene.new(self, attributes)
                     end
                 end
             end
+        end
+        if not self.kdTree:needsRebuild() then
+            self.kdTree:update()
+        else
+            self.kdTree = KdTree:new(self.objects)
         end
         -- Physics
         self.kdTree:calcIntersections(function(a, b)

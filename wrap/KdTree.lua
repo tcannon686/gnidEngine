@@ -65,6 +65,10 @@ function KdTree.new(self, objects)
     end
     ret.bounds.position = (ret.bounds.min + ret.bounds.max) * 0.5
     ret.bounds.size = ret.bounds.max - ret.bounds.min
+    ret.originalVolume = ret.bounds.size.x
+        * ret.bounds.size.y
+        * ret.bounds.size.z
+    ret.rebuildRatio = 1.25
 
     average = average * (1 / #objects)
     local axis
@@ -266,7 +270,27 @@ function KdTree.new(self, objects)
                     updated = true
                 end
             end
+            if updated then
+                self.bounds.size.x = max.x - min.x
+                self.bounds.size.y = max.y - min.y
+                self.bounds.size.z = max.z - min.z
+            end
             return updated
+        end
+    end
+
+    function ret.needsRebuild(self)
+        if self.bounds.size.x * self.bounds.size.y * self.bounds.size.z
+                >= self.originalVolume * self.rebuildRatio then
+            return true
+        end
+        if not self.objects then
+            if self.left:needsRebuild() then
+                return true
+            end
+            if self.right:needsRebuild() then
+                return true
+            end
         end
     end
 
