@@ -38,11 +38,12 @@ void Renderer::renderMesh(
     shared_ptr<RendererMesh> mesh,
     int instanceCount) const
 {
-    glDrawElements(
+    glDrawElementsInstanced(
         mesh->mode,
         mesh->count,
         mesh->type,
-        nullptr);
+        nullptr,
+        instanceCount);
 }
 
 void Renderer::render(shared_ptr<Camera> camera) const
@@ -90,10 +91,18 @@ void Renderer::render(shared_ptr<Camera> camera) const
         }
         else
         {
+            /* If we've reached the max number of instances, draw them. */
+            if(instanceCount >= it->material->getShader()->getMaxInstances())
+            {
+                renderMesh(mesh, instanceCount);
+                instanceCount = 0;
+            }
+
             it->material->getShader()->setTransformMatrix(
                     instanceCount,
                     it->node->getWorldMatrix());
             instanceCount ++;
+            
         }
     }
     if(instanceCount)

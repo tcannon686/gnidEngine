@@ -125,3 +125,8 @@ void PhongShader::setTransformMatrix(int instance, Matrix4f matrix)
     glUniformMatrix4fv(1, 1, GL_FALSE, mat);
 }
 
+int PhongShader::getMaxInstances()
+{
+    return 1;
+}
+

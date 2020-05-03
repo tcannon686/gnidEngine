@@ -10,6 +10,7 @@
 #include "renderernode.hpp"
 #include "scene.hpp"
 #include "phongshader.hpp"
+#include "spatialnode.hpp"
 
 using namespace std;
 
@@ -141,8 +142,14 @@ int main(int argc, char **argv)
     scene->init();
     scene->root->add(make_shared<Camera>(
                 (float) M_PI / 4.0f, 640.0f / 480.0f, 0.1f, 100.0f));
-    scene->root->add(make_shared<RendererNode>(
-                renderMesh, mat));
+
+    shared_ptr<SpatialNode> node = make_shared<SpatialNode>();
+    scene->root->add(node);
+    shared_ptr<SpatialNode> node2 = make_shared<SpatialNode>();
+    scene->root->add(node2);
+    node->add(make_shared<RendererNode>(renderMesh, mat));
+    node2->add(make_shared<RendererNode>(renderMesh, mat));
+    node2->transform(getTranslateMatrix<float>(Vector3f::right));
 
 	while(!glfwWindowShouldClose(window))
 	{
@@ -157,6 +164,12 @@ int main(int argc, char **argv)
         scene->update(dt);
         scene->updateWorldMatrix();
         scene->render();
+
+        node->transform(getTranslateMatrix<float>(
+                    -Vector3f::forward * dt));
+        node2->transform(getTranslateMatrix<float>(
+                    -Vector3f::forward * dt * 0.5f));
+        node->transform(getRotateMatrix(dt, Vector3f::forward));
 
         glfwSwapBuffers(window);
         glfwPollEvents();

@@ -1,4 +1,5 @@
 #include <list>
+#include <cassert>
 #include "scene.hpp"
 #include "node.hpp"
 
@@ -29,6 +30,9 @@ void Node::add(shared_ptr<Node> child)
     shared_ptr<Node> child_parent = child->parent.lock();
     shared_ptr<Scene> child_scene = child->scene.lock();
     shared_ptr<Scene> this_scene = scene.lock();
+
+    /* Object should be added to a scene already, for now. */
+    assert(this_scene != nullptr);
 
     if(child_parent)
     {

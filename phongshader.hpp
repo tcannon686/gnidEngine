@@ -15,6 +15,7 @@ class PhongShader : public ShaderProgram
         void use();
         void setCameraMatrix(Matrix4f projection);
         void setTransformMatrix(int instance, Matrix4f transform);
+        int getMaxInstances();
 };
 
 class PhongMaterial : public Material

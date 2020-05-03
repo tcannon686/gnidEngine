@@ -3,11 +3,11 @@ CC = g++
 CFLAGS = -g -Wall -c -Iglad/include -I/usr/include/lua5.3\
 		 -I/usr/local/include/lua5.3 -Imatrix
 OBJECTS = main.o node.o scene.o camera.o renderer.o phongshader.o\
-		  renderernode.o
+		  renderernode.o spatialnode.o
 SOURCES = main.cpp node.cpp scene.cpp camera.cpp renderer.cpp phongshader.cpp\
-		  renderernode.cpp
+		  renderernode.cpp spatialnode.cpp
 HEADERS = node.hpp camera.hpp scene.hpp shader.hpp material.hpp renderer.hpp\
-		  matrix/matrix.hpp phongshader.hpp renderernode.hpp
+		  matrix/matrix.hpp phongshader.hpp renderernode.hpp spatialnode.hpp
 
 UNAME = $(shell uname)
 
@@ -32,8 +32,8 @@ glad.o : glad/src/glad.c
 lodepng.o : lodepng.c lodepng.h
 	$(CC) -c lodepng.c -o lodepng.o
 
-$(OBJECTS) : $(SOURCES) $(HEADERS)
-	gcc $(CFLAGS) $(SOURCES)
+%.o : %.cpp $(HEADERS)
+	$(CC) $(CFLAGS) $< -o $@
 
 clean :
 	rm -f $(OBJECTS) $(EXE) glad.o
