@@ -1,10 +1,13 @@
 
-CC = gcc
+CC = g++
 CFLAGS = -g -Wall -c -Iglad/include -I/usr/include/lua5.3\
-		 -I/usr/local/include/lua5.3
-OBJECTS = matrix.o main.o math3d.o hashtable.o node.o root_node.o linkedlist.o camera_node.o
-SOURCES = matrix/matrix.c main.c matrix/math3d.c hashtable.c node.c root_node.c linkedlist.c camera_node.c
-HEADERS = matrix/matrix.h matrix/math3d.h hashtable.h node.h root_node.h linkedlist.h camera_node.h
+		 -I/usr/local/include/lua5.3 -Imatrix
+OBJECTS = main.o node.o scene.o camera.o renderer.o phongshader.o\
+		  renderernode.o
+SOURCES = main.cpp node.cpp scene.cpp camera.cpp renderer.cpp phongshader.cpp\
+		  renderernode.cpp
+HEADERS = node.hpp camera.hpp scene.hpp shader.hpp material.hpp renderer.hpp\
+		  matrix/matrix.hpp phongshader.hpp renderernode.hpp
 
 UNAME = $(shell uname)
 
