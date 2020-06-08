@@ -19,12 +19,11 @@
 using namespace std;
 using namespace tmat;
 
-template<typename Stream, typename Material, typename Shader>
+template<typename Stream>
 class ObjParser
 {
 private:
     Stream &stream;
-    shared_ptr<Shader> shader;
 
     vector<Vector4f> vertices;
     vector<Vector3f> normals;
@@ -209,7 +208,7 @@ private:
             return true;
         else
         {
-            cerr << "OBJ error[" << line << "]: expected '" <<
+            error() << "expected '" <<
                 tokenStrings[type] << "' got '" << tokenStrings[token_type] <<
                 "'." << endl;
         }
@@ -327,13 +326,21 @@ private:
                 assert(nIndices.size() == vIndices.size());
 
             // Convert to triangles.
-            for(size_t j = 0; j < 3; j ++)
+            for(size_t i = 1; i < vIndices.size() - 1; i ++)
             {
-                this->vIndices.push_back(vIndices[j]);
+                this->vIndices.push_back(vIndices[0]);
                 if(nIndices.size() > 0)
-                    this->nIndices.push_back(nIndices[j]);
+                    this->nIndices.push_back(nIndices[0]);
                 if(tIndices.size() > 0)
-                    this->tIndices.push_back(tIndices[j]);
+                    this->tIndices.push_back(tIndices[0]);
+                for(size_t j = 0; j < 2; j ++)
+                {
+                    this->vIndices.push_back(vIndices[i + j]);
+                    if(nIndices.size() > 0)
+                        this->nIndices.push_back(nIndices[i + j]);
+                    if(tIndices.size() > 0)
+                        this->tIndices.push_back(tIndices[i + j]);
+                }
             }
 
             if(this->nIndices.size() > 0)
@@ -397,8 +404,15 @@ private:
     {
         if(accept(TokenType::SHADE))
         {
-            if(accept(TokenType::ON))
-                smooth = true;
+            if(accept(TokenType::NUMBER))
+            {
+                if(token == "1")
+                    smooth = true;
+                else
+                {
+                    error() << "unknown shade type '" << token << "'.";
+                }
+            }
             else
             {
                 expect(TokenType::OFF);
@@ -409,9 +423,19 @@ private:
         return false;
     }
 
+    ostream &error() const
+    {
+        return cerr << "error parsing obj[" << line << "]: ";
+    }
+
+    ostream &warning() const
+    {
+        return cerr << "warning parsing obj[" << line << "]: ";
+    }
+
 public:
-    ObjParser(Stream &stream, shared_ptr<Shader> shader)
-        : stream(stream), shader(shader)
+    ObjParser(Stream &stream)
+        : stream(stream)
     {
     }
 
@@ -439,7 +463,8 @@ public:
         done = true;
     }
 
-    shared_ptr<Node> result()
+    template<typename Shader, typename Material>
+    shared_ptr<Node> result(shared_ptr<Shader> shader)
     {
         assert(done);
         // Change the separate indices to one set of vertex indices.
@@ -561,8 +586,8 @@ public:
     }
 };
 
-template<typename Stream, typename Material, typename Shader>
-const string ObjParser<Stream, Material, Shader>::tokenStrings[] =
+template<typename Stream>
+const string ObjParser<Stream>::tokenStrings[] =
 {
     "COMMENT",
     "VERTEX",

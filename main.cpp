@@ -152,10 +152,11 @@ int main(int argc, char **argv)
 
     ifstream s;
     s.open(argv[1]);
-    ObjParser<istream&, PhongMaterial, PhongShader> obj(s, phongshader);
+    ObjParser<istream&> obj(s);
 
     obj.parse();
-    shared_ptr<Node> obj_node = obj.result();
+    shared_ptr<Node> obj_node =
+        obj.result<PhongShader, PhongMaterial>(phongshader);
 
     double time;
     shared_ptr<Scene> scene = make_shared<Scene>();
