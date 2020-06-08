@@ -5,12 +5,14 @@
 
 #include <cmath>
 #include <iostream>
+#include <fstream>
 #include "matrix/matrix.hpp"
 #include "node.hpp"
 #include "renderernode.hpp"
 #include "scene.hpp"
 #include "phongshader.hpp"
 #include "spatialnode.hpp"
+#include "obj_parser.hpp"
 
 using namespace std;
 
@@ -54,8 +56,11 @@ static void MouseCallback(
 
 float vertices[]{
     0, 0, -2,
+    0, -1, 0,
     1, 0, -2,
-    0, 1, -2
+    0, -1, 0,
+    0, 1, -2,
+    0, -1, 0,
 };
 
 unsigned int indices[]{
@@ -126,9 +131,17 @@ int main(int argc, char **argv)
         3,
         GL_FLOAT,
         GL_FALSE,
-        0,
+        6 * sizeof(float),
         nullptr);
-    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(
+        ShaderProgram::ATTRIB_LOCATION_NORMAL,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        6 * sizeof(float),
+        (void *) (3 * sizeof(float)));
+    glEnableVertexAttribArray(ShaderProgram::ATTRIB_LOCATION_VERTEX);
+    glEnableVertexAttribArray(ShaderProgram::ATTRIB_LOCATION_NORMAL);
 
     shared_ptr<RendererMesh> renderMesh = make_shared<RendererMesh>(
         GL_TRIANGLES,
@@ -137,6 +150,13 @@ int main(int argc, char **argv)
         vao);
     shared_ptr<PhongMaterial> mat = make_shared<PhongMaterial>(phongshader);
 
+    ifstream s;
+    s.open(argv[1]);
+    ObjParser<istream&, PhongMaterial, PhongShader> obj(s, phongshader);
+
+    obj.parse();
+    shared_ptr<Node> obj_node = obj.result();
+
     double time;
     shared_ptr<Scene> scene = make_shared<Scene>();
     scene->init();
@@ -144,13 +164,14 @@ int main(int argc, char **argv)
                 (float) M_PI / 4.0f, 640.0f / 480.0f, 0.1f, 100.0f));
 
     shared_ptr<SpatialNode> node = make_shared<SpatialNode>();
-    scene->root->add(node);
     shared_ptr<SpatialNode> node2 = make_shared<SpatialNode>();
-    scene->root->add(node2);
-    node->add(make_shared<RendererNode>(renderMesh, mat));
-    node2->add(make_shared<RendererNode>(renderMesh, mat));
+    node->add(obj_node->clone());
+    node2->add(obj_node->clone());
     node2->transform(getTranslateMatrix<float>(Vector3f::right));
+    scene->root->add(node);
+    scene->root->add(node2);
 
+    glEnable(GL_DEPTH_TEST);
 	while(!glfwWindowShouldClose(window))
 	{
         float dt;

@@ -9,6 +9,7 @@ class ShaderProgram
     public:
         static const int ATTRIB_LOCATION_VERTEX = 1;
         static const int ATTRIB_LOCATION_NORMAL = 2;
+        static const int ATTRIB_LOCATION_TEXCO = 3;
 
         virtual void init() = 0;
         virtual void use() = 0;

@@ -13,10 +13,16 @@ RendererNode::RendererNode(
 void RendererNode::onSceneChanged(shared_ptr<Scene> newScene)
 {
     Binding binding(material, mesh, shared_from_this());
-    auto oldScene = scene.lock();
+    auto oldScene = getScene().lock();
 
     if(oldScene)
         oldScene->renderer.remove(binding);
     if(newScene)
         newScene->renderer.add(binding);
+}
+
+shared_ptr<Node> RendererNode::clone()
+{
+    auto node = make_shared<RendererNode>(*this);
+    return node;
 }

@@ -25,14 +25,25 @@ void Node::updateWorldMatrix(Matrix4f prev)
     }
 }
 
+void Node::onSceneChangedAll(shared_ptr<Scene> newScene)
+{
+    onSceneChanged(newScene);
+    scene = newScene;
+
+    // Update children.
+    for(auto it = children.begin();
+        it != children.end();
+        ++ it)
+    {
+        (*it)->onSceneChangedAll(newScene);
+    }
+}
+
 void Node::add(shared_ptr<Node> child)
 {
     shared_ptr<Node> child_parent = child->parent.lock();
     shared_ptr<Scene> child_scene = child->scene.lock();
     shared_ptr<Scene> this_scene = scene.lock();
-
-    /* Object should be added to a scene already, for now. */
-    assert(this_scene != nullptr);
 
     if(child_parent)
     {
@@ -55,8 +66,7 @@ void Node::add(shared_ptr<Node> child)
         if(this_scene)
             this_scene->onNodeAdded(child);
 
-        child->onSceneChanged(this_scene);
-        child->scene = this_scene;
+        child->onSceneChangedAll(this_scene);
     }
 }
 
@@ -71,6 +81,11 @@ void Node::updateAll(float dt)
     }
 }
 
+shared_ptr<Node> Node::clone()
+{
+    return make_shared<Node>(*this);
+}
+
 bool Node::isActive()
 {
     return active;
@@ -83,5 +98,26 @@ void Node::setActive(bool active)
 
 Node::Node() : active(true)
 {
+}
+
+Node::Node(const Node &other)
+{
+    // Clone children.
+    for(auto it = begin(other.children);
+        it != end(other.children);
+        ++ it)
+    {
+        add((*it)->clone());
+    }
+}
+
+weak_ptr<Node> Node::getParent()
+{
+    return parent;
+}
+
+weak_ptr<Scene> Node::getScene()
+{
+    return scene;
 }
 

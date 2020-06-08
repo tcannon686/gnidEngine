@@ -4,3 +4,4 @@ gnid.exe
 *.o
 .*.swp
 .*.swo
+tags

@@ -9,22 +9,30 @@
 using namespace tmat;
 using namespace std;
 
-static const char *vert_code =
-"#version 440\n"
-"in vec4 vertex;\n"
-"in vec4 normal;\n"
-"layout(location = 1) uniform mat4 transformMatrix;\n"
-"layout(location = 2) uniform mat4 cameraMatrix;\n"
-"void main() {\n"
-"    gl_Position = cameraMatrix * transformMatrix * vec4(vertex.xyz, 1);\n"
-"}\n";
+static const char *vert_code = R"VERT(
+#version 440
+in vec4 vertex;
+in vec3 normal;
 
-static const char *frag_code =
-"#version 440\n"
-"out vec4 fragColor;\n"
-"void main() {\n"
-"    fragColor = vec4(1, 1, 1, 1);\n"
-"}\n";
+out vec3 fragNormal;
+
+layout(location = 1) uniform mat4 transformMatrix;
+layout(location = 2) uniform mat4 cameraMatrix;
+void main() {
+    gl_Position = cameraMatrix * transformMatrix * vec4(vertex.xyz, 1);
+    fragNormal = normal.xyz;
+}
+)VERT";
+
+static const char *frag_code = R"FRAG(
+#version 440
+out vec4 fragColor;
+in vec3 fragNormal;
+
+void main() {
+    fragColor = vec4(0.5 + fragNormal * 0.25, 1);
+}
+)FRAG";
 
 void PhongShader::init()
 {
@@ -76,6 +84,7 @@ void PhongShader::init()
     glAttachShader(program, frag);
 
     glBindAttribLocation(program, ATTRIB_LOCATION_VERTEX, "vertex");
+    glBindAttribLocation(program, ATTRIB_LOCATION_NORMAL, "normal");
 
     glLinkProgram(program);
     glGetProgramiv(program, GL_LINK_STATUS, &param);

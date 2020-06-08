@@ -13,6 +13,7 @@ class RendererNode : public Node
             shared_ptr<RendererMesh> mesh,
             shared_ptr<Material> material);
         void onSceneChanged(shared_ptr<Scene> newScene);
+        shared_ptr<Node> clone();
 };
 
 #endif
