@@ -25,7 +25,7 @@ Matrix4f Camera::getProjectionMatrix()
     return projectionMatrix;
 }
 
-Matrix4f Camera::getCameraMatrix()
+Matrix4f Camera::getViewMatrix()
 {
-    return projectionMatrix * getWorldMatrix();
+    return getWorldMatrix().inverse();
 }

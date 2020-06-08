@@ -10,7 +10,7 @@ class Camera : public Node
     public:
         Camera(float fovy, float aspect, float znear, float zfar);
         Matrix4f getProjectionMatrix();
-        Matrix4f getCameraMatrix();
+        Matrix4f getViewMatrix();
 };
 
 #endif

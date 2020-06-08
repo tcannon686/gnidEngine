@@ -16,11 +16,11 @@ in vec3 normal;
 
 out vec3 fragNormal;
 
-layout(location = 1) uniform mat4 transformMatrix;
-layout(location = 2) uniform mat4 cameraMatrix;
+layout(location = 1) uniform mat4 modelViewMatrix;
+layout(location = 2) uniform mat4 projectionMatrix;
 void main() {
-    gl_Position = cameraMatrix * transformMatrix * vec4(vertex.xyz, 1);
-    fragNormal = normal.xyz;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(vertex.xyz, 1);
+    fragNormal = (modelViewMatrix * vec4(normal, 0)).xyz;
 }
 )VERT";
 
@@ -30,7 +30,7 @@ out vec4 fragColor;
 in vec3 fragNormal;
 
 void main() {
-    fragColor = vec4(0.5 + fragNormal * 0.25, 1);
+    fragColor = vec4(dot(fragNormal, vec3(0, 0, 1)));
 }
 )FRAG";
 
@@ -106,7 +106,7 @@ void PhongShader::use()
     glUseProgram(program);
 }
 
-void PhongShader::setCameraMatrix(Matrix4f matrix)
+void PhongShader::setProjectionMatrix(Matrix4f matrix)
 {
     GLfloat mat[16];
     for(int i = 0; i < 4; i ++)
@@ -120,7 +120,7 @@ void PhongShader::setCameraMatrix(Matrix4f matrix)
     glUniformMatrix4fv(2, 1, GL_FALSE, mat);
 }
 
-void PhongShader::setTransformMatrix(int instance, Matrix4f matrix)
+void PhongShader::setModelViewMatrix(int instance, Matrix4f matrix)
 {
     GLfloat mat[16];
     for(int i = 0; i < 4; i ++)

@@ -13,8 +13,8 @@ class PhongShader : public ShaderProgram
     public:
         void init();
         void use();
-        void setCameraMatrix(Matrix4f projection);
-        void setTransformMatrix(int instance, Matrix4f transform);
+        void setProjectionMatrix(Matrix4f projection);
+        void setModelViewMatrix(int instance, Matrix4f transform);
         int getMaxInstances();
 };
 
