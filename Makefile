@@ -8,7 +8,7 @@ SOURCES = main.cpp node.cpp scene.cpp camera.cpp renderer.cpp phongshader.cpp\
 		  renderernode.cpp spatialnode.cpp
 HEADERS = node.hpp camera.hpp scene.hpp shader.hpp material.hpp renderer.hpp\
 		  matrix/matrix.hpp phongshader.hpp renderernode.hpp spatialnode.hpp\
-		  tsf_parser.hpp obj_parser.hpp
+		  obj_parser.hpp
 
 UNAME = $(shell uname)
 
