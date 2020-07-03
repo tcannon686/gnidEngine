@@ -14,8 +14,9 @@
 #include "renderer.hpp"
 #include "renderernode.hpp"
 #include "node.hpp"
-#include "matrix.hpp"
+#include "matrix/matrix.hpp"
 
+using namespace gnid;
 using namespace std;
 using namespace tmat;
 

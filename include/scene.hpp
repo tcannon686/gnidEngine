@@ -4,8 +4,11 @@
 #include <list>
 #include "node.hpp"
 #include "camera.hpp"
-#include "matrix.hpp"
+#include "matrix/matrix.hpp"
 #include "renderer.hpp"
+
+namespace gnid
+{
 
 using namespace tmat;
 
@@ -31,6 +34,8 @@ class Scene : public enable_shared_from_this<Scene>
         void update(float dt);
         void updateWorldMatrix();
 };
+
+}; /* namespace */
 
 #endif
 

@@ -3,6 +3,9 @@
 
 #include "node.hpp"
 
+namespace gnid
+{
+
 class Camera : public Node
 {
     private:
@@ -12,6 +15,8 @@ class Camera : public Node
         Matrix4f getProjectionMatrix();
         Matrix4f getViewMatrix();
 };
+
+}; /* namespace */
 
 #endif
 

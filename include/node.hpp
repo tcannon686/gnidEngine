@@ -1,10 +1,13 @@
 #ifndef NODE_HPP
 #define NODE_HPP
 
-#include "matrix.hpp"
+#include "matrix/matrix.hpp"
 #include <list>
 #include <memory>
 #include <algorithm>
+
+namespace gnid
+{
 
 using namespace std;
 using namespace tmat;
@@ -51,4 +54,7 @@ class Node : public enable_shared_from_this<Node>
         weak_ptr<Node> getParent();
         weak_ptr<Scene> getScene();
 };
+
+} /* namespace */
+
 #endif

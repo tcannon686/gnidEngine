@@ -11,6 +11,7 @@
 #include "renderer.hpp"
 #include "camera.hpp"
 
+using namespace gnid;
 using namespace std;
 
 Binding::Binding(
@@ -32,6 +33,11 @@ bool Binding::operator<(const Binding &other) const
         return true;
     else
         return false;
+}
+
+bool Light::operator<(const Light &other) const
+{
+    return node < other.node;
 }
 
 void Renderer::renderMesh(
@@ -120,4 +126,16 @@ void Renderer::remove(Binding binding)
 {
     bindings.erase(bindings.find(binding));
 }
+
+// TODO make lights actually do shit.
+void Renderer::add(Light light)
+{
+    lights.insert(light);
+}
+
+void Renderer::remove(Light light)
+{
+    lights.erase(lights.find(light));
+}
+
 

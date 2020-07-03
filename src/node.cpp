@@ -3,6 +3,8 @@
 #include "scene.hpp"
 #include "node.hpp"
 
+using namespace gnid;
+
 Matrix4f Node::getLocalMatrix()
 {
     return Matrix4f::identity;

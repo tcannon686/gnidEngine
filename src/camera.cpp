@@ -1,7 +1,8 @@
 #include "camera.hpp"
 #include <cmath>
-#include "matrix.hpp"
+#include "matrix/matrix.hpp"
 
+using namespace gnid;
 using namespace std;
 
 Camera::Camera(float fovy, float aspect, float znear, float zfar)

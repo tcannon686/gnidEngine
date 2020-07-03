@@ -11,6 +11,8 @@
 #include "shader.hpp"
 #include "node.hpp"
 
+namespace gnid
+{
 using namespace std;
 
 class RendererMesh
@@ -42,10 +44,18 @@ class Binding
         bool operator<(const Binding &other) const;
 };
 
+class Light
+{
+    public:
+        const shared_ptr<Node> node;
+        bool operator<(const Light &other) const;
+};
+
 class Renderer
 {
     private:
         set<Binding> bindings;
+        set<Light> lights;
         void renderMesh(
             shared_ptr<RendererMesh> mesh,
             int instanceCount) const;
@@ -53,6 +63,9 @@ class Renderer
         void render(shared_ptr<Camera> camera) const;
         void add(Binding binding);
         void remove(Binding binding);
+        void add(Light light);
+        void remove(Light light);
 };
 
+}; /* namespace */
 #endif

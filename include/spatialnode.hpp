@@ -1,8 +1,11 @@
 #ifndef SPATIALNODE_HPP
 #define SPATIAL_NODE_HPP
 
-#include "matrix.hpp"
+#include "matrix/matrix.hpp"
 #include "node.hpp"
+
+namespace gnid
+{
 
 using namespace tmat;
 
@@ -15,6 +18,8 @@ class SpatialNode : public Node
         Matrix4f getLocalMatrix();
         void transform(Matrix4f matrix);
 };
+
+}; /* namespace */
 
 #endif
 

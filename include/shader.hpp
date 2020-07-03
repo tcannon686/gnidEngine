@@ -1,7 +1,11 @@
 #ifndef SHADER_HPP
 #define SHADER_HPP
 
-#include "matrix.hpp"
+#include "matrix/matrix.hpp"
+
+namespace gnid
+{
+
 using namespace tmat;
 
 class ShaderProgram
@@ -18,4 +22,5 @@ class ShaderProgram
         virtual int getMaxInstances() = 0;
 };
 
+}; /* namespace */
 #endif

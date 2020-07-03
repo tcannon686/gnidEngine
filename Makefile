@@ -1,14 +1,16 @@
 
+INCLUDEDIR = include
+SRCDIR = src
+DEPSDIR = deps
+BINDIR = bin
+
 CC = g++
-CFLAGS = -g -Wall -c -Iglad/include -I/usr/include/lua5.3\
-		 -I/usr/local/include/lua5.3 -Imatrix
-OBJECTS = main.o node.o scene.o camera.o renderer.o phongshader.o\
-		  renderernode.o spatialnode.o
-SOURCES = main.cpp node.cpp scene.cpp camera.cpp renderer.cpp phongshader.cpp\
-		  renderernode.cpp spatialnode.cpp
-HEADERS = node.hpp camera.hpp scene.hpp shader.hpp material.hpp renderer.hpp\
-		  matrix/matrix.hpp phongshader.hpp renderernode.hpp spatialnode.hpp\
-		  obj_parser.hpp
+CFLAGS = -g -Wall -c -I$(DEPSDIR)/glad/include -I/usr/include/lua5.3\
+		 -I/usr/local/include/lua5.3 -Imatrix -I$(INCLUDEDIR) -I$(DEPSDIR)
+
+SOURCES = $(shell find $(SRCDIR) -name "*.cpp")
+HEADERS = $(shell find $(INCLUDEDIR) -name "*.hpp")
+OBJECTS = $(shell find $(SRCDIR) -name "*.cpp" | sed -e 's/.cpp$$/.o/')
 
 UNAME = $(shell uname)
 
@@ -23,19 +25,19 @@ LIBS = -lglfw3 -lopengl32 -lglu32 -lgdi32
 EXE = gnid.exe
 endif
 
-$(EXE) : $(OBJECTS) glad.o lodepng.o
-	$(CC) $(OBJECTS) glad.o lodepng.o\
+$(EXE) : $(OBJECTS) $(BINDIR)/glad.o $(BINDIR)/lodepng.o
+	$(CC) $(OBJECTS) $(BINDIR)/glad.o $(BINDIR)/lodepng.o\
 		$(LIBS) -o $(EXE)
 
-glad.o : glad/src/glad.c
-	$(CC) -c -Iglad/include glad/src/glad.c -o glad.o
+$(BINDIR)/glad.o : $(DEPSDIR)/glad/src/glad.c
+	$(CC) -c -I$(DEPSDIR)/glad/include $(DEPSDIR)/glad/src/glad.c -o $(BINDIR)/glad.o
 
-lodepng.o : lodepng.c lodepng.h
-	$(CC) -c lodepng.c -o lodepng.o
+$(BINDIR)/lodepng.o : $(DEPSDIR)/lodepng.c $(DEPSDIR)/lodepng.h
+	$(CC) -c $(DEPSDIR)/lodepng.c -o $(BINDIR)/lodepng.o
 
 %.o : %.cpp $(HEADERS)
 	$(CC) $(CFLAGS) $< -o $@
 
 clean :
-	rm -f $(OBJECTS) $(EXE) glad.o
+	rm -f $(OBJECTS) $(EXE) $(BINDIR)/glad.o $(BINDIR)/lodepng.o
 

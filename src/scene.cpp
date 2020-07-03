@@ -2,6 +2,8 @@
 #include "node.hpp"
 #include "scene.hpp"
 
+using namespace gnid;
+
 void Scene::init()
 {
     root->scene = shared_from_this();

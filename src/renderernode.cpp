@@ -3,6 +3,8 @@
 #include "renderer.hpp"
 #include "material.hpp"
 
+using namespace gnid;
+
 RendererNode::RendererNode(
         shared_ptr<RendererMesh> mesh,
         shared_ptr<Material> material)

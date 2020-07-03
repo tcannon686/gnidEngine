@@ -6,6 +6,7 @@
 
 #include "phongshader.hpp"
 
+using namespace gnid;
 using namespace tmat;
 using namespace std;
 

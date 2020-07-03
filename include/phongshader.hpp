@@ -2,8 +2,10 @@
 #define PHONGSHADER_HPP
 
 #include "shader.hpp"
-#include "matrix.hpp"
+#include "matrix/matrix.hpp"
 #include "material.hpp"
+
+using namespace gnid;
 using namespace tmat;
 
 class PhongShader : public ShaderProgram
@@ -11,11 +13,11 @@ class PhongShader : public ShaderProgram
     private:
         GLint program;
     public:
-        void init();
-        void use();
-        void setProjectionMatrix(Matrix4f projection);
-        void setModelViewMatrix(int instance, Matrix4f transform);
-        int getMaxInstances();
+        void init() override;
+        void use() override;
+        void setProjectionMatrix(Matrix4f projection) override;
+        void setModelViewMatrix(int instance, Matrix4f transform) override;
+        int getMaxInstances() override;
 };
 
 class PhongMaterial : public Material
@@ -27,12 +29,12 @@ class PhongMaterial : public Material
         {
         }
 
-        shared_ptr<ShaderProgram> getShader()
+        shared_ptr<ShaderProgram> getShader() override
         {
             return shader;
         }
 
-        void bind()
+        void bind() override
         {
         }
 };

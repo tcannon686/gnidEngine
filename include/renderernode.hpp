@@ -4,6 +4,9 @@
 #include "renderer.hpp"
 #include "node.hpp"
 
+namespace gnid
+{
+
 class RendererNode : public Node
 {
     public:
@@ -15,5 +18,7 @@ class RendererNode : public Node
         void onSceneChanged(shared_ptr<Scene> newScene);
         shared_ptr<Node> clone();
 };
+
+} /* namespace */
 
 #endif
