@@ -14,12 +14,10 @@ using namespace tmat;
 
 class Scene : public enable_shared_from_this<Scene>
 {
-    private:
-        list<shared_ptr<Camera>> cameras;
-        void onNodeAdded(shared_ptr<Node> node);
-        void onNodeRemoved(shared_ptr<Node> node);
-        friend class Node;
     public:
+        typedef list<shared_ptr<Camera>> CameraList;
+        
+        CameraList cameras;
         const shared_ptr<Node> root;
         Renderer renderer;
 
@@ -33,6 +31,9 @@ class Scene : public enable_shared_from_this<Scene>
         void render();
         void update(float dt);
         void updateWorldMatrix();
+
+    private:
+        friend class Node;
 };
 
 }; /* namespace */

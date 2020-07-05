@@ -15,8 +15,14 @@ Matrix4f SpatialNode::getLocalMatrix()
     return localMatrix;
 }
 
-void SpatialNode::transform(Matrix4f matrix)
+void SpatialNode::setLocalMatrix(Matrix4f matrix)
+{
+    localMatrix = matrix;
+}
+
+shared_ptr<SpatialNode> SpatialNode::transform(Matrix4f matrix)
 {
     localMatrix = localMatrix * matrix;
+    return static_pointer_cast<SpatialNode>(shared_from_this());
 }
 

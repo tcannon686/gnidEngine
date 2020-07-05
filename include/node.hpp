@@ -44,15 +44,18 @@ class Node : public enable_shared_from_this<Node>
 
         void updateAll(float dt);
 
-        void add(shared_ptr<Node> child);
+        /* Add a node to this node. Return this node. */
+        shared_ptr<Node> add(shared_ptr<Node> child);
 
         virtual Matrix4f getLocalMatrix();
         Matrix4f getWorldMatrix();
 
         void updateWorldMatrix(Matrix4f prev);
 
-        weak_ptr<Node> getParent();
-        weak_ptr<Scene> getScene();
+        const weak_ptr<Node> &getParent() const;
+        const weak_ptr<Scene> &getScene() const;
+
+        Vector4f position();
 };
 
 } /* namespace */

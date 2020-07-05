@@ -1,8 +1,11 @@
 
+#include <iostream>
+
 #include "node.hpp"
 #include "scene.hpp"
 
 using namespace gnid;
+using namespace std;
 
 void Scene::init()
 {
@@ -21,6 +24,8 @@ void Scene::updateWorldMatrix()
 
 void Scene::render()
 {
+    bool hasCamera = false;
+
     for(auto it = begin(cameras);
         it != end(cameras);
         ++ it)
@@ -28,21 +33,12 @@ void Scene::render()
         if((*it)->isActive())
         {
             renderer.render(*it);
+            hasCamera = true;
         }
     }
-}
 
-void Scene::onNodeAdded(shared_ptr<Node> node)
-{
-    shared_ptr<Camera> camera;
-    
-    /* If a camera was added add it to the camera list. */
-    if(camera = dynamic_pointer_cast<Camera>(node))
+    if(!hasCamera)
     {
-        cameras.push_front(camera);
+        cerr << "No active cameras added to scene!" << endl;
     }
-}
-
-void Scene::onNodeRemoved(shared_ptr<Node> node)
-{
 }

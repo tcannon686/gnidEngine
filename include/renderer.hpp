@@ -15,6 +15,9 @@ namespace gnid
 {
 using namespace std;
 
+class ShaderProgram;
+class LightNode;
+
 class RendererMesh
 {
     public:
@@ -44,27 +47,23 @@ class Binding
         bool operator<(const Binding &other) const;
 };
 
-class Light
-{
-    public:
-        const shared_ptr<Node> node;
-        bool operator<(const Light &other) const;
-};
-
 class Renderer
 {
-    private:
-        set<Binding> bindings;
-        set<Light> lights;
-        void renderMesh(
-            shared_ptr<RendererMesh> mesh,
-            int instanceCount) const;
     public:
         void render(shared_ptr<Camera> camera) const;
         void add(Binding binding);
         void remove(Binding binding);
-        void add(Light light);
-        void remove(Light light);
+        void add(shared_ptr<LightNode> light);
+        void remove(shared_ptr<LightNode> light);
+    private:
+        set<Binding> bindings;
+        set<shared_ptr<LightNode>> lights;
+        void renderMesh(
+            shared_ptr<RendererMesh> mesh,
+            int instanceCount) const;
+        void updateLights(
+                shared_ptr<Camera> camera,
+                shared_ptr<ShaderProgram> program) const;
 };
 
 }; /* namespace */

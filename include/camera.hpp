@@ -14,6 +14,7 @@ class Camera : public Node
         Camera(float fovy, float aspect, float znear, float zfar);
         Matrix4f getProjectionMatrix();
         Matrix4f getViewMatrix();
+        void onSceneChanged(shared_ptr<Scene> newScene) override;
 };
 
 }; /* namespace */

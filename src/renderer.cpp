@@ -10,6 +10,7 @@
 #include "node.hpp"
 #include "renderer.hpp"
 #include "camera.hpp"
+#include "lightnode.hpp"
 
 using namespace gnid;
 using namespace std;
@@ -35,11 +36,6 @@ bool Binding::operator<(const Binding &other) const
         return false;
 }
 
-bool Light::operator<(const Light &other) const
-{
-    return node < other.node;
-}
-
 void Renderer::renderMesh(
     shared_ptr<RendererMesh> mesh,
     int instanceCount) const
@@ -50,6 +46,23 @@ void Renderer::renderMesh(
         mesh->type,
         nullptr,
         instanceCount);
+}
+
+void Renderer::updateLights(
+    shared_ptr<Camera> camera,
+    shared_ptr<ShaderProgram> program) const
+{
+    program->setLightCount(lights.size());
+    int i = 0;
+    for(auto it = begin(lights);
+            it != end(lights);
+            ++ it)
+    {
+        program->setLightPosition(
+                i,
+                (camera->getViewMatrix() * (*it)->position()).cut());
+        ++ i;
+    }
 }
 
 void Renderer::render(shared_ptr<Camera> camera) const
@@ -70,7 +83,7 @@ void Renderer::render(shared_ptr<Camera> camera) const
                 renderMesh(mesh, instanceCount);
             if(!material || it->material->getShader() != material->getShader())
             {
-                // Use shader
+                /* Use shader. */
                 shared_ptr<ShaderProgram> shader = it->material->getShader();
                 shader->use();
                 shader->setProjectionMatrix(camera->getProjectionMatrix());
@@ -83,6 +96,7 @@ void Renderer::render(shared_ptr<Camera> camera) const
             it->material->getShader()->setModelViewMatrix(
                     instanceCount,
                     camera->getViewMatrix() * it->node->getWorldMatrix());
+            updateLights(camera, it->material->getShader());
         }
         else if(it->mesh != mesh)
         {
@@ -94,6 +108,7 @@ void Renderer::render(shared_ptr<Camera> camera) const
             it->material->getShader()->setModelViewMatrix(
                     instanceCount,
                     camera->getViewMatrix() * it->node->getWorldMatrix());
+            updateLights(camera, it->material->getShader());
         }
         else
         {
@@ -107,8 +122,8 @@ void Renderer::render(shared_ptr<Camera> camera) const
             it->material->getShader()->setModelViewMatrix(
                     instanceCount,
                     camera->getViewMatrix() * it->node->getWorldMatrix());
+            updateLights(camera, it->material->getShader());
             instanceCount ++;
-            
         }
     }
     if(instanceCount)
@@ -127,13 +142,12 @@ void Renderer::remove(Binding binding)
     bindings.erase(bindings.find(binding));
 }
 
-// TODO make lights actually do shit.
-void Renderer::add(Light light)
+void Renderer::add(shared_ptr<LightNode> light)
 {
     lights.insert(light);
 }
 
-void Renderer::remove(Light light)
+void Renderer::remove(shared_ptr<LightNode> light)
 {
     lights.erase(lights.find(light));
 }

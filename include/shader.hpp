@@ -19,6 +19,8 @@ class ShaderProgram
         virtual void use() = 0;
         virtual void setProjectionMatrix(Matrix4f projection) = 0;
         virtual void setModelViewMatrix(int instance, Matrix4f transform) = 0;
+        virtual void setLightCount(int count) = 0;
+        virtual void setLightPosition(int index, Vector3f position) = 0;
         virtual int getMaxInstances() = 0;
 };
 

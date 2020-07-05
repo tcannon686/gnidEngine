@@ -1,6 +1,9 @@
-#include "camera.hpp"
+#include <memory>
 #include <cmath>
+
 #include "matrix/matrix.hpp"
+#include "camera.hpp"
+#include "scene.hpp"
 
 using namespace gnid;
 using namespace std;
@@ -30,3 +33,16 @@ Matrix4f Camera::getViewMatrix()
 {
     return getWorldMatrix().inverse();
 }
+
+void Camera::onSceneChanged(shared_ptr<Scene> newScene)
+{
+    auto oldScene = getScene().lock();
+
+    if(oldScene)
+        oldScene->cameras.remove(
+                static_pointer_cast<Camera>(shared_from_this()));
+    if(newScene)
+        newScene->cameras.push_back(
+                static_pointer_cast<Camera>(shared_from_this()));
+}
+

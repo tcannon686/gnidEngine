@@ -15,23 +15,37 @@ static const char *vert_code = R"VERT(
 in vec4 vertex;
 in vec3 normal;
 
-out vec3 fragNormal;
+out vec4 fragNormal;
+out vec4 fragVertex;
 
-layout(location = 1) uniform mat4 modelViewMatrix;
-layout(location = 2) uniform mat4 projectionMatrix;
+uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
+
 void main() {
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(vertex.xyz, 1);
-    fragNormal = (modelViewMatrix * vec4(normal, 0)).xyz;
+    fragVertex = modelViewMatrix * vec4(vertex.xyz, 1);
+    fragNormal = (modelViewMatrix * vec4(normal, 0));
+
+    gl_Position = projectionMatrix * fragVertex;
 }
 )VERT";
 
 static const char *frag_code = R"FRAG(
 #version 440
 out vec4 fragColor;
-in vec3 fragNormal;
+in vec4 fragNormal;
+in vec4 fragVertex;
+
+uniform int lightCount;
+uniform vec4 lights[32];
 
 void main() {
-    fragColor = vec4(dot(fragNormal, vec3(0, 0, 1)));
+    fragColor = vec4(0, 0, 0, 1);
+
+    for(int i = 0; i < lightCount; i ++)
+    {
+        vec3 l = normalize(lights[i].xyz - fragVertex.xyz);
+        fragColor += vec4(1, 1, 1, 0) * dot(l, fragNormal.xyz);
+    }
 }
 )FRAG";
 
@@ -100,6 +114,22 @@ void PhongShader::init()
         delete[] infoLog;
         assert(false);
     }
+
+    modelViewMatrixLoc = glGetUniformLocation(program, "modelViewMatrix");
+    projectionMatrixLoc = glGetUniformLocation(program, "projectionMatrix");
+    lightCountLoc = glGetUniformLocation(program, "lightCount");
+
+    assert(modelViewMatrixLoc != -1);
+    assert(projectionMatrixLoc != -1);
+    assert(lightCountLoc != -1);
+
+    for(int i = 0; i < 32; i ++)
+    {
+        string uniform = "lights[" + to_string(i) + "]";
+
+        lightsLocs[i] = glGetUniformLocation(program, uniform.c_str());
+        assert(lightsLocs[i] != -1);
+    }
 }
 
 void PhongShader::use()
@@ -110,33 +140,34 @@ void PhongShader::use()
 void PhongShader::setProjectionMatrix(Matrix4f matrix)
 {
     GLfloat mat[16];
-    for(int i = 0; i < 4; i ++)
-    {
-        for(int j = 0; j < 4; j ++)
-        {
-            mat[i * 4 + j] = matrix[i][j];
-        }
-    }
+    matrix.toArray(mat);
 
-    glUniformMatrix4fv(2, 1, GL_FALSE, mat);
+    glUniformMatrix4fv(projectionMatrixLoc, 1, GL_FALSE, mat);
 }
 
 void PhongShader::setModelViewMatrix(int instance, Matrix4f matrix)
 {
     GLfloat mat[16];
-    for(int i = 0; i < 4; i ++)
-    {
-        for(int j = 0; j < 4; j ++)
-        {
-            mat[i * 4 + j] = matrix[i][j];
-        }
-    }
-
-    glUniformMatrix4fv(1, 1, GL_FALSE, mat);
+    matrix.toArray(mat);
+    
+    glUniformMatrix4fv(modelViewMatrixLoc, 1, GL_FALSE, mat);
 }
 
 int PhongShader::getMaxInstances()
 {
     return 1;
+}
+
+void PhongShader::setLightCount(int count)
+{
+    glUniform1i(lightCountLoc, count);
+}
+
+void PhongShader::setLightPosition(int index, Vector3f position)
+{
+    float light[4];
+    light[3] = 0;
+    position.toArray(light);
+    glUniform4fv(lightsLocs[index], 1, light);
 }
 

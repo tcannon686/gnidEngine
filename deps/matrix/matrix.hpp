@@ -227,6 +227,55 @@ namespace tmat
                 return ret;
             }
 
+            void normalize()
+            {
+                T length = this->magnitude();
+                for(int i = 0; i < N; i ++)
+                {
+                    components[i] /= length;
+                }
+            }
+
+            Vector<N, T> normalized()
+            {
+                Vector<N, T> ret = *this;
+                ret.normalize();
+                return ret;
+            }
+
+            /* Cut the last element off the vector. */
+            Vector<N - 1, T> cut()
+            {
+                Vector<N - 1, T> ret;
+                for(int i = 0; i < N - 1; i ++)
+                {
+                    ret[i] = components[i];
+                }
+                return ret;
+            }
+
+            /* Add another 1 to the end of the vector. */
+            Vector<N + 1, T> homo()
+            {
+                Vector<N + 1, T> ret;
+                for(int i = 0; i < N; i ++)
+                {
+                    ret[i] = components[i];
+                }
+                ret[N] = 1;
+
+                return ret;
+            }
+
+            template<typename U>
+            void toArray(U ret[])
+            {
+                for(int i = 0; i < N; i ++)
+                {
+                    ret[i] = components[i];
+                }
+            }
+
             template<int M, typename U>
             friend ostream &operator<<(
                     ostream &stream,
@@ -269,8 +318,7 @@ namespace tmat
             /*
              * Create from a list of components, row major.
              */
-            template<typename U>
-            Matrix(initializer_list<initializer_list<U>> rows)
+            Matrix(initializer_list<initializer_list<T>> rows)
             {
                 if(rows.size() != M)
                     throw invalid_argument("invalid number of arguments");
@@ -291,23 +339,6 @@ namespace tmat
                         j ++;
                     }
                     i++;
-                }
-            }
-
-            /*
-             * Create from a list of column vectors.
-             */
-            Matrix(initializer_list<Vector<M, T>> columns)
-            {
-                if(columns.size() != N)
-                    throw invalid_argument("invalid number of arguments");
-                int i = 0;
-                for(auto it = columns.begin();
-                    it != columns.end();
-                    ++ it)
-                {
-                    setColumn(i, *it);
-                    i ++;
                 }
             }
 
@@ -410,6 +441,19 @@ namespace tmat
                     }
                 }
                 return ret;
+            }
+
+            bool operator==(const Matrix<M, N, T> &other) const
+            {
+                for(int i = 0; i < M; i ++)
+                {
+                    for(int j = 0; j < N; j ++)
+                    {
+                        if(rows[i][j] != other.rows[i][j])
+                            return false;
+                    }
+                }
+                return true;
             }
 
             T determinant()
@@ -519,11 +563,9 @@ namespace tmat
                 static_assert(M == N);
                 for(int i = 0; i < M; i ++)
                 {
-                    for(int j = 0; j < N; j ++)
+                    for(int j = 0; j < i; j ++)
                     {
-                        auto tmp = rows[i][j];
-                        rows[i][j] = rows[j][i];
-                        rows[j][i] = tmp;
+                        swap(rows[i][j], rows[j][i]);
                     }
                 }
             }

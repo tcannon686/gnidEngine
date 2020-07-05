@@ -41,7 +41,7 @@ void Node::onSceneChangedAll(shared_ptr<Scene> newScene)
     }
 }
 
-void Node::add(shared_ptr<Node> child)
+shared_ptr<Node> Node::add(shared_ptr<Node> child)
 {
     shared_ptr<Node> child_parent = child->parent.lock();
     shared_ptr<Scene> child_scene = child->scene.lock();
@@ -63,13 +63,10 @@ void Node::add(shared_ptr<Node> child)
      */
     if(child_scene != this_scene)
     {
-        if(child_scene)
-            child_scene->onNodeRemoved(child);
-        if(this_scene)
-            this_scene->onNodeAdded(child);
-
         child->onSceneChangedAll(this_scene);
     }
+
+    return shared_from_this();
 }
 
 void Node::updateAll(float dt)
@@ -113,13 +110,18 @@ Node::Node(const Node &other)
     }
 }
 
-weak_ptr<Node> Node::getParent()
+const weak_ptr<Node> &Node::getParent() const
 {
     return parent;
 }
 
-weak_ptr<Scene> Node::getScene()
+const weak_ptr<Scene> &Node::getScene() const
 {
     return scene;
+}
+
+Vector4f Node::position()
+{
+    return (worldMatrix * Vector4f { 0, 0, 0, 1 });
 }
 

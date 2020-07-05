@@ -1,5 +1,6 @@
 gnid
 gnid.exe
+libgnid.*
 *~
 *.o
 .*.swp
