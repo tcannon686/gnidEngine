@@ -465,7 +465,7 @@ public:
     }
 
     template<typename Shader, typename Material>
-    shared_ptr<Node> result(shared_ptr<Shader> shader)
+    shared_ptr<Node> buildRendererNode(shared_ptr<Shader> shader)
     {
         assert(done);
         // Change the separate indices to one set of vertex indices.

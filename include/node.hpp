@@ -47,6 +47,11 @@ class Node : public enable_shared_from_this<Node>
         /* Add a node to this node. Return this node. */
         shared_ptr<Node> add(shared_ptr<Node> child);
 
+        template<typename T, typename ...U> shared_ptr<Node> add(U... cargs)
+        {
+            return add(make_shared<T>(cargs...));
+        }
+
         virtual Matrix4f getLocalMatrix();
         Matrix4f getWorldMatrix();
 
