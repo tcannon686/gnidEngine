@@ -4,6 +4,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include "camera.hpp"
+#include "lightnode.hpp"
 #include "phongshader.hpp"
 
 using namespace gnid;
@@ -44,7 +46,13 @@ void main() {
     for(int i = 0; i < lightCount; i ++)
     {
         vec3 l = normalize(lights[i].xyz - fragVertex.xyz);
-        fragColor += vec4(1, 1, 1, 0) * dot(l, fragNormal.xyz);
+        float attenuation = clamp(
+                lights[i].w / dot(l, l),
+                0,
+                1);
+        fragColor += vec4(1, 1, 1, 0)
+            * attenuation
+            * clamp(dot(l, fragNormal.xyz), 0, 1);
     }
 }
 )FRAG";
@@ -163,11 +171,20 @@ void PhongShader::setLightCount(int count)
     glUniform1i(lightCountLoc, count);
 }
 
-void PhongShader::setLightPosition(int index, Vector3f position)
+void PhongShader::setLight(
+        int index,
+        shared_ptr<Camera> camera,
+        shared_ptr<LightNode> light)
 {
-    float light[4];
-    light[3] = 0;
-    position.toArray(light);
-    glUniform4fv(lightsLocs[index], 1, light);
+    /* Calculate the light position. */
+    Vector4f position = (camera->getViewMatrix() * light->position());
+
+    float uniform[4];
+    position.toArray(uniform);
+
+    /* Store the distance in the last component. */
+    uniform[3] = light->distance();
+
+    glUniform4fv(lightsLocs[index], 1, uniform);
 }
 

@@ -58,9 +58,7 @@ void Renderer::updateLights(
             it != end(lights);
             ++ it)
     {
-        program->setLightPosition(
-                i,
-                (camera->getViewMatrix() * (*it)->position()).cut());
+        program->setLight(i, camera, *it);
         ++ i;
     }
 }

@@ -37,7 +37,7 @@ class Node : public enable_shared_from_this<Node>
 
         virtual void update(float dt) {}
 
-        virtual shared_ptr<Node> clone();
+        virtual shared_ptr<Node> clone() = 0;
 
         bool isActive();
         void setActive(bool active);

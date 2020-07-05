@@ -15,6 +15,11 @@ class Camera : public Node
         Matrix4f getProjectionMatrix();
         Matrix4f getViewMatrix();
         void onSceneChanged(shared_ptr<Scene> newScene) override;
+        
+        shared_ptr<Node> clone() override
+        {
+            return make_shared<Camera>(*this);
+        }
 };
 
 }; /* namespace */

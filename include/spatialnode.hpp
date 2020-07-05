@@ -20,6 +20,11 @@ class SpatialNode : public Node
 
         /* Transform this node by the specified matrix. Return this node. */
         shared_ptr<SpatialNode> transform(Matrix4f matrix);
+
+        shared_ptr<Node> clone() override
+        {
+            return make_shared<SpatialNode>(*this);
+        }
 };
 
 }; /* namespace */

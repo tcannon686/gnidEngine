@@ -3,6 +3,7 @@
 
 #include <list>
 #include "node.hpp"
+#include "emptynode.hpp"
 #include "camera.hpp"
 #include "matrix/matrix.hpp"
 #include "renderer.hpp"
@@ -22,7 +23,7 @@ class Scene : public enable_shared_from_this<Scene>
         Renderer renderer;
 
         Scene()
-            : root(make_shared<Node>())
+            : root(make_shared<EmptyNode>())
         {
         }
 

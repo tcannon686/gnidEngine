@@ -1,3 +1,5 @@
+#include <memory>
+
 #include "renderer.hpp"
 #include "scene.hpp"
 #include "lightnode.hpp"
@@ -14,5 +16,10 @@ void LightNode::onSceneChanged(shared_ptr<Scene> newScene)
     if(newScene)
         newScene->renderer.add(
                 static_pointer_cast<LightNode>(shared_from_this()));
+}
+
+shared_ptr<Node> LightNode::clone()
+{
+    return make_shared<LightNode>(*this);
 }
 

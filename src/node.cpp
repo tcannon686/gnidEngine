@@ -80,11 +80,6 @@ void Node::updateAll(float dt)
     }
 }
 
-shared_ptr<Node> Node::clone()
-{
-    return make_shared<Node>(*this);
-}
-
 bool Node::isActive()
 {
     return active;

@@ -16,7 +16,10 @@ class PhongShader : public ShaderProgram
         void setProjectionMatrix(Matrix4f projection) override;
         void setModelViewMatrix(int instance, Matrix4f transform) override;
         void setLightCount(int count) override;
-        void setLightPosition(int index, Vector3f position) override;
+        void setLight(
+                int index,
+                shared_ptr<Camera> camera,
+                shared_ptr<LightNode> light) override;
         int getMaxInstances() override;
     private:
         GLint program;
