@@ -7,9 +7,16 @@
 #include <initializer_list>
 #include <stdexcept>
 
+/**
+ * \brief Provides basic matrix functionality using C++ templates
+ */
 namespace tmat
 {
     using namespace std;
+    
+    /**
+     * \brief A vector
+     */
     template<int N, typename T>
     class Vector
     {
@@ -21,6 +28,10 @@ namespace tmat
             const static Vector<N, T> up;
             const static Vector<N, T> forward;
             const static Vector<N, T> zero;
+
+            /**
+             * \brief Create a vector with all zero components
+             */
             Vector()
             {
                 for(int i = 0; i < N; i ++)
@@ -28,6 +39,10 @@ namespace tmat
                     components[i] = 0;
                 }
             }
+
+            /**
+             * \brief Copy the other vector
+             */
             Vector(const Vector &other)
             {
                 for(int i = 0; i < N; i ++)
@@ -35,6 +50,10 @@ namespace tmat
                     components[i] = other.components[i];
                 }
             }
+
+            /**
+             * \brief Create a vector from a list of components
+             */
             Vector(initializer_list<T> components)
             {
                 if(components.size() > N)
@@ -143,6 +162,9 @@ namespace tmat
                 return ret;
             }
 
+            /**
+             * \brief Returns true if the two vectors components are all equal
+             */
             bool operator==(const Vector<N, T> &right) const
             {
                 for(int i = 0; i < N; i ++)
@@ -153,6 +175,10 @@ namespace tmat
                 return true;
             }
 
+            /**
+             * \brief
+             *     Returns true if for all indices 0 <= i < N, this[i] > right[i]
+             */
             bool operator>(const Vector<N, T> &right) const
             {
                 for(int i = 0; i < N; i ++)
@@ -163,6 +189,10 @@ namespace tmat
                 return true;
             }
 
+            /**
+             * \brief
+             *     Returns true if for all indices 0 <= i < N, this[i] < right[i]
+             */
             bool operator<(const Vector<N, T> &right) const
             {
                 for(int i = 0; i < N; i ++)
@@ -173,6 +203,10 @@ namespace tmat
                 return true;
             }
 
+            /**
+             * \brief
+             *     Returns true if for all indices 0 <= i < N, this[i] >= right[i]
+             */
             bool operator>=(const Vector<N, T> &right) const
             {
                 for(int i = 0; i < N; i ++)
@@ -183,6 +217,10 @@ namespace tmat
                 return true;
             }
 
+            /**
+             * \brief
+             *     Returns true if for all indices 0 <= i < N, this[i] <= right[i]
+             */
             bool operator<=(const Vector<N, T> &right) const
             {
                 for(int i = 0; i < N; i ++)
@@ -213,6 +251,15 @@ namespace tmat
                 return sqrt(ret);
             }
 
+            /**
+             * \brief
+             *     Calculate the cross product between this vector and the given
+             *     vector
+             *
+             * \description
+             *     Returns the cross product between this vector and the given
+             *     vector. Only available if N == 3.
+             */
             Vector<N, T> cross(const Vector<N, T> &right) const
             {
                 static_assert(N == 3);
@@ -227,6 +274,10 @@ namespace tmat
                 return ret;
             }
 
+            /**
+             * \brief
+             *     Normalize the vector in place.
+             */
             void normalize()
             {
                 T length = this->magnitude();
@@ -236,7 +287,11 @@ namespace tmat
                 }
             }
 
-            Vector<N, T> normalized()
+            /**
+             * \brief
+             *     Returns a unit vector with the same direction as this vector
+             */
+            Vector<N, T> normalized() const
             {
                 Vector<N, T> ret = *this;
                 ret.normalize();
@@ -244,7 +299,7 @@ namespace tmat
             }
 
             /* Cut the last element off the vector. */
-            Vector<N - 1, T> cut()
+            Vector<N - 1, T> cut() const
             {
                 Vector<N - 1, T> ret;
                 for(int i = 0; i < N - 1; i ++)
@@ -254,8 +309,10 @@ namespace tmat
                 return ret;
             }
 
-            /* Add another 1 to the end of the vector. */
-            Vector<N + 1, T> homo()
+            /**
+             * \brief Add another 1 to the end of the vector
+             */
+            Vector<N + 1, T> homo() const
             {
                 Vector<N + 1, T> ret;
                 for(int i = 0; i < N; i ++)
@@ -267,8 +324,26 @@ namespace tmat
                 return ret;
             }
 
+            /**
+             * \brief Add another 0 to the end of the vector.
+             */
+            Vector<N + 1, T> add0() const
+            {
+                Vector<N + 1, T> ret;
+                for(int i = 0; i < N; i ++)
+                {
+                    ret[i] = components[i];
+                }
+                ret[N] = 0;
+
+                return ret;
+            }
+
+            /**
+             * \brief Store the components of the vector in the given array
+             */
             template<typename U>
-            void toArray(U ret[])
+            void toArray(U ret[]) const
             {
                 for(int i = 0; i < N; i ++)
                 {
@@ -306,6 +381,9 @@ namespace tmat
     template<int N, typename T>
     const Vector<N, T> Vector<N, T>::zero{};
 
+    /**
+     * \brief A matrix
+     */
     template<int M, int N, typename T>
     class Matrix
     {
@@ -315,8 +393,8 @@ namespace tmat
             Vector<N, T> rows[M];
         public:
             static const Matrix<M, N, T> identity;
-            /*
-             * Create from a list of components, row major.
+            /**
+             * \brief Create from a list of components, row major order
              */
             Matrix(initializer_list<initializer_list<T>> rows)
             {
@@ -342,8 +420,8 @@ namespace tmat
                 }
             }
 
-            /*
-             * Create an identity matrix times scale.
+            /**
+             * \brief Create an identity matrix times scale
              */
             Matrix(T scale)
             {
@@ -359,6 +437,9 @@ namespace tmat
                 }
             }
 
+            /**
+             * \brief Create a matrix with all components set to zero
+             */
             Matrix()
             {
                 for(int i = 0; i < M; i ++)
@@ -367,6 +448,9 @@ namespace tmat
                 }
             }
 
+            /**
+             * \brief Store the column of the matrix at index i in out
+             */
             void getColumn(Vector<M, T> &out, int i) const
             {
                 for(int j = 0; j < M; j ++)
@@ -375,6 +459,9 @@ namespace tmat
                 }
             }
 
+            /**
+             * \brief Set the column at index i to the given column
+             */
             void setColumn(int i, Vector<M, T> column)
             {
                 for(int j = 0; j < M; j ++)
@@ -383,16 +470,25 @@ namespace tmat
                 }
             }
 
+            /**
+             * \brief Store the row at index i in out
+             */
             void getRow(Vector<N, T> &out, int i) const
             {
                 out = rows[i];
             }
 
+            /**
+             * \brief Set the row at index i to the given row
+             */
             void setRow(int i, Vector<N, T> row)
             {
                 rows[i] = row;
             }
 
+            /**
+             * \brief Return the column at index i (zero indexed)
+             */
             Vector<M, T> column(int i) const
             {
                 Vector<M, T> ret;
@@ -403,17 +499,25 @@ namespace tmat
                 return ret;
             }
 
+            /**
+             * \brief Return the row at index i (zero indexed)
+             */
             Vector<N, T> row(int i) const
             {
                 return row[i];
             }
 
-            /* Return the row vector at i. */
+            /**
+             * \brief Return the row vector at i
+             */
             Vector<N, T> &operator[](int i)
             {
                 return rows[i];
             }
 
+            /**
+             * \brief Return the row vector at i
+             */
             const Vector<N, T> &operator[](int i) const
             {
                 return rows[i];
@@ -443,6 +547,10 @@ namespace tmat
                 return ret;
             }
 
+            /**
+             * \brief
+             *     Returns true if all of the components in both vectors match
+             */
             bool operator==(const Matrix<M, N, T> &other) const
             {
                 for(int i = 0; i < M; i ++)
@@ -456,7 +564,7 @@ namespace tmat
                 return true;
             }
 
-            T determinant()
+            T determinant() const
             {
                 static_assert(M == N);
                 T ret = 0;
@@ -475,7 +583,7 @@ namespace tmat
                 return ret;
             }
 
-            T trace()
+            T trace() const
             {
                 T ret = 0;
                 for(int i = 0; i < min(M, N); i ++)
@@ -485,6 +593,10 @@ namespace tmat
                 return ret;
             }
 
+            /**
+             * \brief
+             *     Reduces the matrix to its reduced row echelon form in place
+             */
             void reduce()
             {
                 int i = 0, j = 0;
@@ -525,13 +637,19 @@ namespace tmat
                 }
             }
 
-            Matrix<M, N, T> reduced()
+            /**
+             * \brief Returns the reduced row echelon form of the matrix
+             */
+            Matrix<M, N, T> reduced() const
             {
                 Matrix<M, N, T> ret = *this;
                 ret.reduce();
                 return ret;
             }
         
+            /**
+             * \brief Invert the matrix in place
+             */
             void invert()
             {
                 static_assert(M == N);
@@ -551,13 +669,19 @@ namespace tmat
                 }
             }
 
-            Matrix<M, N, T> inverse()
+            /**
+             * \brief Return the matrix's inverse
+             */
+            Matrix<M, N, T> inverse() const
             {
                 Matrix<M, N, T> mat = *this;
                 mat.invert();
                 return mat;
             }
 
+            /**
+             * \brief Swap the rows of the matrix with its columns in place
+             */
             void transpose()
             {
                 static_assert(M == N);
@@ -570,7 +694,10 @@ namespace tmat
                 }
             }
 
-            Matrix<N, M, T> transposed()
+            /**
+             * \brief Return the transpose of the matrix
+             */
+            Matrix<N, M, T> transposed() const
             {
                 Matrix<N, M, T> ret = *this;
                 for(int i = 0; i < M; i ++)
@@ -583,7 +710,12 @@ namespace tmat
                 return ret;
             }
 
-            void sub(Matrix<M - 1, N - 1, T> &out, int m, int n)
+            /**
+             * \brief
+             *     Create the submatrix of the matrix (zero indexed) and store
+             *     it in out
+             */
+            void sub(Matrix<M - 1, N - 1, T> &out, int m, int n) const
             {
                 for(int i = 0; i < M - 1; i ++)
                 {
@@ -595,18 +727,21 @@ namespace tmat
                 }
             }
 
-            Matrix<M - 1, N - 1, T> sub(int m, int n)
+            /**
+             * \brief Return the submatrix of the matrix (zero indexed)
+             */
+            Matrix<M - 1, N - 1, T> sub(int m, int n) const
             {
                 Matrix<M - 1, N - 1, T> ret;
                 sub(ret, m, n);
                 return ret;
             }
 
-            /*
+            /**
              * Put the matrix into an array, default column major order.
              */
             template<typename U>
-            void toArray(U ret[], bool transpose)
+            void toArray(U ret[], bool transpose = false) const
             {
                 if(!transpose)
                 {
@@ -628,12 +763,6 @@ namespace tmat
                         }
                     }
                 }
-            }
-
-            template<typename U>
-            void toArray(U ret[])
-            {
-                toArray(ret, false);
             }
 
             template<int I, int J, typename U>
@@ -743,6 +872,76 @@ namespace tmat
             {             0,             0,             0,             1 }
         };
     }
-};
+
+    /**
+     * \brief
+     *     Transform the given vector as a homogenous coordinate and store it in
+     *     out
+     */
+    template<int N, class T>
+    void transform(
+            Vector<N - 1, T> &out,
+            const Matrix<N, N, T> matrix,
+            const Vector<N - 1, T> vector)
+    {
+        Vector<N, T> ret = matrix * vector.homo();
+        for(int i = 0; i < N - 1; i ++)
+        {
+            out[i] = ret[i];
+        }
+    }
+
+    /**
+     * \brief Transform the given vector as a homogenous coordinate
+     */
+    template<int N, class T>
+    Vector<N - 1, T> transform(
+            const Matrix<N, N, T> matrix,
+            const Vector<N - 1, T> vector)
+    {
+        Vector<N, T> ret = matrix * vector.homo();
+        Vector<N - 1, T> out;
+        for(int i = 0; i < N - 1; i ++)
+        {
+            out[i] = ret[i];
+        }
+        return out;
+    }
+
+    /**
+     * \brief Transform the given vector without translating it
+     */
+    template<int N, class T>
+    Vector<N - 1, T> transformDirection(
+            const Matrix<N, N, T> matrix,
+            const Vector<N - 1, T> vector)
+    {
+        Vector<N, T> ret = matrix * vector.add0();
+        Vector<N - 1, T> out;
+        for(int i = 0; i < N - 1; i ++)
+        {
+            out[i] = ret[i];
+        }
+        return out;
+    }
+
+    /**
+     * \brief
+     *     Transform the given vector without translating it and store it in out
+     */
+    template<int N, class T>
+    Vector<N - 1, T> transformDirection(
+            Vector<N - 1, T> &out,
+            const Matrix<N, N, T> matrix,
+            const Vector<N - 1, T> vector)
+    {
+        Vector<N, T> ret = matrix * vector.add0();
+        for(int i = 0; i < N - 1; i ++)
+        {
+            out[i] = ret[i];
+        }
+        return out;
+    }
+} /* namespace */
 
 #endif

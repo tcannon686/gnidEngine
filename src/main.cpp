@@ -122,6 +122,7 @@ int Gnid::start(GameBase &game)
         dt = glfwGetTime() - time;
         time += dt;
 
+        glClearColor(.25f, .5f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         game.update(dt);

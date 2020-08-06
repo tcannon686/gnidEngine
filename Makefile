@@ -3,6 +3,7 @@ INCLUDEDIR = include
 SRCDIR = src
 DEPSDIR = deps
 BINDIR = bin
+TESTDIR = tests
 
 CC = g++
 CFLAGS = -fPIC -g -Wall -c -I$(DEPSDIR)/glad/include -I/usr/include/lua5.3\
@@ -11,16 +12,17 @@ CFLAGS = -fPIC -g -Wall -c -I$(DEPSDIR)/glad/include -I/usr/include/lua5.3\
 SOURCES = $(shell find $(SRCDIR) -name "*.cpp")
 HEADERS = $(shell find $(INCLUDEDIR) -name "*.hpp")
 OBJECTS = $(shell find $(SRCDIR) -name "*.cpp" | sed -e 's|.cpp$$|.o|' | sed -e 's|^$(SRCDIR)|$(BINDIR)|')
+TEST_OBJECTS = $(shell find $(TESTDIR) -name "*.cpp" | sed -e 's|.cpp$$|.o|')
 EXE = libgnid.so
 
 UNAME = $(shell uname)
 
 ifneq (,$(findstring Linux, $(UNAME)))
-LIBS = -lglfw3 -lGL -ldl -lX11 -lm -lpthread
+LIBS = -lglfw -lGL -ldl -lX11 -lm -lpthread
 else ifneq (,$(findstring Darwin, $(UNAME)))
 LIBS = -lglfw -framework OpenGL -lm -lpthread
 else
-LIBS = -lglfw3 -lopengl32 -lglu32 -lgdi32 -lpthread
+LIBS = -lglfw -lopengl32 -lglu32 -lgdi32 -lpthread
 endif
 
 $(EXE) : $(OBJECTS) $(BINDIR)/glad.o $(BINDIR)/lodepng.o
@@ -36,6 +38,13 @@ $(BINDIR)/lodepng.o : $(DEPSDIR)/lodepng.c $(DEPSDIR)/lodepng.h
 $(BINDIR)/%.o : $(SRCDIR)/%.cpp $(HEADERS)
 	$(CC) $(CFLAGS) $< -o $@
 
+$(TESTDIR)/%.o : $(TESTDIR)/%.cpp $(HEADERS)
+	$(CC) $(CFLAGS) $< -o $@
+
 clean :
 	rm -f $(OBJECTS) $(EXE) $(BINDIR)/glad.o $(BINDIR)/lodepng.o
+
+test: $(EXE) $(TEST_OBJECTS)
+	$(CC) $(TEST_OBJECTS) -L./ -o $(TESTDIR)/test -lgnid
+	export LD_LIBRARY_PATH=./; $(TESTDIR)/test
 

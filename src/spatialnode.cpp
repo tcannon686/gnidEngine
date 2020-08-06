@@ -10,7 +10,7 @@ SpatialNode::SpatialNode()
 {
 }
 
-Matrix4f SpatialNode::getLocalMatrix()
+const Matrix4f &SpatialNode::getLocalMatrix() const
 {
     return localMatrix;
 }

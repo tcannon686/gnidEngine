@@ -177,7 +177,7 @@ void PhongShader::setLight(
         shared_ptr<LightNode> light)
 {
     /* Calculate the light position. */
-    Vector4f position = (camera->getViewMatrix() * light->position());
+    Vector3f position = transform(camera->getViewMatrix(), light->position());
 
     float uniform[4];
     position.toArray(uniform);

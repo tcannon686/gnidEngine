@@ -15,7 +15,7 @@ class SpatialNode : public Node
         Matrix4f localMatrix;
     public:
         SpatialNode();
-        Matrix4f getLocalMatrix();
+        const Matrix4f &getLocalMatrix() const override;
         void setLocalMatrix(Matrix4f matrix);
 
         /* Transform this node by the specified matrix. Return this node. */

@@ -2,64 +2,119 @@
 #define COLLIDER_HPP
 
 #include <memory>
+#include <list>
+#include <array>
+
 #include "matrix/matrix.hpp"
 #include "box.hpp"
+#include "node.hpp"
 
 namespace gnid
 {
 
-/* 
- * Collider node using the given shape class. Shape must be a class with the
- * following methods:
- *
- * // Return the bounding box for the shape.
- * const Box3f &box() const;
- *
- * // Return the point on the shape with the highest dot product with d.
- * Vector3f support(const Vector3f d) const;
- *
- */
-template<typename Shape>
+using namespace tmat;
+using namespace std;
+
+class Shape;
+class Collider;
+
+class Collision
+{
+public:
+    /* The first collider will always be less than the second one. */
+    const array<shared_ptr<Collider>, 2> &colliders() const { return colliders_; }
+    const Vector3f &overlap() const { return overlap_; }
+
+    Collision(
+            const shared_ptr<Collider> a,
+            const shared_ptr<Collider> b,
+            Vector3f overlap)
+        : colliders_ { (a < b ? a : b), (a < b ? b : a) },
+          overlap_(overlap),
+          visited_(true)
+    {
+    }
+
+    bool operator==(const Collision &other) const
+    {
+        for(int i = 0; i < 2; i ++)
+        {
+            if(colliders_[i] != other.colliders_[i])
+                return false;
+        }
+        return true;
+    }
+
+    bool operator<(const Collision &other) const
+    {
+        for(int i = 0; i < 2; i ++)
+        {
+            if(colliders_[i] >= other.colliders_[i])
+                return false;
+        }
+        return true;
+    }
+
+private:
+    /* Whether or not the collider has been visited this cycle. */
+    array<shared_ptr<Collider>, 2> colliders_;
+    mutable Vector3f overlap_;
+    mutable bool visited_;
+
+    friend class Scene;
+};
+
 class Collider : public Node
 {
 public:
 
-    Collider(Shape shape) : shape_(shape)
+    Collider(shared_ptr<Shape> shape) : shape_(shape)
     {
     }
 
-    /* Return the world space bounding box. */
-    const Box<3, float> &box() const { return box_; }
 
-    /* Return the collider's shape. */
-    const Shape shape() const { return shape_; }
+    /* \brief Return the world space bounding box */
+    const Box &box() const { return box_; }
 
-    /* Called after the collider is moved to calculate its new bounding box. */
+    /** \brief Return the collider's shape */
+    const shared_ptr<Shape> shape() const { return shape_; }
+
+    /* \brief Called after the collider is moved to calculate its new bounding box */
     void calcBox();
 
-    /*
-     * Returns true if this collider is overlapping the other collider. If they
-     * are overlapping, the minimum amount needed to move the shapes so that
-     * they are not overlapping is stored in out.
+    /**
+     * \description Returns true if this collider is overlapping the other
+     * collider. If they are overlapping, the minimum amount needed to move the
+     * shapes so that they are not overlapping is stored in out.
      *
      * A bounding box check will always have been performed before this check is
      * performed, so it is not necessary to check whether their boxes overlap in
      * this function.
      */
-    template<class Shape2>
     bool getOverlap(
             Vector3f &out,
-            const shared_ptr<Collider<Shape2>> &other,
-            const Vector3f initialAxis = Vector3f::right) const;
+            const shared_ptr<Collider> &other,
+            const Vector3f initialAxis = Vector3f::right,
+            const int maxIterations = 32) const;
+
+    void onSceneChanged(shared_ptr<Scene> newScene) override;
 
     shared_ptr<Node> clone() override
     {
-        return make_shared<Collider<Shape>>(shape());
+        return make_shared<Collider>(shape());
     }
 
 private:
-    const Shape shape_;
-    Box<3, float> box_;
+    const shared_ptr<Shape> shape_;
+    Box box_;
+
+    typedef bool (Collider::*NearestSimplexFunction)(
+            array<Vector3f, 4> &s,
+            int &n,
+            Vector3f &d) const;
+
+    /* Nearest simplex lookup table. */
+    static NearestSimplexFunction nearestSimplexFunctions[4];
 
     /*
      * Takes the simplex s and transforms it to a new simplex on s closest to
@@ -68,54 +123,16 @@ private:
      *
      * Returns true if s contains the origin. Returns false otherwise.
      */
-    bool nearestSimplex(Vector3f s[], int &n, Vector3f &d);
+    bool nearestSimplex(array<Vector3f, 4> &s, int &n, Vector3f &d) const;
+
+    /* Implementations for each vertex count. */
+    bool nearestSimplex1(array<Vector3f, 4> &s, int &n, Vector3f &d) const;
+    bool nearestSimplex2(array<Vector3f, 4> &s, int &n, Vector3f &d) const;
+    bool nearestSimplex3(array<Vector3f, 4> &s, int &n, Vector3f &d) const;
+    bool nearestSimplex4(array<Vector3f, 4> &s, int &n, Vector3f &d) const;
+
+    friend class Scene;
 };
-
-template<typename Shape>
-void Collider<Shape>::calcBox()
-{
-    box_ = shape().box();
-    box_.transform(getWorldMatrix());
-}
-
-
-template<typename Shape>
-bool Collider<Shape>::nearestSimplex(Vector3f s[], int &n, Vector3f &d)
-{
-}
-
-template<class Shape1, class Shape2>
-bool Collider<Shape1>::getOverlap(
-        Vector3f &out,
-        const shared_ptr<Collider<Shape2>> &other,
-        const Vector3f initialAxis = Vector3f::right) const
-{
-    // TODO apply transformation.
-    Vector3f a = shape().support(initialAxis)
-        - other->shape().support(-initialAxis);
-
-    Vector3f s[4];
-    int n = 1;
-    s[0] = a;
-
-    Vector3f d = -a;
-
-    while(true)
-    {
-        a = shape().support(d) - other->shape.support(-d);
-
-        if(a.dot(b) < 0)
-            return false;
-
-        /* Add to the simplex. */
-        s[n ++] = a;
-
-        if(nearestSimplex(s, n, d))
-        {
-            return true;
-        }
-    }
-}
 
 } /* namespace */
 

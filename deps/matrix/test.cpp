@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cassert>
+#include <array>
 #include "matrix.hpp"
 
 using namespace tmat;
@@ -111,11 +112,65 @@ bool testTranspose()
     return a == e;
 }
 
+bool testTransform()
+{
+    cout << "test transform 3 vector by 4 matrix" << endl;
+    Matrix<4, 4, float> m {
+        { 1, 5, 9, 13 },
+        { 2, 6, 10, 14 },
+        { 3, 7, 11, 15 },
+        { 4, 8, 12, 16 }
+    };
+
+    Vector<3, float> x { 3, 2, 1 };
+    Vector<4, float> y { 3, 2, 1, 1 };
+
+    Vector<3, float> a = transform(m, x);
+    Vector<3, float> e = (m * y).cut();
+    Vector<3, float> b;
+
+    transform(b, m, x);
+
+    cout << "Expected: " << e << endl;
+    cout << "Actual: " << a << endl;
+    cout << "Actual2: " << b << endl;
+
+    return (a == e) && (b == e);
+}
+
+bool testArray()
+{
+    cout << "testing array of vectors." << endl;
+
+    array<Vector3f, 4> arr;
+
+    Vector3f a { 1, 2, 3 };
+    Vector3f b { 3, 1, 9 };
+    Vector3f c { 4, 3, 7 };
+    Vector3f d { 7, 1, 4 };
+
+    arr[0] = a;
+    arr[1] = b;
+    arr[2] = c;
+    arr[3] = c;
+
+    for(int i = 0; i < 4; i ++)
+    {
+        cout << arr[i] << endl;
+    }
+
+    return true;
+}
+
 int main(int argc, char *argv[])
 {
     assert(testMultiply());
     assert(testMultiplyVector());
     assert(testInvert());
     assert(testTranspose());
+    assert(testArray());
+
+    cout << endl;
+    cout << "Success!" << endl;
 }
 
