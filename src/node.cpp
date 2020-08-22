@@ -17,7 +17,7 @@ const Matrix4f &Node::getWorldMatrix() const
 
 void Node::updateWorldMatrix(const Matrix4f &prev)
 {
-    worldMatrix = getLocalMatrix() * prev;
+    worldMatrix = prev * getLocalMatrix();
 
     for(auto it = children.begin();
         it != children.end();
@@ -121,9 +121,9 @@ const weak_ptr<Scene> &Node::getScene() const
     return scene;
 }
 
-Vector3f Node::position()
+Vector3f Node::position() const
 {
-    return transform(worldMatrix, Vector3f { 0, 0, 0 });
+    return transform(worldMatrix, Vector3f::zero);
 }
 
 void Node::onDescendantAddedAll(shared_ptr<Node> child)

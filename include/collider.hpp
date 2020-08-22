@@ -3,7 +3,7 @@
 
 #include <memory>
 #include <list>
-#include <array>
+#include <vector>
 
 #include "matrix/matrix.hpp"
 #include "box.hpp"
@@ -18,11 +18,24 @@ using namespace std;
 class Shape;
 class Collider;
 
+/**
+ * \brief A node capable of collision
+ */
 class Collision
 {
 public:
-    /* The first collider will always be less than the second one. */
-    const array<shared_ptr<Collider>, 2> &colliders() const { return colliders_; }
+    /**
+     * \brief A collision between two colliders
+     *
+     * \details
+     *     The first collider pointer will always be less than the second one.
+     */
+    const array<shared_ptr<Collider>, 2> &colliders() const
+    { return colliders_; }
+
+    /**
+     * \brief The overlap between the two
+     */
     const Vector3f &overlap() const { return overlap_; }
 
     Collision(
@@ -73,29 +86,37 @@ public:
     }
 
 
-    /* \brief Return the world space bounding box */
+    /**
+     * \brief Return the world space bounding box
+     */
     const Box &box() const { return box_; }
 
-    /** \brief Return the collider's shape */
+    /**
+     * \brief Return the collider's shape
+     */
     const shared_ptr<Shape> shape() const { return shape_; }
 
-    /* \brief Called after the collider is moved to calculate its new bounding box */
+    /**
+     * \brief
+     *     Called after the collider is moved to calculate its new bounding box
+     */
     void calcBox();
 
     /**
-     * \description Returns true if this collider is overlapping the other
-     * collider. If they are overlapping, the minimum amount needed to move the
-     * shapes so that they are not overlapping is stored in out.
+     * \brief Return the overlap between this collider and another one
      *
-     * A bounding box check will always have been performed before this check is
-     * performed, so it is not necessary to check whether their boxes overlap in
-     * this function.
+     * \description
+     *     Returns true if this collider is overlapping the other collider. If
+     *     they are overlapping, the minimum amount needed to move the shapes so
+     *     that they are not overlapping is stored in out.
+     *
      */
     bool getOverlap(
             Vector3f &out,
             const shared_ptr<Collider> &other,
             const Vector3f initialAxis = Vector3f::right,
-            const int maxIterations = 32) const;
+            const int maxIterations = 0,
+            const float tolerance = 0.000001f) const;
 
     void onSceneChanged(shared_ptr<Scene> newScene) override;
 
@@ -109,27 +130,64 @@ private:
     Box box_;
 
     typedef bool (Collider::*NearestSimplexFunction)(
-            array<Vector3f, 4> &s,
-            int &n,
-            Vector3f &d) const;
+            vector<Vector3f> &s,
+            Vector3f &d,
+            const float tolerance) const;
 
     /* Nearest simplex lookup table. */
     static NearestSimplexFunction nearestSimplexFunctions[4];
 
-    /*
-     * Takes the simplex s and transforms it to a new simplex on s closest to
-     * the origin. Stores the direction toward the origin normal to the simplex
-     * in d.
+    /**
+     * \brief
+     *     Takes the simplex s and transforms it to a new simplex on s closest
+     *     to the origin
      *
-     * Returns true if s contains the origin. Returns false otherwise.
+     * \details
+     *     Stores the direction toward the origin normal to the
+     *     simplex in d.
+     *
+     * \return True if s contains the origin.
      */
-    bool nearestSimplex(array<Vector3f, 4> &s, int &n, Vector3f &d) const;
+    bool nearestSimplex(
+            vector<Vector3f> &s,
+            Vector3f &d,
+            const float tolerance) const;
 
     /* Implementations for each vertex count. */
-    bool nearestSimplex1(array<Vector3f, 4> &s, int &n, Vector3f &d) const;
-    bool nearestSimplex2(array<Vector3f, 4> &s, int &n, Vector3f &d) const;
-    bool nearestSimplex3(array<Vector3f, 4> &s, int &n, Vector3f &d) const;
-    bool nearestSimplex4(array<Vector3f, 4> &s, int &n, Vector3f &d) const;
+    bool nearestSimplex1(
+            vector<Vector3f> &s,
+            Vector3f &d,
+            const float tolerance) const;
+    bool nearestSimplex2(
+            vector<Vector3f> &s,
+            Vector3f &d,
+            const float tolerance) const;
+    bool nearestSimplex3(
+            vector<Vector3f> &s,
+            Vector3f &d,
+            const float tolerance) const;
+    bool nearestSimplex4(
+            vector<Vector3f> &s,
+            Vector3f &d,
+            const float tolerance) const;
+
+    /**
+     * \brief
+     *     Finds the nearest triangle to the origin on the simplex s
+     *
+     * \details
+     *     Finds the nearest triangle to the origin on the simplex s, calculates
+     *     the direction from the nearest point to the origin to the origin
+     *     (i.e. the nearest point negated) and stores it in d. The function
+     *     returns the index in the index array, at which the three indices for
+     *     the triangle start.
+     *
+     * \return The index of the triangle
+     */
+    int nearestTriangle(
+            const vector<Vector3f> &s,
+            const vector<int> &indices,
+            Vector3f &d) const;
 
     friend class Scene;
 };

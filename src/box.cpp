@@ -122,7 +122,7 @@ Vector3f Box::support(const Vector3f d) const
     float retDot = d.dot(min());
 
     const int pointCount = 1 << 3;
-    Vector3f diff = max() - min();
+    const Vector3f diff = max() - min();
 
     for(int i = 0; i < pointCount; i ++)
     {
@@ -141,7 +141,7 @@ Vector3f Box::support(const Vector3f d) const
         if(dot > retDot)
         {
             ret = point;
-            retDot = d.dot(point);
+            retDot = dot;
         }
     }
 

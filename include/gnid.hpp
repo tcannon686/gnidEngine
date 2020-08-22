@@ -5,6 +5,14 @@
 
 class GLFWwindow;
 
+/**
+ * \brief The gnidEngine namespace
+ *
+ * \details
+ *     gnidEngine is a simple game engine I am developing. The goals for the
+ *     engine are fast runtime on cheaper hardware, and clean well documented
+ *     code.
+ */
 namespace gnid
 {
 class GameBase;

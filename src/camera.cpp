@@ -39,10 +39,10 @@ void Camera::onSceneChanged(shared_ptr<Scene> newScene)
     auto oldScene = getScene().lock();
 
     if(oldScene)
-        oldScene->cameras.remove(
+        oldScene->unregisterNode(
                 static_pointer_cast<Camera>(shared_from_this()));
     if(newScene)
-        newScene->cameras.push_back(
+        newScene->registerNode(
                 static_pointer_cast<Camera>(shared_from_this()));
 }
 

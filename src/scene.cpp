@@ -2,13 +2,19 @@
 #include <iostream>
 #include <set>
 
+#include "emptynode.hpp"
 #include "node.hpp"
+#include "spatialnode.hpp"
 #include "scene.hpp"
 #include "collider.hpp"
 #include "collisionevent.hpp"
 
 using namespace gnid;
 using namespace std;
+
+Scene::Scene() : root(make_shared<EmptyNode>())
+{
+}
 
 void Scene::init()
 {
@@ -18,6 +24,8 @@ void Scene::init()
 void Scene::update(float dt)
 {
     root->updateAll(dt);
+
+    updateWorldMatrix();
 
     Vector3f overlap;
 
@@ -41,19 +49,19 @@ void Scene::update(float dt)
             if(a->getOverlap(overlap, b))
             {
                 auto item = collisions.emplace(a, b, overlap);
-                cout << a << " " << b << " " << overlap << endl;
 
                 /* Collision already exists, send onCollisionStay event. */
                 if(!item.second)
                 {
-                    /*item.first->overlap_ = overlap;
-                    item.first->visited_ = true;*/
+                    item.first->overlap_ = overlap;
+                    item.first->visited_ = true;
 
                     /* TODO send event */
                 }
                 /* New collision, send the onCollisionEnter event. */
                 else
                 {
+                    cout << "collision enter " << a << " " << b << " " << overlap << endl;
                     item.first->overlap_ = overlap;
                     item.first->visited_ = true;
 
@@ -65,21 +73,59 @@ void Scene::update(float dt)
 
     /* Find unvisited collision objects. */
     for(auto it = begin(collisions);
-        it != end(collisions);)
+        it != end(collisions);
+        /* pass */)
     {
         /* The objects are not colliding anymore, call onCollisionExit. */
         if(it->visited_ == false)
         {
-            /* auto a = it->colliders()[0];
-            auto b = it->colliders()[1];*/
+            auto a = it->colliders()[0];
+            auto b = it->colliders()[1];
 
             /* TODO notify */
+            cout << "collision exit " << a << " " << b << " " << overlap << endl;
 
             collisions.erase(it ++);
         }
         else
             ++ it;
     }
+
+    /* Move colliding objects away from each other. */
+    /* Iterate through all collisions */
+    for(auto it = begin(collisions);
+        it != end(collisions);
+        ++ it)
+    {
+        auto a = it->colliders()[0];
+        auto b = it->colliders()[1];
+        auto overlap = it->overlap();
+
+        /* Find the spatial nodes for the colliders. */
+        auto as = a->findAncestorByType<SpatialNode>();
+        auto bs = b->findAncestorByType<SpatialNode>();
+
+        /* Move them away from eachother. */
+        if((as->position() - bs->position()).dot(overlap) < 0)
+        {
+            as->transform(
+                    getTranslateMatrix(
+                        transformDirection(as->getWorldMatrix().inverse(), -overlap)));
+            bs->transform(
+                    getTranslateMatrix(
+                        transformDirection(bs->getWorldMatrix().inverse(), overlap)));
+        }
+        else
+        {
+            as->transform(
+                    getTranslateMatrix(
+                        transformDirection(as->getWorldMatrix().inverse(), overlap * 0.5f)));
+            bs->transform(getTranslateMatrix(
+                        transformDirection(bs->getWorldMatrix().inverse(), -overlap * 0.5f)));
+        }
+    }
+
+    updateWorldMatrix();
 }
 
 void Scene::updateWorldMatrix()
@@ -108,13 +154,33 @@ void Scene::render()
     }
 }
 
-void Scene::addCollider(shared_ptr<Collider> box)
+void Scene::registerNode(shared_ptr<Collider> collider)
 {
-    colliders.push_front(box);
+    colliders.push_front(collider);
 }
 
-void Scene::removeCollider(shared_ptr<Collider> box)
+void Scene::unregisterNode(shared_ptr<Collider> collider)
 {
-    colliders.remove(box);
+    colliders.remove(collider);
+}
+
+void Scene::registerNode(shared_ptr<Camera> camera)
+{
+    cameras.push_front(camera);
+}
+
+void Scene::unregisterNode(shared_ptr<Camera> camera)
+{
+    cameras.remove(camera);
+}
+
+void Scene::registerNode(shared_ptr<Rigidbody> rigidbody)
+{
+    /* TODO */
+}
+
+void Scene::unregisterNode(shared_ptr<Rigidbody> rigidbody)
+{
+    /* TODO */
 }
 

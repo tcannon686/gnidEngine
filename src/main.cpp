@@ -127,7 +127,6 @@ int Gnid::start(GameBase &game)
 
         game.update(dt);
         game.currentScene()->update(dt);
-        game.currentScene()->updateWorldMatrix();
         game.currentScene()->render();
 
         glfwSwapBuffers(window);

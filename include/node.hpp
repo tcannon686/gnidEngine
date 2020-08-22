@@ -106,6 +106,9 @@ class Node : public enable_shared_from_this<Node>
          * \brief
          *     Calculate a new world matrix for the node given its parent's
          *     matrix
+         *
+         * \details
+         *     This function will be called after all nodes have been updated.
          */
         void updateWorldMatrix(const Matrix4f &prev);
 
@@ -124,7 +127,32 @@ class Node : public enable_shared_from_this<Node>
          *     Calculate and return the position of the node from its world
          *     matrix
          */
-        Vector3f position();
+        Vector3f position() const;
+
+        /**
+         * \brief
+         *     Find the first ancestor of this node with the given type, or this
+         *     node if it has the type
+         */
+        template<class T>
+        shared_ptr<T> findAncestorByType()
+        {
+            shared_ptr<T> t = dynamic_pointer_cast<T>(shared_from_this());
+            
+            /* If this is the right type, return this. */
+            if(t)
+                return t;
+            /* Otherwise repeat at this node's parent. */
+            else
+            {
+                shared_ptr<Node> p = parent.lock();
+                if(p)
+                    return p->findAncestorByType<T>();
+                else
+                    return nullptr;
+            }
+        }
+
     private:
         list<shared_ptr<Node>> children;
         Matrix4f worldMatrix;

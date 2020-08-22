@@ -12,10 +12,18 @@ namespace gnid
 using namespace tmat;
 using namespace std;
 
+/**
+ * \brief A rigid body
+ */
 class Rigidbody : public Node
 {
 public:
+    /**
+     * \brief Construct a rigid body
+     */
     Rigidbody();
+
+    void onSceneChanged(shared_ptr<Scene> newScene) override;
 };
 
 } /* namespace */

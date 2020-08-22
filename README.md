@@ -1,23 +1,14 @@
 # gnidEngine
-This is the most sofisticated game engine I've written yet, and is loosely based
-on the Cube 2 engine. It simple collision detection and physics, octree based
-maps, and skeletal animation. It is very much a work in progress, but hopefully
-I will have a playable demo up and running soon.
-
-## Name
-The name gnid comes from a song I heard by jazz musician Tadd Dameron. As far as
-I can tell, the word was made up. It has nothing to do with the engine, I just
-needed a name, and gnid sounded cool.
+gnidEngine is a simple game engine I have been developing in C++. Goals for the
+project include clean code, fast runtime, and good documentation. I haven't used
+it for any projects yet, but hopefully something useful will come from it. The
+target platform is Linux, but it should be portable and work with most OSs.
 
 ## Compiling
-The program can be compiled using GCC or MinGW on Windows. I have also been
-testing it on Mac (thanks to Zach Booth for allowing me to borrow his Mac) but
-this is still a WIP, and I have not tested it on other platforms, although it
-should be possible with a little changing of the Makefile. Install the
-dependencies listed below, then run `make`.
+To compile, install the dependencies, then run `make`. You can also build the docs
+by running `doxygen Doxyfile`.
 
 ### Dependencies
- - Lua 5.3
  - GLFW3
  - OpenGL
 
@@ -25,71 +16,13 @@ dependencies listed below, then run `make`.
 To install the dependencies on ubuntu, run the following:
 ```
 sudo apt install libmesa-common-dev
-sudo apt install liblua5.3
 sudo apt install libglfw3
 ```
 
 ## Running
-To run, simply make, and then run the outputted `game` or `game.exe`. You can
-specify a map by changing the `config.lua` file, and adding a `map` key, which
-should be a string of the name of the path of the map, without `.lua` at the
-end. When the program starts, press escape to regain control of your cursor.
+To run, you will need to have a game set up. There is a separate repository for
+this.
 
-## Default controls
-### Basics
-| Key                   | Action                             |
-| --------------------- | ---------------------------------- |
-| W                     | Move forward.                      |
-| A                     | Move left.                         |
-| S                     | Move back.                         |
-| D                     | Move right.                        |
-| Left shift            | Fly up.                            |
-| Left control          | Fly down.                          |
-| Space                 | Jump.                              |
-
-### Editing
-| Key                   | Action                             |
-| --------------------- | ---------------------------------- |
-| Alt W                 | Move corner forward.               |
-| Alt A                 | Move corner left.                  |
-| Alt S                 | Move corner back.                  |
-| Alt D                 | Move corner right.                 |
-| Alt Left Shift        | Move corner up.                    |
-| Alt Left Control      | Move corner down.                  |
-| Alt W                 | Move object forward.               |
-| Alt A                 | Move object left.                  |
-| Alt S                 | Move object back.                  |
-| Alt D                 | Move object right.                 |
-| Alt Left              | Rotate object left.                |
-| Alt Right             | Rotate object right.               |
-| Alt E                 | Save map.                          |
-| E                     | Extrude octree.                    |
-| G                     | Switch mode (edit/game).           |
-| L Left                | Decrease light distance.           |
-| L Right               | Increase light distance.           |
-| Left Mouse            | Select.                            |
-| M                     | Use selected material.             |
-| M Left                | Select previous material.          |
-| M Right               | Select next material.              |
-| Q                     | Place object (hold for preview).   |
-| Q Left                | Select previous object.            |
-| Q Right               | Select next object.                |
-| R                     | Subdivide octree.                  |
-| Right Mouse           | Remove.                            |
-| Z Left                | Halve map size.                    |
-| Z Right               | Double map size.                   |
-| \`                    | Open console.                      |
-
-## Editing
-See above for editing controls. Currently, there is no undo button. The name of
-the map will be the name of the map specified in the config file. To save the
-map with that name, press Alt E. If no map name is specified, a temporary one
-will be saved.
-
-## Exporting models
-The engine features its own file format for models and skeletons called tmd,
-which stands for Tom's Model Data. The format is super simple, and not very
-efficient, but it gets the job done. A Blender script is included to export
-models. It is `operator_export_tmd.py`. It only supports exporting a single
-model and armature. The format also exports all of the animation actions! Yay!
+## TODO
+ - Switch to CMake
 
