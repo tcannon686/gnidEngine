@@ -221,14 +221,42 @@ bool Collider::nearestSimplex4(
 
                 return nearestSimplex3(s, d, tolerance);
             }
-            /* Only inside abd. Nearest simplex must be on cd.  */
+            /* Only inside abd. Nearest simplex must be on bcd, or cad. */
             else
             {
-                s[0] = s[2];
-                s[1] = s[3];
-                s.resize(2);
+                /* Choose the nearest face. */
+                vector<Vector3f> s1, s2;
+                Vector3f d1, d2;
 
-                return nearestSimplex2(s, d, tolerance);
+                /* Create simplices for the triangles. */
+                s1.push_back(s[1]);
+                s1.push_back(s[2]);
+                s1.push_back(s[3]);
+
+                s2.push_back(s[2]);
+                s2.push_back(s[0]);
+                s2.push_back(s[3]);
+
+                nearestSimplex3(s1, d1, tolerance);
+                nearestSimplex3(s2, d2, tolerance);
+
+                /* Calculate the distance to both, choose the closest one. */
+                float l1, l2;
+                l1 = -d1.normalized().dot(s[3]);
+                l2 = -d2.normalized().dot(s[3]);
+
+                if(l1 < l2)
+                {
+                    d = d1;
+                    s = s1;
+                }
+                else
+                {
+                    d = d2;
+                    s = s2;
+                }
+
+                return false;
             }
         }
     }
@@ -243,23 +271,80 @@ bool Collider::nearestSimplex4(
 
             return nearestSimplex3(s, d, tolerance);
         }
-        /* Only inside bcd. Nearest simplex must be on ad.  */
+        /* Only inside bcd. Nearest simplex must be on abd or cad.  */
         else
         {
-            s[1] = s[3];
-            s.resize(2);
+            /* Choose the nearest face. */
+            vector<Vector3f> s1, s2;
+            Vector3f d1, d2;
 
-            return nearestSimplex2(s, d, tolerance);
+            /* Create simplices for the triangles. */
+            s1.push_back(s[0]);
+            s1.push_back(s[1]);
+            s1.push_back(s[3]);
+
+            s2.push_back(s[2]);
+            s2.push_back(s[0]);
+            s2.push_back(s[3]);
+
+            nearestSimplex3(s1, d1, tolerance);
+            nearestSimplex3(s2, d2, tolerance);
+
+            /* Calculate the distance to both, choose the closest one. */
+            float l1, l2;
+            l1 = -d1.normalized().dot(s[3]);
+            l2 = -d2.normalized().dot(s[3]);
+
+            if(l1 < l2)
+            {
+                d = d1;
+                s = s1;
+            }
+            else
+            {
+                d = d2;
+                s = s2;
+            }
+
+            return false;
         }
     }
-    /* Inside on cad face but not bcd face or abd face. Nearest must be bd. */
+    /* Only inside cad face. Nearest must be on abd or bcd. */
     else
     {
-        s[0] = s[1];
-        s[1] = s[3];
-        s.resize(2);
-        
-        return nearestSimplex2(s, d, tolerance);
+        /* Choose the nearest face. */
+        vector<Vector3f> s1, s2;
+        Vector3f d1, d2;
+
+        /* Create simplices for the triangles. */
+        s1.push_back(s[0]);
+        s1.push_back(s[1]);
+        s1.push_back(s[3]);
+
+        s2.push_back(s[1]);
+        s2.push_back(s[2]);
+        s2.push_back(s[3]);
+
+        nearestSimplex3(s1, d1, tolerance);
+        nearestSimplex3(s2, d2, tolerance);
+
+        /* Calculate the distance to both, choose the closest one. */
+        float l1, l2;
+        l1 = -d1.normalized().dot(s[3]);
+        l2 = -d2.normalized().dot(s[3]);
+
+        if(l1 < l2)
+        {
+            d = d1;
+            s = s1;
+        }
+        else
+        {
+            d = d2;
+            s = s2;
+        }
+
+        return false;
     }
 }
 
@@ -366,8 +451,8 @@ bool Collider::getOverlap(
                     /*
                      * Find the closest triangle to the origin on the simplex.
                      */
-                    int triangleIndex = nearestTriangle(vertices, indices, d);
-                    float dLen = d.magnitude();
+                    const int triangleIndex = nearestTriangle(vertices, indices, d);
+                    const float dLen = d.magnitude();
 
                     /*
                      * Find the point on the Minkowski difference furthest along
