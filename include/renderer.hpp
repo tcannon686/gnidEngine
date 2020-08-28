@@ -18,6 +18,9 @@ using namespace std;
 class ShaderProgram;
 class LightNode;
 
+/**
+ * \brief A mesh for rendering with OpenGL
+ */
 class RendererMesh
 {
     public:
@@ -32,6 +35,14 @@ class RendererMesh
         }
 };
 
+/**
+ * \brief The paring of a material, a mesh, and a node
+ *
+ * \details
+ *     Bindings are created to represent individual rendering units within the
+ *     renderer. They are stored in a map and sorted by mesh, material, and
+ *     node, so that information can be reused between render calls.
+ */
 class Binding
 {
     public:
@@ -47,13 +58,38 @@ class Binding
         bool operator<(const Binding &other) const;
 };
 
+/**
+ * \brief The renderer for the game
+ *
+ * \details
+ *     Currently uses OpenGL
+ */
 class Renderer
 {
     public:
+        /**
+         * \brief Render from the given camera
+         */
         void render(shared_ptr<Camera> camera) const;
+
+        /**
+         * \brief Add a binding to be rendered
+         */
         void add(Binding binding);
+
+        /**
+         * \brief Remove a binding
+         */
         void remove(Binding binding);
+
+        /**
+         * \brief Add a light to the rendered scene
+         */
         void add(shared_ptr<LightNode> light);
+
+        /**
+         * \brief Remove a light from the rendered scene
+         */
         void remove(shared_ptr<LightNode> light);
     private:
         set<Binding> bindings;

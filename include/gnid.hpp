@@ -17,10 +17,20 @@ namespace gnid
 {
 class GameBase;
 
+/**
+ * \brief The starting point for the engine
+ */
 class Gnid
 {
 public:
+    /**
+     * \brief Start the game loop for the given game
+     */
     static int start(GameBase &game);
+
+    /**
+     * \brief Enable or disable the mouse cursor
+     */
     static void setCursorEnabled(bool enabled);
 private:
     static GameBase *game;

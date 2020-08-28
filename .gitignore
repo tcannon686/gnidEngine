@@ -3,6 +3,8 @@ gnid.exe
 libgnid.*
 *~
 *.o
+*.a
+*.so
 .*.swp
 .*.swo
 tags
