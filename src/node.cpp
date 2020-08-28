@@ -15,15 +15,32 @@ const Matrix4f &Node::getWorldMatrix() const
     return worldMatrix;
 }
 
-void Node::updateWorldMatrix(const Matrix4f &prev)
+void Node::updateWorldMatrix()
 {
-    worldMatrix = prev * getLocalMatrix();
+    shared_ptr<Node> parent;
+    parent = getParent().lock();
+
+    /* If the node has a parent, update from its parent node. */
+    if(parent)
+    {
+        worldMatrix = parent->getWorldMatrix() * getLocalMatrix();
+    }
+    /* Otherwise just use the local matrix. */
+    else
+    {
+        worldMatrix = getLocalMatrix();
+    }
+}
+
+void Node::updateWorldMatrixAll()
+{
+    updateWorldMatrix();
 
     for(auto it = children.begin();
-        it != children.end();
-        ++ it)
+            it != children.end();
+            ++ it)
     {
-        (*it)->updateWorldMatrix(worldMatrix);
+        (*it)->updateWorldMatrixAll();
     }
 }
 
@@ -96,11 +113,12 @@ void Node::setActive(bool active)
     this->active = active;
 }
 
-Node::Node() : active(true)
+Node::Node() : worldMatrix(Matrix4f::identity), active(true)
 {
 }
 
 Node::Node(const Node &other)
+    :  worldMatrix(other.worldMatrix), active(other.active)
 {
     // Clone children.
     for(auto it = begin(other.children);
@@ -124,6 +142,21 @@ const weak_ptr<Scene> &Node::getScene() const
 Vector3f Node::position() const
 {
     return transform(worldMatrix, Vector3f::zero);
+}
+
+Vector3f Node::right() const
+{
+    return transformDirection(worldMatrix, Vector3f::right);
+}
+
+Vector3f Node::up() const
+{
+    return transformDirection(worldMatrix, Vector3f::up);
+}
+
+Vector3f Node::forward() const
+{
+    return transformDirection(worldMatrix, Vector3f::forward);
 }
 
 void Node::onDescendantAddedAll(shared_ptr<Node> child)

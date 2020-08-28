@@ -7,10 +7,20 @@
 namespace gnid
 {
 
+/**
+ * \brief A node capable of rendering a mesh
+ */
 class RendererNode : public Node
 {
     public:
+        /**
+         * \brief The mesh to be rendered
+         */
         const shared_ptr<RendererMesh> mesh;
+
+        /**
+         * \brief The material to render the mesh with
+         */
         const shared_ptr<Material> material;
         RendererNode(
             shared_ptr<RendererMesh> mesh,

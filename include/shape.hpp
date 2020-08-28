@@ -10,12 +10,19 @@ using namespace tmat;
 
 class Box;
 
+/**
+ * \brief A collision shape primitive for use with GJK and EPA
+ */
 class Shape
 {
 public:
-     /* Return the bounding box for the shape. */
+     /**
+      * \brief Returns the bounding box for the shape
+      */
      virtual const Box &box() const = 0;
-     /* Return the point on the shape with the highest dot product with d. */
+     /**
+      * \brief Returns the point on the shape with the highest dot product with d
+      */
      virtual Vector3f support(const Vector3f d) const = 0;
 };
 

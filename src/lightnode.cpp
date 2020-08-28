@@ -11,10 +11,10 @@ void LightNode::onSceneChanged(shared_ptr<Scene> newScene)
     auto oldScene = getScene().lock();
 
     if(oldScene)
-        oldScene->renderer.remove(
+        oldScene->registerNode(
                 static_pointer_cast<LightNode>(shared_from_this()));
     if(newScene)
-        newScene->renderer.add(
+        newScene->registerNode(
                 static_pointer_cast<LightNode>(shared_from_this()));
 }
 

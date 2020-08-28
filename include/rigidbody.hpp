@@ -5,6 +5,7 @@
 #include <array>
 
 #include "node.hpp"
+#include "spatialnode.hpp"
 
 namespace gnid
 {
@@ -15,7 +16,7 @@ using namespace std;
 /**
  * \brief A rigid body
  */
-class Rigidbody : public Node
+class Rigidbody : public SpatialNode
 {
 public:
     /**

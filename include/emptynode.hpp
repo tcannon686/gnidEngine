@@ -6,6 +6,9 @@
 namespace gnid
 {
 
+/**
+ * \brief An empty node
+ */
 class EmptyNode : public Node
 {
     shared_ptr<Node> clone() override

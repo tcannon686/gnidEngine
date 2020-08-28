@@ -1,11 +1,12 @@
+#include "scene.hpp"
 
 #include <iostream>
 #include <set>
 
+#include "renderernode.hpp"
 #include "emptynode.hpp"
 #include "node.hpp"
 #include "spatialnode.hpp"
-#include "scene.hpp"
 #include "collider.hpp"
 #include "collisionevent.hpp"
 
@@ -67,6 +68,19 @@ void Scene::update(float dt)
 
                     /* TODO send event */
                 }
+
+                /* Move the objects away from each other. */
+                auto as = a->findAncestorByType<SpatialNode>();
+                auto bs = b->findAncestorByType<SpatialNode>();
+
+                if(as)
+                    as->transformWorld(getTranslateMatrix(-overlap * 0.5f));
+
+                if(bs)
+                    bs->transformWorld(getTranslateMatrix(overlap * 0.5f));
+
+                as->updateWorldMatrixAll();
+                bs->updateWorldMatrixAll();
             }
         }
     }
@@ -90,47 +104,11 @@ void Scene::update(float dt)
         else
             ++ it;
     }
-
-    /* Move colliding objects away from each other. */
-    /* Iterate through all collisions */
-    for(auto it = begin(collisions);
-        it != end(collisions);
-        ++ it)
-    {
-        auto a = it->colliders()[0];
-        auto b = it->colliders()[1];
-        auto overlap = it->overlap();
-
-        /* Find the spatial nodes for the colliders. */
-        auto as = a->findAncestorByType<SpatialNode>();
-        auto bs = b->findAncestorByType<SpatialNode>();
-
-        /* Move them away from eachother. */
-        if((as->position() - bs->position()).dot(overlap) < 0)
-        {
-            as->transform(
-                    getTranslateMatrix(
-                        transformDirection(as->getWorldMatrix().inverse(), -overlap)));
-            bs->transform(
-                    getTranslateMatrix(
-                        transformDirection(bs->getWorldMatrix().inverse(), overlap)));
-        }
-        else
-        {
-            as->transform(
-                    getTranslateMatrix(
-                        transformDirection(as->getWorldMatrix().inverse(), overlap * 0.5f)));
-            bs->transform(getTranslateMatrix(
-                        transformDirection(bs->getWorldMatrix().inverse(), -overlap * 0.5f)));
-        }
-    }
-
-    updateWorldMatrix();
 }
 
 void Scene::updateWorldMatrix()
 {
-    root->updateWorldMatrix(Matrix4f::identity);
+    root->updateWorldMatrixAll();
 }
 
 void Scene::render()
@@ -172,6 +150,28 @@ void Scene::registerNode(shared_ptr<Camera> camera)
 void Scene::unregisterNode(shared_ptr<Camera> camera)
 {
     cameras.remove(camera);
+}
+
+void Scene::registerNode(shared_ptr<RendererNode> rendererNode)
+{
+    Binding binding(rendererNode->material, rendererNode->mesh, rendererNode);
+    renderer.add(binding);
+}
+
+void Scene::unregisterNode(shared_ptr<RendererNode> rendererNode)
+{
+    Binding binding(rendererNode->material, rendererNode->mesh, rendererNode);
+    renderer.remove(binding);
+}
+
+void Scene::registerNode(shared_ptr<LightNode> lightNode)
+{
+    renderer.add(lightNode);
+}
+
+void Scene::unregisterNode(shared_ptr<LightNode> lightNode)
+{
+    renderer.remove(lightNode);
 }
 
 void Scene::registerNode(shared_ptr<Rigidbody> rigidbody)

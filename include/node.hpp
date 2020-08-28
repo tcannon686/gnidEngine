@@ -23,7 +23,7 @@ class Node : public enable_shared_from_this<Node>
 {
     public:
         Node();
-        Node(const Node & other);
+        Node(const Node &other);
 
         /**
          * \brief Called just before the node is added to a new scene
@@ -104,13 +104,19 @@ class Node : public enable_shared_from_this<Node>
 
         /**
          * \brief
-         *     Calculate a new world matrix for the node given its parent's
-         *     matrix
+         *     Calculates the world matrix for this node from its local matrix
+         */
+        void updateWorldMatrix();
+
+        /**
+         * \brief
+         *     Calculates the world matrix for this node and its descendants
+         *     from its local matrix
          *
          * \details
-         *     This function will be called after all nodes have been updated.
+         *     This function will be called after all nodes have been updated
          */
-        void updateWorldMatrix(const Matrix4f &prev);
+        void updateWorldMatrixAll();
 
         /**
          * \brief Get this parents parent node
@@ -128,6 +134,27 @@ class Node : public enable_shared_from_this<Node>
          *     matrix
          */
         Vector3f position() const;
+
+        /**
+         * \brief
+         *    Calculate and return the right direction of the node from its
+         *    world matrix
+         */
+        Vector3f right() const;
+
+        /**
+         * \brief
+         *    Calculate and return the up direction of the node from its world
+         *    matrix
+         */
+        Vector3f up() const;
+
+        /**
+         * \brief
+         *    Calculate and return the forward direction of the node from its
+         *    world matrix
+         */
+        Vector3f forward() const;
 
         /**
          * \brief
