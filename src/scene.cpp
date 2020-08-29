@@ -10,6 +10,7 @@
 #include "collider.hpp"
 #include "collisionevent.hpp"
 
+using namespace tmat;
 using namespace gnid;
 using namespace std;
 

@@ -6,8 +6,6 @@
 namespace gnid
 {
 
-using namespace tmat;
-
 class Box;
 
 /**
@@ -23,7 +21,7 @@ public:
      /**
       * \brief Returns the point on the shape with the highest dot product with d
       */
-     virtual Vector3f support(const Vector3f d) const = 0;
+     virtual tmat::Vector3f support(const tmat::Vector3f &d) const = 0;
 };
 
 } /* namespace */

@@ -1,3 +1,5 @@
+#include "phongshader.hpp"
+
 #include <string>
 #include <cassert>
 
@@ -6,7 +8,6 @@
 
 #include "camera.hpp"
 #include "lightnode.hpp"
-#include "phongshader.hpp"
 
 using namespace gnid;
 using namespace tmat;

@@ -12,9 +12,6 @@
 namespace gnid
 {
 
-using namespace tmat;
-using namespace std;
-
 class Shape;
 class Collider;
 
@@ -30,18 +27,18 @@ public:
      * \details
      *     The first collider pointer will always be less than the second one.
      */
-    const array<shared_ptr<Collider>, 2> &colliders() const
+    const std::array<std::shared_ptr<Collider>, 2> &colliders() const
     { return colliders_; }
 
     /**
      * \brief The overlap between the two
      */
-    const Vector3f &overlap() const { return overlap_; }
+    const tmat::Vector3f &overlap() const { return overlap_; }
 
     Collision(
-            const shared_ptr<Collider> a,
-            const shared_ptr<Collider> b,
-            Vector3f overlap)
+            const std::shared_ptr<Collider> a,
+            const std::shared_ptr<Collider> b,
+            tmat::Vector3f overlap)
         : colliders_ { (a < b ? a : b), (a < b ? b : a) },
           overlap_(overlap),
           visited_(true)
@@ -69,22 +66,31 @@ public:
     }
 
 private:
+    std::array<std::shared_ptr<Collider>, 2> colliders_;
+    mutable tmat::Vector3f overlap_;
+
     /* Whether or not the collider has been visited this cycle. */
-    array<shared_ptr<Collider>, 2> colliders_;
-    mutable Vector3f overlap_;
     mutable bool visited_;
 
     friend class Scene;
 };
 
+/**
+ * \brief A node capable of colliding with other shapes
+ *
+ * \details
+ *     This node should be the descendant of a Rigidbody node.
+ */
 class Collider : public Node
 {
 public:
 
-    Collider(shared_ptr<Shape> shape) : shape_(shape)
+    /**
+     * \brief Create a collider from the given shape
+     */
+    Collider(std::shared_ptr<Shape> shape) : shape_(shape)
     {
     }
-
 
     /**
      * \brief Return the world space bounding box
@@ -94,7 +100,7 @@ public:
     /**
      * \brief Return the collider's shape
      */
-    const shared_ptr<Shape> shape() const { return shape_; }
+    const std::shared_ptr<Shape> shape() const { return shape_; }
 
     /**
      * \brief
@@ -112,26 +118,26 @@ public:
      *
      */
     bool getOverlap(
-            Vector3f &out,
-            const shared_ptr<Collider> &other,
-            const Vector3f initialAxis = Vector3f::right,
+            tmat::Vector3f &out,
+            const std::shared_ptr<Collider> &other,
+            const tmat::Vector3f initialAxis = tmat::Vector3f::right,
             const int maxIterations = 0,
             const float tolerance = 0.000001f) const;
 
-    void onSceneChanged(shared_ptr<Scene> newScene) override;
+    void onSceneChanged(std::shared_ptr<Scene> newScene) override;
 
-    shared_ptr<Node> clone() override
+    std::shared_ptr<Node> clone() override
     {
-        return make_shared<Collider>(shape());
+        return std::make_shared<Collider>(shape());
     }
 
 private:
-    const shared_ptr<Shape> shape_;
+    const std::shared_ptr<Shape> shape_;
     Box box_;
 
     typedef bool (Collider::*NearestSimplexFunction)(
-            vector<Vector3f> &s,
-            Vector3f &d,
+            std::vector<tmat::Vector3f> &s,
+            tmat::Vector3f &d,
             const float tolerance) const;
 
     /* Nearest simplex lookup table. */
@@ -149,26 +155,26 @@ private:
      * \return True if s contains the origin.
      */
     bool nearestSimplex(
-            vector<Vector3f> &s,
-            Vector3f &d,
+            std::vector<tmat::Vector3f> &s,
+            tmat::Vector3f &d,
             const float tolerance) const;
 
     /* Implementations for each vertex count. */
     bool nearestSimplex1(
-            vector<Vector3f> &s,
-            Vector3f &d,
+            std::vector<tmat::Vector3f> &s,
+            tmat::Vector3f &d,
             const float tolerance) const;
     bool nearestSimplex2(
-            vector<Vector3f> &s,
-            Vector3f &d,
+            std::vector<tmat::Vector3f> &s,
+            tmat::Vector3f &d,
             const float tolerance) const;
     bool nearestSimplex3(
-            vector<Vector3f> &s,
-            Vector3f &d,
+            std::vector<tmat::Vector3f> &s,
+            tmat::Vector3f &d,
             const float tolerance) const;
     bool nearestSimplex4(
-            vector<Vector3f> &s,
-            Vector3f &d,
+            std::vector<tmat::Vector3f> &s,
+            tmat::Vector3f &d,
             const float tolerance) const;
 
     /**
@@ -185,9 +191,9 @@ private:
      * \return The index of the triangle
      */
     int nearestTriangle(
-            const vector<Vector3f> &s,
-            const vector<int> &indices,
-            Vector3f &d) const;
+            const std::vector<tmat::Vector3f> &s,
+            const std::vector<int> &indices,
+            tmat::Vector3f &d) const;
 
     friend class Scene;
 };

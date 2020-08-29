@@ -10,9 +10,6 @@
 namespace gnid
 {
 
-using namespace tmat;
-using namespace std;
-
 /**
  * \brief A rigid body
  */
@@ -24,7 +21,7 @@ public:
      */
     Rigidbody();
 
-    void onSceneChanged(shared_ptr<Scene> newScene) override;
+    void onSceneChanged(std::shared_ptr<Scene> newScene) override;
 };
 
 } /* namespace */

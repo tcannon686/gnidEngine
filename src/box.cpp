@@ -1,11 +1,12 @@
+#include "box.hpp"
+
 #include <cassert>
 #include "matrix/matrix.hpp"
-#include "box.hpp"
 
 using namespace gnid;
 using namespace tmat;
 
-void Box::add(const Vector3f v)
+void Box::add(const Vector3f &v)
 {
     if(count_ == 0)
     {
@@ -25,7 +26,7 @@ void Box::add(const Vector3f v)
     count_ ++;
 }
 
-void Box::add(const Box box)
+void Box::add(const Box &box)
 {
     if(count_ == 0)
     {
@@ -45,26 +46,26 @@ void Box::add(const Box box)
     count_ ++;
 }
 
-bool Box::overlaps(const Box other) const
+bool Box::overlaps(const Box &other) const
 {
     assert(count() > 0);
     return (min() <= other.max() && min() >= other.min())
         || (max() <= other.max() && max() >= other.min());
 }
 
-bool Box::contains(const Box other) const
+bool Box::contains(const Box &other) const
 {
     assert(count() > 0);
     return min() <= other.min() && max() >= other.max();
 }
 
-bool Box::contains(const Vector3f other) const
+bool Box::contains(const Vector3f &other) const
 {
     assert(count() > 0);
     return min() <= other && max() >= other;
 }
 
-void Box::transform(Matrix<3 + 1, 3 + 1, float> matrix)
+void Box::transform(const Matrix4f &matrix)
 {
     assert(count() > 0);
 
@@ -116,7 +117,7 @@ const Box &Box::box() const
     return *this;
 }
 
-Vector3f Box::support(const Vector3f d) const
+Vector3f Box::support(const Vector3f &d) const
 {
     Vector3f ret = min();
     float retDot = d.dot(min());

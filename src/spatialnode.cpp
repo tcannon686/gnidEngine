@@ -1,6 +1,6 @@
+#include "spatialnode.hpp"
 
 #include "matrix/matrix.hpp"
-#include "spatialnode.hpp"
 
 using namespace gnid;
 using namespace tmat;

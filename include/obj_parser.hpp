@@ -16,22 +16,51 @@
 #include "node.hpp"
 #include "matrix/matrix.hpp"
 
-using namespace gnid;
-using namespace std;
-using namespace tmat;
+namespace gnid
+{
 
+/**
+ * \brief A template based Wavefront OBJ parser
+ *
+ * \tparam Stream A stream class with the bitshift operator.
+ */
 template<typename Stream>
 class ObjParser
 {
+public:
+    /**
+     * \brief Create an OBJ parser for the given stream
+     */
+    ObjParser(Stream &stream) : stream(stream) {}
+
+    /**
+     * \brief Parse mesh data from the stream
+     */
+    void parse();
+
+    /**
+     * \brief Create a render node from the parsed data
+     *
+     * \details
+     *     This method must be called after parse is called.
+     *
+     * \tparam Shader   The type of shader to use for materials
+     * \tparam Material The type of materials to use
+     *
+     * \param shader    The shader to use for the materials
+     */
+    template<typename Shader, typename Material>
+    std::shared_ptr<Node> buildRendererNode(std::shared_ptr<Shader> shader);
+    
 private:
     Stream &stream;
 
-    vector<Vector4f> vertices;
-    vector<Vector3f> normals;
-    vector<Vector2f> texCos;
-    vector<int> vIndices;
-    vector<int> nIndices;
-    vector<int> tIndices;
+    std::vector<tmat::Vector4f> vertices;
+    std::vector<tmat::Vector3f> normals;
+    std::vector<tmat::Vector2f> texCos;
+    std::vector<int> vIndices;
+    std::vector<int> nIndices;
+    std::vector<int> tIndices;
     bool smooth;
     bool done;
 
@@ -59,35 +88,35 @@ private:
         OFF
     } TokenType;
 
-    static const string tokenStrings[];
+    static const std::string tokenStrings[];
 
-    string token;
-    string next_token;
+    std::string token;
+    std::string next_token;
     TokenType token_type;
 
-    const string COMMENT_STR = "#";
-    const string VERTEX_STR = "v";
-    const string NORMAL_STR = "vn";
-    const string TEXCO_STR = "vt";
-    const string FACE_STR = "f";
-    const string USEMTL_STR = "usemtl";
-    const string MTLLIB_STR = "mtllib";
-    const string OBJECT_STR = "o";
-    const string GROUP_STR = "g";
-    const string SHADE_STR = "s";
-    const string INDEX_SEPARATOR_STR = "/";
-    const string ON_STR = "on";
-    const string OFF_STR = "off";
+    const std::string COMMENT_STR = "#";
+    const std::string VERTEX_STR = "v";
+    const std::string NORMAL_STR = "vn";
+    const std::string TEXCO_STR = "vt";
+    const std::string FACE_STR = "f";
+    const std::string USEMTL_STR = "usemtl";
+    const std::string MTLLIB_STR = "mtllib";
+    const std::string OBJECT_STR = "o";
+    const std::string GROUP_STR = "g";
+    const std::string SHADE_STR = "s";
+    const std::string INDEX_SEPARATOR_STR = "/";
+    const std::string ON_STR = "on";
+    const std::string OFF_STR = "off";
 
-    // Read the next token from the input.
+    /* Read the next token from the input. */
     void nextToken()
     {
         int c;
-        stringstream s;
+        std::stringstream s;
 
         token = next_token;
 
-        // Skip whitespace.
+        /* Skip whitespace. */
         while(isspace(c = stream.get()) && c != '\n' && c != '\r')
             /* pass */;
 
@@ -104,10 +133,10 @@ private:
             else if(c == '\r' && stream.peek() == '\n')
                 stream.get();
         }
-        // If reading a command.
+        /* If reading a command. */
         else if(isalpha(c))
         {
-            // Read until non alphanumeric.
+            /* Read until non alphanumeric. */
             s << (char) c;
             while(isalnum((c = stream.get())))
             {
@@ -177,11 +206,13 @@ private:
         }
     }
 
-    // Parse from the current position to the end of the line.
+    /**
+     * \brief Parse from the current position to the end of the line
+     */
     void parseString()
     {
         int c;
-        stringstream s;
+        std::stringstream s;
         while((c = stream.get()) != '\n' && c != '\r')
         {
             s << (char) c;
@@ -211,7 +242,7 @@ private:
         {
             error() << "expected '" <<
                 tokenStrings[type] << "' got '" << tokenStrings[token_type] <<
-                "'." << endl;
+                "'." << std::endl;
         }
         assert(false);
         return false;
@@ -221,7 +252,7 @@ private:
     {
         if(accept(TokenType::VERTEX))
         {
-            Vector4f vertex;
+            tmat::Vector4f vertex;
             int index = 0;
 
             while(expect(TokenType::NUMBER))
@@ -238,16 +269,17 @@ private:
                 index ++;
             }
 
-            // Add the vertex to the list of vertices.
+            /* Add the vertex to the list of vertices. */
             vertices.push_back(vertex);
         }
         return false;
     }
+
     bool parseNormal()
     {
         if(accept(TokenType::NORMAL))
         {
-            Vector3f vertex;
+            tmat::Vector3f vertex;
             int index = 0;
 
             while(expect(TokenType::NUMBER))
@@ -258,16 +290,17 @@ private:
                     break;
             }
             
-            // Add the normal to the list of normals.
+            /* Add the normal to the list of normals. */
             normals.push_back(vertex);
         }
         return false;
     }
+
     bool parseTexCo()
     {
         if(accept(TokenType::TEXCO))
         {
-            Vector2f vertex;
+            tmat::Vector2f vertex;
             int index = 0;
 
             while(expect(TokenType::NUMBER))
@@ -284,18 +317,19 @@ private:
                 index ++;
             }
 
-            // Add the texco to the list of texcos.
+            /* Add the texco to the list of texcos. */
             texCos.push_back(vertex);
         }
         return false;
     }
+
     bool parseFace()
     {
         if(accept(TokenType::FACE))
         {
-            vector<int> vIndices;
-            vector<int> tIndices;
-            vector<int> nIndices;
+            std::vector<int> vIndices;
+            std::vector<int> tIndices;
+            std::vector<int> nIndices;
 
             while(accept(TokenType::NUMBER))
             {
@@ -326,7 +360,7 @@ private:
             if(nIndices.size() > 0)
                 assert(nIndices.size() == vIndices.size());
 
-            // Convert to triangles.
+            /* Convert to triangles. */
             for(size_t i = 1; i < vIndices.size() - 1; i ++)
             {
                 this->vIndices.push_back(vIndices[0]);
@@ -354,53 +388,58 @@ private:
         }
         return false;
     }
+
     bool parseUseMtl()
     {
         if(accept(TokenType::USEMTL))
         {
             parseString();
             expect(TokenType::STRING);
-            string name = token;
+            std::string name = token;
 
             return true;
         }
         return false;
     }
+
     bool parseMtlLib()
     {
         if(accept(TokenType::MTLLIB))
         {
             parseString();
             expect(TokenType::STRING);
-            string path = token;
+            std::string path = token;
             return true;
         }
         return false;
     }
+
     bool parseObject()
     {
         if(accept(TokenType::OBJECT))
         {
             parseString();
             expect(TokenType::STRING);
-            string name = token;
+            std::string name = token;
 
             return true;
         }
         return false;
     }
+
     bool parseGroup()
     {
         if(accept(TokenType::OBJECT))
         {
             parseString();
             expect(TokenType::STRING);
-            string name = token;
+            std::string name = token;
 
             return true;
         }
         return false;
     }
+
     bool parseShade()
     {
         if(accept(TokenType::SHADE))
@@ -424,171 +463,19 @@ private:
         return false;
     }
 
-    ostream &error() const
+    std::ostream &error() const
     {
-        return cerr << "error parsing obj[" << line << "]: ";
+        return std::cerr << "error parsing obj[" << line << "]: ";
     }
 
-    ostream &warning() const
+    std::ostream &warning() const
     {
-        return cerr << "warning parsing obj[" << line << "]: ";
-    }
-
-public:
-    ObjParser(Stream &stream)
-        : stream(stream)
-    {
-    }
-
-    void parse()
-    {
-        nextToken();
-        while(true)
-        {
-            if(accept(TokenType::COMMENT));
-            else if(parseVertex());
-            else if(parseNormal());
-            else if(parseTexCo());
-            else if(parseFace());
-            else if(parseUseMtl());
-            else if(parseMtlLib());
-            else if(parseObject());
-            else if(parseGroup());
-            else if(parseShade());
-            if(!accept(TokenType::END_OF_LINE))
-            {
-                expect(TokenType::END_OF_FILE);
-                break;
-            }
-        }
-        done = true;
-    }
-
-    template<typename Shader, typename Material>
-    shared_ptr<Node> buildRendererNode(shared_ptr<Shader> shader)
-    {
-        assert(done);
-        // Change the separate indices to one set of vertex indices.
-
-        // Maps old vIndices, tIndices, nIndices tuple to new index.
-        unordered_map<string, unsigned int> index_table;
-
-        // Vertex array buffer
-        vector<unsigned int> index_array;
-
-        // Vertex buffer format: vvvttnnn
-        vector<float> data;
-        int cur_index = 0;
-
-        for(size_t i = 0; i < vIndices.size(); i ++)
-        {
-            string table_index =
-                to_string(vIndices[i])
-                + "/" + (tIndices.size() > 0? to_string(tIndices[i]) : "")
-                + "/" + (nIndices.size() > 0? to_string(nIndices[i]) : "");
-
-            auto in_table = index_table.find(table_index);
-            // If the vertex has not been added yet, add it.
-            if(in_table == end(index_table))
-            {
-                // Add the data.
-                for(int j = 0; j < 3; j ++)
-                    data.push_back(vertices[vIndices[i]][j]);
-                if(tIndices.size() > 0)
-                {
-                    for(int j = 0; j < 2; j ++)
-                        data.push_back(texCos[tIndices[i]][j]);
-                }
-                if(nIndices.size() > 0)
-                {
-                    for(int j = 0; j < 3; j ++)
-                        data.push_back(normals[nIndices[i]][j]);
-                }
-
-                index_table[table_index] = cur_index;
-                cur_index ++;
-            }
-            index_array.push_back(index_table[table_index]);
-        }
-
-        const size_t vertex_size = 3 * sizeof(float);
-        const size_t normal_size = (
-                nIndices.size() > 0? 3 * sizeof(float) : 0);
-        const size_t texco_size = (
-                tIndices.size() > 0? 2 * sizeof(float) : 0);
-        const size_t stride = vertex_size + normal_size + texco_size;
-
-        GLuint vao, vbo, ibo;
-        glGenVertexArrays(1, &vao);
-        glGenBuffers(1, &vbo);
-        glGenBuffers(1, &ibo);
-
-        assert(vao != 0);
-        assert(vbo != 0);
-        assert(ibo != 0);
-
-        glBindVertexArray(vao);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-
-        glBufferData(
-            GL_ARRAY_BUFFER,
-            data.size() * sizeof(float),
-            data.data(), GL_STATIC_DRAW);
-
-        glBufferData(
-            GL_ELEMENT_ARRAY_BUFFER,
-            index_array.size() * sizeof(unsigned int),
-            index_array.data(), GL_STATIC_DRAW);
-
-        glVertexAttribPointer(
-            ShaderProgram::ATTRIB_LOCATION_VERTEX,
-            3,
-            GL_FLOAT,
-            GL_FALSE,
-            stride,
-            nullptr);
-        
-        glEnableVertexAttribArray(ShaderProgram::ATTRIB_LOCATION_VERTEX);
-        
-        if(tIndices.size() > 0)
-        {
-            glVertexAttribPointer(
-                ShaderProgram::ATTRIB_LOCATION_TEXCO,
-                2,
-                GL_FLOAT,
-                GL_FALSE,
-                stride,
-                (void *)(vertex_size));
-
-            glEnableVertexAttribArray(ShaderProgram::ATTRIB_LOCATION_TEXCO);
-        }
-
-        if(nIndices.size() > 0)
-        {
-            glVertexAttribPointer(
-                ShaderProgram::ATTRIB_LOCATION_NORMAL,
-                3,
-                GL_FLOAT,
-                GL_FALSE,
-                stride,
-                (void *)(vertex_size + texco_size));
-
-            glEnableVertexAttribArray(ShaderProgram::ATTRIB_LOCATION_NORMAL);
-        }
-
-        shared_ptr<RendererMesh> renderMesh = make_shared<RendererMesh>(
-            GL_TRIANGLES,
-            index_array.size(),
-            GL_UNSIGNED_INT,
-            vao);
-        shared_ptr<Material> mat = make_shared<Material>(shader);
-        return make_shared<RendererNode>(renderMesh, mat);
+        return std::cerr << "warning parsing obj[" << line << "]: ";
     }
 };
 
 template<typename Stream>
-const string ObjParser<Stream>::tokenStrings[] =
+const std::string ObjParser<Stream>::tokenStrings[] =
 {
     "COMMENT",
     "VERTEX",
@@ -609,6 +496,161 @@ const string ObjParser<Stream>::tokenStrings[] =
     "ON",
     "OFF"
 };
+
+template<typename Stream>
+void ObjParser<Stream>::parse()
+{
+    nextToken();
+    while(true)
+    {
+        if(accept(TokenType::COMMENT));
+        else if(parseVertex());
+        else if(parseNormal());
+        else if(parseTexCo());
+        else if(parseFace());
+        else if(parseUseMtl());
+        else if(parseMtlLib());
+        else if(parseObject());
+        else if(parseGroup());
+        else if(parseShade());
+        if(!accept(TokenType::END_OF_LINE))
+        {
+            expect(TokenType::END_OF_FILE);
+            break;
+        }
+    }
+    done = true;
+}
+
+template<typename Stream>
+template<typename Shader, typename Material>
+std::shared_ptr<Node> ObjParser<Stream>::buildRendererNode(
+        std::shared_ptr<Shader> shader)
+{
+    assert(done);
+    /* Change the separate indices to one set of vertex indices. */
+
+    /* Maps old vIndices, tIndices, nIndices tuple to new index. */
+    std::unordered_map<std::string, unsigned int> index_table;
+
+    /* Vertex array buffer */
+    std::vector<unsigned int> index_array;
+
+    /* Vertex buffer format: vvvttnnn */
+    std::vector<float> data;
+    int cur_index = 0;
+
+    for(size_t i = 0; i < vIndices.size(); i ++)
+    {
+        std::string table_index =
+            std::to_string(vIndices[i])
+            + "/" + (tIndices.size() > 0 ?
+                    std::to_string(tIndices[i])
+                    : "")
+            + "/" + (nIndices.size() > 0 ?
+                    std::to_string(nIndices[i])
+                    : "");
+
+        auto in_table = index_table.find(table_index);
+
+        /* If the vertex has not been added yet, add it. */
+        if(in_table == end(index_table))
+        {
+            /* Add the data. */
+            for(int j = 0; j < 3; j ++)
+                data.push_back(vertices[vIndices[i]][j]);
+            if(tIndices.size() > 0)
+            {
+                for(int j = 0; j < 2; j ++)
+                    data.push_back(texCos[tIndices[i]][j]);
+            }
+            if(nIndices.size() > 0)
+            {
+                for(int j = 0; j < 3; j ++)
+                    data.push_back(normals[nIndices[i]][j]);
+            }
+
+            index_table[table_index] = cur_index;
+            cur_index ++;
+        }
+        index_array.push_back(index_table[table_index]);
+    }
+
+    const size_t vertex_size = 3 * sizeof(float);
+    const size_t normal_size = (
+            nIndices.size() > 0? 3 * sizeof(float) : 0);
+    const size_t texco_size = (
+            tIndices.size() > 0? 2 * sizeof(float) : 0);
+    const size_t stride = vertex_size + normal_size + texco_size;
+
+    GLuint vao, vbo, ibo;
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
+    glGenBuffers(1, &ibo);
+
+    assert(vao != 0);
+    assert(vbo != 0);
+    assert(ibo != 0);
+
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        data.size() * sizeof(float),
+        data.data(), GL_STATIC_DRAW);
+
+    glBufferData(
+        GL_ELEMENT_ARRAY_BUFFER,
+        index_array.size() * sizeof(unsigned int),
+        index_array.data(), GL_STATIC_DRAW);
+
+    glVertexAttribPointer(
+        ShaderProgram::ATTRIB_LOCATION_VERTEX,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        stride,
+        nullptr);
+    
+    glEnableVertexAttribArray(ShaderProgram::ATTRIB_LOCATION_VERTEX);
+    
+    if(tIndices.size() > 0)
+    {
+        glVertexAttribPointer(
+            ShaderProgram::ATTRIB_LOCATION_TEXCO,
+            2,
+            GL_FLOAT,
+            GL_FALSE,
+            stride,
+            (void *)(vertex_size));
+
+        glEnableVertexAttribArray(ShaderProgram::ATTRIB_LOCATION_TEXCO);
+    }
+
+    if(nIndices.size() > 0)
+    {
+        glVertexAttribPointer(
+            ShaderProgram::ATTRIB_LOCATION_NORMAL,
+            3,
+            GL_FLOAT,
+            GL_FALSE,
+            stride,
+            (void *)(vertex_size + texco_size));
+
+        glEnableVertexAttribArray(ShaderProgram::ATTRIB_LOCATION_NORMAL);
+    }
+
+    std::shared_ptr<RendererMesh> renderMesh = std::make_shared<RendererMesh>(
+        GL_TRIANGLES,
+        index_array.size(),
+        GL_UNSIGNED_INT,
+        vao);
+    std::shared_ptr<Material> mat = std::make_shared<Material>(shader);
+    return std::make_shared<RendererNode>(renderMesh, mat);
+}
+
+} /* namespace */
+
 #endif /* OBJ_PARSER_H */
-
-

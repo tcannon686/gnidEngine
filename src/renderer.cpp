@@ -1,3 +1,5 @@
+#include "renderer.hpp"
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -8,7 +10,6 @@
 #include "material.hpp"
 #include "shader.hpp"
 #include "node.hpp"
-#include "renderer.hpp"
 #include "camera.hpp"
 #include "lightnode.hpp"
 

@@ -1,12 +1,12 @@
 #ifndef SHADER_HPP
 #define SHADER_HPP
 
+#include <memory>
+
 #include "matrix/matrix.hpp"
 
 namespace gnid
 {
-
-using namespace tmat;
 
 class LightNode;
 class Camera;
@@ -34,14 +34,16 @@ class ShaderProgram
         /**
          * \brief Set the current projection matrix for the shader
          */
-        virtual void setProjectionMatrix(Matrix4f projection) = 0;
+        virtual void setProjectionMatrix(tmat::Matrix4f projection) = 0;
 
         /**
          * \brief
          *     Set the transformation of the scene in the shader for the given
          *     mesh instance
          */
-        virtual void setModelViewMatrix(int instance, Matrix4f transform) = 0;
+        virtual void setModelViewMatrix(
+                int instance,
+                tmat::Matrix4f transform) = 0;
 
         /**
          * \brief Set the number of lights to be rendered
@@ -53,8 +55,8 @@ class ShaderProgram
          */
         virtual void setLight(
                 int index,
-                shared_ptr<Camera> camera,
-                shared_ptr<LightNode> light) = 0;
+                std::shared_ptr<Camera> camera,
+                std::shared_ptr<LightNode> light) = 0;
 
         /**
          * \brief

@@ -1,6 +1,8 @@
 #ifndef LIGHTNODE_HPP
 #define LIGHTNODE_HPP
 
+#include "node.hpp"
+
 namespace gnid
 {
 
@@ -10,8 +12,8 @@ namespace gnid
 class LightNode : public Node
 {
 public:
-    void onSceneChanged(shared_ptr<Scene> newScene) override;
-    shared_ptr<Node> clone() override;
+    void onSceneChanged(std::shared_ptr<Scene> newScene) override;
+    std::shared_ptr<Node> clone() override;
 
     /**
      * \brief The distance at which the light should emit half of its light

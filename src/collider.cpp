@@ -1,6 +1,7 @@
+#include "collider.hpp"
+
 #include "matrix/matrix.hpp"
 #include "scene.hpp"
-#include "collider.hpp"
 #include <cassert>
 #include <limits>
 

@@ -1,10 +1,12 @@
+#include "camera.hpp"
+
 #include <memory>
 #include <cmath>
 
 #include "matrix/matrix.hpp"
-#include "camera.hpp"
 #include "scene.hpp"
 
+using namespace tmat;
 using namespace gnid;
 using namespace std;
 

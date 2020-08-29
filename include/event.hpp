@@ -7,12 +7,11 @@ namespace gnid
 {
 
 class Node;
-using namespace std;
 
 class Event
 {
 public:
-    Event(const shared_ptr<Node> source)
+    Event(const std::shared_ptr<Node> source)
         : source_(source)
     {
     }
@@ -21,9 +20,9 @@ public:
     {
     }
 
-    const shared_ptr<Node> &source() { return source_; }
+    const std::shared_ptr<Node> &source() { return source_; }
 private:
-    const shared_ptr<Node> source_;
+    const std::shared_ptr<Node> source_;
 };
 
 } /* namespace */

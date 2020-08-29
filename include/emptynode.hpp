@@ -11,9 +11,9 @@ namespace gnid
  */
 class EmptyNode : public Node
 {
-    shared_ptr<Node> clone() override
+    std::shared_ptr<Node> clone() override
     {
-        return make_shared<EmptyNode>(*this);
+        return std::make_shared<EmptyNode>(*this);
     }
 };
 

@@ -1,6 +1,8 @@
 #include "rigidbody.hpp"
+
 #include "scene.hpp"
 
+using namespace std;
 using namespace gnid;
 
 void Rigidbody::onSceneChanged(shared_ptr<Scene> newScene)

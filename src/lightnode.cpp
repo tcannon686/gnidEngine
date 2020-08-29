@@ -1,9 +1,11 @@
+#include "lightnode.hpp"
+
 #include <memory>
 
 #include "renderer.hpp"
 #include "scene.hpp"
-#include "lightnode.hpp"
 
+using namespace std;
 using namespace gnid;
 
 void LightNode::onSceneChanged(shared_ptr<Scene> newScene)

@@ -17,15 +17,13 @@ class Box;
 class Rigidbody;
 class RendererNode;
 
-using namespace tmat;
-
 /**
  * \brief A scene
  */
-class Scene : public enable_shared_from_this<Scene>
+class Scene : public std::enable_shared_from_this<Scene>
 {
     public:
-        const shared_ptr<Node> root;
+        const std::shared_ptr<Node> root;
 
         Scene();
 
@@ -60,59 +58,59 @@ class Scene : public enable_shared_from_this<Scene>
         /**
          * \brief Register a collider node for use in the scene
          */
-        void registerNode(shared_ptr<Collider> collider);
+        void registerNode(std::shared_ptr<Collider> collider);
 
         /**
          * \brief Register a camera node for use in the scene
          */
-        void registerNode(shared_ptr<Camera> camera);
+        void registerNode(std::shared_ptr<Camera> camera);
 
         /**
          * \brief Register a rigidbody node for use in the scene
          */
-        void registerNode(shared_ptr<Rigidbody> rigidbody);
+        void registerNode(std::shared_ptr<Rigidbody> rigidbody);
 
         /**
          * \brief Register a render node for use in the scene
          */
-        void registerNode(shared_ptr<RendererNode> renderNode);
+        void registerNode(std::shared_ptr<RendererNode> renderNode);
 
         /**
          * \brief Register a light node for use in the scene
          */
-        void registerNode(shared_ptr<LightNode> lightNode);
+        void registerNode(std::shared_ptr<LightNode> lightNode);
 
         /**
          * \brief Unregister a collider node
          */
-        void unregisterNode(shared_ptr<Collider> collider);
+        void unregisterNode(std::shared_ptr<Collider> collider);
 
         /**
          * \brief Unregister a camera node
          */
-        void unregisterNode(shared_ptr<Camera> camera);
+        void unregisterNode(std::shared_ptr<Camera> camera);
 
         /**
          * \brief Unregister a rigidbody node
          */
-        void unregisterNode(shared_ptr<Rigidbody> rigidbody);
+        void unregisterNode(std::shared_ptr<Rigidbody> rigidbody);
 
         /**
          * \brief Unregister a renderer node
          */
-        void unregisterNode(shared_ptr<RendererNode> rendererNode);
+        void unregisterNode(std::shared_ptr<RendererNode> rendererNode);
 
         /**
          * \brief Unregister a light node
          */
-        void unregisterNode(shared_ptr<LightNode> lightNode);
+        void unregisterNode(std::shared_ptr<LightNode> lightNode);
     private:
         friend class Node;
 
-        set<Collision> collisions;
-        list<shared_ptr<Collider>> colliders;
-        list<shared_ptr<Camera>> cameras;
-        list<shared_ptr<Rigidbody>> rigidbodies;
+        std::set<Collision> collisions;
+        std::list<std::shared_ptr<Collider>> colliders;
+        std::list<std::shared_ptr<Camera>> cameras;
+        std::list<std::shared_ptr<Rigidbody>> rigidbodies;
         Renderer renderer;
 };
 

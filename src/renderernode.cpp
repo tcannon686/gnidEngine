@@ -1,8 +1,10 @@
 #include "renderernode.hpp"
+
 #include "scene.hpp"
 #include "renderer.hpp"
 #include "material.hpp"
 
+using namespace std;
 using namespace gnid;
 
 RendererNode::RendererNode(

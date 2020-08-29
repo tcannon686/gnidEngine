@@ -1,8 +1,6 @@
 #ifndef GNID_HPP
 #define GNID_HPP
 
-#include <unordered_map>
-
 class GLFWwindow;
 
 /**

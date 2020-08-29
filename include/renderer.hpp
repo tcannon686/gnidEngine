@@ -13,8 +13,8 @@
 
 namespace gnid
 {
-using namespace std;
 
+/* Forward declarations. */
 class ShaderProgram;
 class LightNode;
 
@@ -46,14 +46,14 @@ class RendererMesh
 class Binding
 {
     public:
-        const shared_ptr<Material> material;
-        const shared_ptr<RendererMesh> mesh;
-        const shared_ptr<Node> node;
+        const std::shared_ptr<Material> material;
+        const std::shared_ptr<RendererMesh> mesh;
+        const std::shared_ptr<Node> node;
 
         Binding(
-            shared_ptr<Material> material,
-            shared_ptr<RendererMesh> mesh,
-            shared_ptr<Node> node);
+            std::shared_ptr<Material> material,
+            std::shared_ptr<RendererMesh> mesh,
+            std::shared_ptr<Node> node);
 
         bool operator<(const Binding &other) const;
 };
@@ -70,7 +70,7 @@ class Renderer
         /**
          * \brief Render from the given camera
          */
-        void render(shared_ptr<Camera> camera) const;
+        void render(std::shared_ptr<Camera> camera) const;
 
         /**
          * \brief Add a binding to be rendered
@@ -85,21 +85,21 @@ class Renderer
         /**
          * \brief Add a light to the rendered scene
          */
-        void add(shared_ptr<LightNode> light);
+        void add(std::shared_ptr<LightNode> light);
 
         /**
          * \brief Remove a light from the rendered scene
          */
-        void remove(shared_ptr<LightNode> light);
+        void remove(std::shared_ptr<LightNode> light);
     private:
-        set<Binding> bindings;
-        set<shared_ptr<LightNode>> lights;
+        std::set<Binding> bindings;
+        std::set<std::shared_ptr<LightNode>> lights;
         void renderMesh(
-            shared_ptr<RendererMesh> mesh,
+            std::shared_ptr<RendererMesh> mesh,
             int instanceCount) const;
         void updateLights(
-                shared_ptr<Camera> camera,
-                shared_ptr<ShaderProgram> program) const;
+                std::shared_ptr<Camera> camera,
+                std::shared_ptr<ShaderProgram> program) const;
 };
 
 }; /* namespace */

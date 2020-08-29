@@ -1,3 +1,5 @@
+#include "gnid.hpp"
+
 #include <cassert>
 
 #include <glad/glad.h>
@@ -9,8 +11,6 @@
 #include "scene.hpp"
 
 #include "gamebase.hpp"
-
-#include "gnid.hpp"
 
 using namespace gnid;
 using namespace std;

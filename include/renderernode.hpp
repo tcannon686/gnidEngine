@@ -7,6 +7,10 @@
 namespace gnid
 {
 
+/* Forward declarations. */
+class Scene;
+class Material;
+
 /**
  * \brief A node capable of rendering a mesh
  */
@@ -16,17 +20,17 @@ class RendererNode : public Node
         /**
          * \brief The mesh to be rendered
          */
-        const shared_ptr<RendererMesh> mesh;
+        const std::shared_ptr<RendererMesh> mesh;
 
         /**
          * \brief The material to render the mesh with
          */
-        const shared_ptr<Material> material;
+        const std::shared_ptr<Material> material;
         RendererNode(
-            shared_ptr<RendererMesh> mesh,
-            shared_ptr<Material> material);
-        void onSceneChanged(shared_ptr<Scene> newScene);
-        shared_ptr<Node> clone();
+            std::shared_ptr<RendererMesh> mesh,
+            std::shared_ptr<Material> material);
+        void onSceneChanged(std::shared_ptr<Scene> newScene);
+        std::shared_ptr<Node> clone();
 };
 
 } /* namespace */

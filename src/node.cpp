@@ -1,8 +1,10 @@
+#include "node.hpp"
+
 #include <list>
 #include <cassert>
 #include "scene.hpp"
-#include "node.hpp"
 
+using namespace tmat;
 using namespace gnid;
 
 const Matrix4f &Node::getLocalMatrix() const

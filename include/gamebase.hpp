@@ -6,7 +6,6 @@
 namespace gnid
 {
 
-using namespace std;
 class Scene;
 
 /**
@@ -16,7 +15,8 @@ class Scene;
  *     Games Should derive from this class. Includes functions for setting up
  *     the game, as well as callback functions.
  */
-class GameBase {
+class GameBase
+{
 public:
     /**
      * \brief The width of the game window
@@ -31,7 +31,7 @@ public:
     /**
      * \brief Returns the scene to be displayed
      */
-    virtual const shared_ptr<Scene> &currentScene() const = 0;
+    virtual const std::shared_ptr<Scene> &currentScene() const = 0;
 
     /**
      * \brief Initialize the game.

@@ -9,16 +9,16 @@ namespace gnid
 class Camera : public Node
 {
     private:
-        Matrix4f projectionMatrix;
+        tmat::Matrix4f projectionMatrix;
     public:
         Camera(float fovy, float aspect, float znear, float zfar);
-        Matrix4f getProjectionMatrix();
-        Matrix4f getViewMatrix();
-        void onSceneChanged(shared_ptr<Scene> newScene) override;
+        tmat::Matrix4f getProjectionMatrix();
+        tmat::Matrix4f getViewMatrix();
+        void onSceneChanged(std::shared_ptr<Scene> newScene) override;
         
-        shared_ptr<Node> clone() override
+        std::shared_ptr<Node> clone() override
         {
-            return make_shared<Camera>(*this);
+            return std::make_shared<Camera>(*this);
         }
 };
 

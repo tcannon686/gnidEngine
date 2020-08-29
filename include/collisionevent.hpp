@@ -1,6 +1,7 @@
 #ifndef COLLISIONEVENT_HPP
 #define COLLISIONEVENT_HPP value
 
+#include <memory>
 #include "event.hpp"
 
 namespace gnid
@@ -17,7 +18,7 @@ class CollisionEvent : public Event
 {
 public:
     CollisionEvent(
-            const shared_ptr<Node> source,
+            const std::shared_ptr<Node> source,
             const Collision collision,
             CollisionEventType type)
         : Event::Event(source), collision_(collision), type_(type)

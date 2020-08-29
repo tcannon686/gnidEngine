@@ -2,10 +2,12 @@
 #define MATERIAL_HPP
 
 #include <memory>
-#include "shader.hpp"
 
 namespace gnid
 {
+
+/* Forward declarations. */
+class ShaderProgram;
 
 /**
  * \brief A generic material
@@ -17,7 +19,7 @@ class Material
         /**
          * \brief Returns the shader used by the material
          */
-        virtual shared_ptr<ShaderProgram> getShader() = 0;
+        virtual std::shared_ptr<ShaderProgram> getShader() = 0;
 
         /**
          * \brief
