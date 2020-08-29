@@ -7,7 +7,7 @@ TESTDIR = tests
 
 CC = g++
 CFLAGS = -fPIC -g -Wall -c -I$(DEPSDIR)/glad/include -I/usr/include/lua5.3\
-		 -I/usr/local/include/lua5.3 -I$(INCLUDEDIR) -I$(DEPSDIR)
+		 -I/usr/local/include/lua5.3 -I$(INCLUDEDIR) -I$(DEPSDIR) -std=c++17
 
 SOURCES = $(shell find $(SRCDIR) -name "*.cpp")
 HEADERS = $(shell find $(INCLUDEDIR) -name "*.hpp")
@@ -44,7 +44,7 @@ $(TESTDIR)/%.o : $(TESTDIR)/%.cpp $(HEADERS)
 clean :
 	rm -f $(OBJECTS) $(EXE) $(BINDIR)/glad.o $(BINDIR)/lodepng.o
 
-test: $(EXE) $(TEST_OBJECTS)
+test : $(EXE) $(TEST_OBJECTS)
 	$(CC) $(TEST_OBJECTS) -L./ -o $(TESTDIR)/test -lgnid
 	export LD_LIBRARY_PATH=./; $(TESTDIR)/test
 

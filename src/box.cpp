@@ -49,8 +49,12 @@ void Box::add(const Box &box)
 bool Box::overlaps(const Box &other) const
 {
     assert(count() > 0);
-    return (min() <= other.max() && min() >= other.min())
-        || (max() <= other.max() && max() >= other.min());
+    for(int i = 0; i < 3; i ++)
+    {
+        if((max()[i] < other.min()[i]) || (min()[i] > other.max()[i]))
+            return false;
+    }
+    return true;
 }
 
 bool Box::contains(const Box &other) const
@@ -65,56 +69,16 @@ bool Box::contains(const Vector3f &other) const
     return min() <= other && max() >= other;
 }
 
-void Box::transform(const Matrix4f &matrix)
-{
-    assert(count() > 0);
-
-    /* Calculate the number of points in the shape, 2^n. */
-    const int pointCount = 1 << 3;
-
-    Vector3f diff = max() - min();
-
-    Vector3f newMin = (matrix * min().homo()).cut();
-
-    /* Calculate the new basis. */
-    Vector3f basis[3];
-    for(int i = 0; i < 3; i ++)
-    {
-        basis[i] = (matrix.column(i) * diff[i]).cut();
-    }
-
-    /* Add all the points in the transformed box. */
-    int oldCount = count();
-    clear();
-
-    for(int i = 0; i < pointCount; i ++)
-    {
-        Vector3f point = newMin;
-
-        /* Calculate the point's position. */
-        for(int j = 0; j < 3; j ++)
-        {
-            if(((i >> j) & 1) == 1)
-            {
-                point += basis[i];
-            }
-        }
-
-        add(point);
-    }
-
-    count_ = oldCount;
-}
-
 Vector3f Box::center() const
 {
     assert(count() > 0);
     return (min() + max()) * 0.5f;
 }
 
-const Box &Box::box() const
+Vector3f Box::size() const
 {
-    return *this;
+    assert(count() > 0);
+    return max() - min();
 }
 
 Vector3f Box::support(const Vector3f &d) const

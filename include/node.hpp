@@ -20,6 +20,8 @@ class Node : public std::enable_shared_from_this<Node>
 {
     public:
         Node();
+        virtual ~Node();
+
         Node(const Node &other);
 
         /**
@@ -75,7 +77,7 @@ class Node : public std::enable_shared_from_this<Node>
         bool isActive();
 
         /**
-         * \brief Enable or disable the node.
+         * \brief Enable or disable the node
          */
         void setActive(bool active);
 
@@ -86,6 +88,10 @@ class Node : public std::enable_shared_from_this<Node>
 
         /**
          * \brief Add the child node to this node
+         *
+         * \details
+         *     If the child already had a parent, it will be removed from its
+         *     parent node.
          */
         void add(std::shared_ptr<Node> child);
 
@@ -176,6 +182,36 @@ class Node : public std::enable_shared_from_this<Node>
                 else
                     return nullptr;
             }
+        }
+
+        /**
+         * \brief
+         *     Find the first child of this node with the given type, or this
+         *     node if it has the type
+         * \details
+         *     This function takes \f$O(n)\f$ time where \f$n\f$ is the number
+         *     of children.
+         */
+        template<class T>
+        std::shared_ptr<T> findChildByType()
+        {
+            std::shared_ptr<T> t = std::dynamic_pointer_cast<T>(
+                    shared_from_this());
+            
+            /* If this is the right type, return this. */
+            if(t)
+                return t;
+            /* Otherwise, find at each child. */
+            else
+            {
+                for(auto &child : children)
+                {
+                    t = std::dynamic_pointer_cast<T>(child);
+                    if(t)
+                        return t;
+                }
+            }
+            return nullptr;
         }
 
     private:

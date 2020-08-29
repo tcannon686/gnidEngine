@@ -1,9 +1,10 @@
-#ifndef BVH_HPP
-#define BVH_HPP
+#ifndef COLLISIONPRUNER_HPP
+#define COLLISIONPRUNER_HPP
 
-#include "collider.hpp"
 #include <memory>
 #include <vector>
+
+#include "collider.hpp"
 
 namespace gnid
 {
@@ -19,6 +20,14 @@ class CollisionPruner
 {
 public:
 
+    CollisionPruner()
+    {
+    }
+
+    virtual ~CollisionPruner()
+    {
+    }
+
     /**
      * \brief
      *     Finds the nodes whose bounding boxes are overlapping and stores them
@@ -27,23 +36,22 @@ public:
      * \details
      *     The list **will not** be cleared. Applications should clear the list
      *     before passing it in to this function if needed. Each pair of nodes
-     *     should only be included once. The first pointer in the pair should
-     *     always be less than the second.
+     *     should only be included once.
      */
     virtual void listOverlappingNodes(
             std::vector<
                 std::pair<std::shared_ptr<Collider>, std::shared_ptr<Collider>>
-            > &list) = 0;
+            > &list) const = 0;
 
     /**
      * \brief Adds the given node to be pruned
      */
-    virtual void add(std::shared_ptr<Collider>);
+    virtual void add(std::shared_ptr<Collider> collider) = 0;
 
     /**
      * \brief Removes the given node
      */
-    virtual void remove(std::shared_ptr<Collider>);
+    virtual void remove(std::shared_ptr<Collider> collider) = 0;
 
     /**
      * \brief Update the pruner
@@ -52,7 +60,9 @@ public:
      *     This function should be called after all nodes have updated their
      *     world matrices.
      */
-    virtual void update();
+    virtual void update() = 0;
 };
 
 } /* namespace */
+
+#endif

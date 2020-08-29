@@ -52,11 +52,6 @@ public:
     bool contains(const tmat::Vector3f &other) const;
 
     /**
-     * \brief Transforms the box by the given matrix, resulting in a new box
-     */
-    void transform(const tmat::Matrix4f &matrix);
-
-    /**
      * \brief Returns the lower corner of the box
      */
     const tmat::Vector3f &min() const { assert(count() > 0); return min_; }
@@ -72,6 +67,11 @@ public:
     tmat::Vector3f center() const;
 
     /**
+     * \brief Calculates the size of the box and returns it
+     */
+    tmat::Vector3f size() const;
+
+    /**
      * \brief Returns the number of points added to the box
      */
     const int &count() const { return count_; }
@@ -82,7 +82,6 @@ public:
     void clear() { count_ = 0; }
 
     /******** Collider shape methods. ********/
-    const Box &box() const override;
     tmat::Vector3f support(const tmat::Vector3f &d) const override;
 
 private:

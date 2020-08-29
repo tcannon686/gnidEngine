@@ -6,6 +6,7 @@
 #include "matrix/matrix.hpp"
 #include "renderer.hpp"
 #include "collider.hpp"
+#include "kdtree.hpp"
 
 namespace gnid
 {
@@ -111,6 +112,8 @@ class Scene : public std::enable_shared_from_this<Scene>
         std::list<std::shared_ptr<Collider>> colliders;
         std::list<std::shared_ptr<Camera>> cameras;
         std::list<std::shared_ptr<Rigidbody>> rigidbodies;
+        std::shared_ptr<KdTree> kdTree;
+        KdTreePruner pruner;
         Renderer renderer;
 };
 

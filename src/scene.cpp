@@ -14,7 +14,10 @@ using namespace tmat;
 using namespace gnid;
 using namespace std;
 
-Scene::Scene() : root(make_shared<EmptyNode>())
+Scene::Scene()
+    : root(make_shared<EmptyNode>()),
+      kdTree(make_shared<KdTree>()),
+      pruner(kdTree)
 {
 }
 
@@ -33,56 +36,61 @@ void Scene::update(float dt)
 
     /* Mark all collisions as unvisited. */
     for(auto it = begin(collisions);
-        it != end(collisions);
-        ++ it)
+            it != end(collisions);
+            ++ it)
     {
         it->visited_ = false;
     }
 
+    /* Update the boxes for all the colliders. */
+    for(auto &collider : colliders)
+        collider->calcBox();
+    pruner.update();
+    
+    vector<pair<shared_ptr<Collider>, shared_ptr<Collider>>> overlappingNodes;
+    pruner.listOverlappingNodes(overlappingNodes);
+
     /* Find overlapping colliders. */
-    for(shared_ptr<Collider> a : colliders)
+    for(auto &overlappingPair : overlappingNodes)
     {
-        for(shared_ptr<Collider> b : colliders)
+        auto &a = overlappingPair.first;
+        auto &b = overlappingPair.second;
+
+        /* If there is overlap, create collision object. */
+        if(a->getOverlap(overlap, b))
         {
-            if(a == b)
-                continue;
+            auto item = collisions.emplace(a, b, overlap);
 
-            /* If there is overlap, create collision object. */
-            if(a->getOverlap(overlap, b))
+            /* Collision already exists, send onCollisionStay event. */
+            if(!item.second)
             {
-                auto item = collisions.emplace(a, b, overlap);
+                item.first->overlap_ = overlap;
+                item.first->visited_ = true;
 
-                /* Collision already exists, send onCollisionStay event. */
-                if(!item.second)
-                {
-                    item.first->overlap_ = overlap;
-                    item.first->visited_ = true;
-
-                    /* TODO send event */
-                }
-                /* New collision, send the onCollisionEnter event. */
-                else
-                {
-                    cout << "collision enter " << a << " " << b << " " << overlap << endl;
-                    item.first->overlap_ = overlap;
-                    item.first->visited_ = true;
-
-                    /* TODO send event */
-                }
-
-                /* Move the objects away from each other. */
-                auto as = a->findAncestorByType<SpatialNode>();
-                auto bs = b->findAncestorByType<SpatialNode>();
-
-                if(as)
-                    as->transformWorld(getTranslateMatrix(-overlap * 0.5f));
-
-                if(bs)
-                    bs->transformWorld(getTranslateMatrix(overlap * 0.5f));
-
-                as->updateWorldMatrixAll();
-                bs->updateWorldMatrixAll();
+                /* TODO send event */
             }
+            /* New collision, send the onCollisionEnter event. */
+            else
+            {
+                cout << "collision enter " << a << " " << b << " " << overlap << endl;
+                item.first->overlap_ = overlap;
+                item.first->visited_ = true;
+
+                /* TODO send event */
+            }
+
+            /* Move the objects away from each other. */
+            auto as = a->findAncestorByType<SpatialNode>();
+            auto bs = b->findAncestorByType<SpatialNode>();
+
+            if(as)
+                as->transformWorld(getTranslateMatrix(-overlap * 0.5f));
+
+            if(bs)
+                bs->transformWorld(getTranslateMatrix(overlap * 0.5f));
+
+            as->updateWorldMatrixAll();
+            bs->updateWorldMatrixAll();
         }
     }
 
@@ -136,11 +144,13 @@ void Scene::render()
 void Scene::registerNode(shared_ptr<Collider> collider)
 {
     colliders.push_front(collider);
+    pruner.add(collider);
 }
 
 void Scene::unregisterNode(shared_ptr<Collider> collider)
 {
     colliders.remove(collider);
+    pruner.remove(collider);
 }
 
 void Scene::registerNode(shared_ptr<Camera> camera)

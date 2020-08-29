@@ -119,6 +119,10 @@ Node::Node() : worldMatrix(Matrix4f::identity), active(true)
 {
 }
 
+Node::~Node()
+{
+}
+
 Node::Node(const Node &other)
     :  worldMatrix(other.worldMatrix), active(other.active)
 {

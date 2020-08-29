@@ -18,8 +18,25 @@ Collider::nearestSimplexFunctions[4] = {
 
 void Collider::calcBox()
 {
-    box_ = shape()->box();
-    box_.transform(getWorldMatrix());
+    auto thisToWorld = getWorldMatrix();
+    auto worldToThis = thisToWorld.inverse();
+
+    /* Calculate the extents in local space. */
+    auto forward = transformDirection(worldToThis, Vector3f::forward);
+    auto backward = transformDirection(worldToThis, -Vector3f::forward);
+    auto right = transformDirection(worldToThis, Vector3f::right);
+    auto left = transformDirection(worldToThis, -Vector3f::right);
+    auto up = transformDirection(worldToThis, Vector3f::up);
+    auto down = transformDirection(worldToThis, -Vector3f::up);
+
+    /* Convert to world space and add to the box. */
+    box_.clear();
+    box_.add(transform(thisToWorld, shape()->support(forward)));
+    box_.add(transform(thisToWorld, shape()->support(backward)));
+    box_.add(transform(thisToWorld, shape()->support(left)));
+    box_.add(transform(thisToWorld, shape()->support(right)));
+    box_.add(transform(thisToWorld, shape()->support(up)));
+    box_.add(transform(thisToWorld, shape()->support(down)));
 }
 
 bool Collider::nearestSimplex1(
