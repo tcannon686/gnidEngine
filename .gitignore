@@ -9,3 +9,4 @@ libgnid.*
 .*.swo
 tags
 docs
+build
