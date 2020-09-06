@@ -157,7 +157,7 @@ void GameBase::mouseCallback(
         int mods)
 {
     GameBase *game = static_cast<GameBase *>(glfwGetWindowUserPointer(window));
-    game->mouseCallback(window, button, action, mods);
+    game->mouseCallback(button, action, mods);
 }
 
 GLFWwindow *GameBase::window()

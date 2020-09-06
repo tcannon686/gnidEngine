@@ -4,6 +4,8 @@
 #include "gnid/scene.hpp"
 #include <cassert>
 #include <limits>
+#include <map>
+#include <queue>
 
 using namespace gnid;
 using namespace tmat;
@@ -379,11 +381,34 @@ bool Collider::nearestSimplex(
     return (this->*function)(s, d, tolerance);
 }
 
+Collider::Triangle::Triangle(
+        const int ia,
+        const int ib,
+        const int ic,
+        const vector<Vector3f> &vertices)
+    : ia(ia), ib(ib), ic(ic),
+      normal_((vertices[ic] - vertices[ia])
+              .cross(vertices[ic] - vertices[ib]).normalized()),
+      distance_(normal_.dot(vertices[ic]))
+{
+    /* If we have negative distance, flip the triangle. */
+    if(distance_ < 0)
+    {
+        swap(this->ia, this->ic);
+        normal_ = -normal_;
+        distance_ = -distance_;
+    }
+}
+
+bool Collider::Triangle::operator<(const Triangle &other) const
+{
+    return distance_ > other.distance_;
+}
+
 bool Collider::getOverlap(
         Vector3f &out,
         const shared_ptr<Collider> &other,
         const Vector3f initialAxis,
-        const int maxIterations,
         const float tolerance) const
 {
     auto thisToWorld = getWorldMatrix();
@@ -401,14 +426,58 @@ bool Collider::getOverlap(
                 other->shape()->support(
                     transformDirection(worldToOther, -initialAxis)));
 
-    int iterations = maxIterations;
-
     vector<Vector3f> s;
     s.push_back(a);
 
     Vector3f d = -a;
 
-    while(maxIterations == 0 || iterations > 0)
+    if(gjk(d, s, other, tolerance))
+    {
+        /*
+         * If the overlap is on a line, point, or triangle, we know that the
+         * penetration depth must be zero.
+         */
+        if(s.size() < 4)
+        {
+            out = Vector3f::zero;
+        }
+        /* Otherwise, perform the Expanding Polytope Algorithm (EPA). */
+        else
+        {
+            /* Create a triangular mesh from the simplex. */
+            priority_queue<Triangle> triangles;
+            vector<Vector3f> &vertices = s;
+            
+            /* Create indices for the simplex. */
+            triangles.emplace(0, 2, 1, vertices);
+            triangles.emplace(0, 1, 3, vertices);
+            triangles.emplace(1, 2, 3, vertices);
+            triangles.emplace(2, 0, 3, vertices);
+
+            epa(out, triangles, vertices, other, tolerance);
+        }
+
+        /* Return that there was an intersection. */
+        return true;
+    }
+
+    return false;
+}
+
+bool Collider::gjk(
+        Vector3f &d,
+        vector<Vector3f> &s,
+        const shared_ptr<Collider> &other,
+        const float tolerance) const
+{
+    auto thisToWorld = getWorldMatrix();
+    auto worldToThis = thisToWorld.inverse();
+    auto otherToWorld = other->getWorldMatrix();
+    auto worldToOther = otherToWorld.inverse();
+
+    Vector3f a;
+
+    while(true)
     {
         a = transform(
                     thisToWorld,
@@ -431,101 +500,123 @@ bool Collider::getOverlap(
              * We now know that the shapes are colliding, and we have a simplex
              * in the Minkowski sum.
              */
-            
+            return true;
+        }
+    }
+}
+
+void Collider::epa(
+        Vector3f &out,
+        priority_queue<Triangle> &triangles,
+        vector<Vector3f> &vertices,
+        const shared_ptr<Collider> &other,
+        const float tolerance) const
+{
+    auto thisToWorld = getWorldMatrix();
+    auto worldToThis = thisToWorld.inverse();
+    auto otherToWorld = other->getWorldMatrix();
+    auto worldToOther = otherToWorld.inverse();
+
+    while(true)
+    {
+        /*
+         * Find the closest triangle to the origin on the simplex.
+         */
+        const Triangle triangle = triangles.top();
+
+        /*
+         * Find the point on the Minkowski difference furthest along
+         * the face normal.
+         */
+        Vector3f a = transform(
+                    thisToWorld,
+                    shape()->support(
+                        transformDirection(worldToThis, triangle.normal())))
+            - transform(
+                    otherToWorld,
+                    other->shape()->support(
+                        transformDirection(worldToOther, -triangle.normal())));
+
+        /*
+         * If we can't expand the polytope anymore, we're at the closest
+         * triangle.
+         */
+        if(triangle.distance() == 0 || a.dot(triangle.normal())
+                - triangle.distance() <= tolerance)
+        {
+            out = triangle.normal() * triangle.distance();
+            break;
+        }
+        /*
+         * Otherwise add the point to the polytope and continue
+         * expanding.
+         */
+        else
+        {
+            map<pair<int, int>, int> edgeCounts;
+
+            /* List of triangles to be re-added. */
+            vector<Triangle> okayTriangles;
+
             /*
-             * If the overlap is on a line, point, or triangle, we know that the
-             * penetration depth must be zero.
+             * Find the triangles "visible" from the added vertex. We only need
+             * to check the ones who are closer than the point.
              */
-            if(s.size() < 4)
+            while(!triangles.empty()
+                    && triangles.top().distance() <= a.magnitude())
             {
-                out = Vector3f::zero;
-            }
-            /* Otherwise, perform the Expanding Polytope Algorithm (EPA). */
-            else
-            {
-                /* Create a triangular mesh from the simplex. */
-                vector<int> indices;
-                vector<Vector3f> &vertices = s;
-                
-                /* Create indices for the simplex. */
-                indices.push_back(2);
-                indices.push_back(1);
-                indices.push_back(0);
+                const Triangle top = triangles.top();
+                triangles.pop();
 
-                indices.push_back(0);
-                indices.push_back(1);
-                indices.push_back(3);
-
-                indices.push_back(1);
-                indices.push_back(2);
-                indices.push_back(3);
-
-                indices.push_back(2);
-                indices.push_back(0);
-                indices.push_back(3);
-
-                while(true)
+                /* If the face is "visible", add its edges. */
+                if((a - vertices[top.indexA()]).dot(top.normal()) >= 0)
                 {
-                    /*
-                     * Find the closest triangle to the origin on the simplex.
-                     */
-                    const int triangleIndex = nearestTriangle(vertices, indices, d);
-                    const float dLen = d.magnitude();
-
-                    /*
-                     * Find the point on the Minkowski difference furthest along
-                     * the face normal.
-                     */
-                    a = transform(
-                                thisToWorld,
-                                shape()->support(
-                                    transformDirection(worldToThis, d)))
-                        - transform(
-                                otherToWorld,
-                                other->shape()->support(
-                                    transformDirection(worldToOther, -d)));
-
-                    /*
-                     * If we can't expand the polytope anymore, we're at the
-                     * closest triangle.
-                     */
-                    if(dLen == 0 || a.dot(d * (1.0f / dLen)) - dLen <= tolerance)
-                    {
-                        out = d;
-                        break;
-                    }
-                    /*
-                     * Otherwise add the point to the polytope and continue
-                     * expanding.
-                     */
+                    /* Add the edges. */
+                    if(top.indexA() < top.indexB())
+                        edgeCounts[make_pair(top.indexA(), top.indexB())] ++;
                     else
-                    {
-                        /* Create the new triangles. */
-                        indices.push_back(indices[triangleIndex + 1]);
-                        indices.push_back(indices[triangleIndex + 2]);
-                        indices.push_back(vertices.size());
+                        edgeCounts[make_pair(top.indexB(), top.indexA())] ++;
 
-                        indices.push_back(indices[triangleIndex + 2]);
-                        indices.push_back(indices[triangleIndex]);
-                        indices.push_back(vertices.size());
+                    if(top.indexB() < top.indexC())
+                        edgeCounts[make_pair(top.indexB(), top.indexC())] ++;
+                    else
+                        edgeCounts[make_pair(top.indexC(), top.indexB())] ++;
 
-                        /* Replace the old triangle with the new one. */
-                        indices[triangleIndex + 2] = vertices.size();
-
-                        /* Add the new vertex. */
-                        vertices.push_back(a);
-                    }
+                    if(top.indexC() < top.indexA())
+                        edgeCounts[make_pair(top.indexC(), top.indexA())] ++;
+                    else
+                        edgeCounts[make_pair(top.indexA(), top.indexC())] ++;
+                }
+                /* If the face is not "visible", re-add it to the queue. */
+                else
+                {
+                    okayTriangles.push_back(top);
                 }
             }
 
-            /* Return that there was an intersection. */
-            return true;
+            /* Add the new vertex. */
+            vertices.push_back(a);
+
+            /* Re-add the triangles. */
+            for(auto &&triangle : okayTriangles)
+            {
+                triangles.push(triangle);
+            }
+
+            /* Create new faces from the non-shared edges. */
+            for(auto &[edge, count] : edgeCounts)
+            {
+                if(count == 1)
+                {
+                    triangles.emplace(
+                            edge.first,
+                            edge.second,
+                            vertices.size() - 1,
+                            vertices);
+                }
+            }
         }
-
-        iterations --;
     }
-
-    return false;
 }
 
 void Collider::onSceneChanged(shared_ptr<Scene> newScene)
@@ -541,35 +632,8 @@ void Collider::onSceneChanged(shared_ptr<Scene> newScene)
                 static_pointer_cast<Collider>(shared_from_this()));
 }
 
-int Collider::nearestTriangle(
-        const vector<Vector3f> &vertices,
-        const vector<int> &indices,
-        Vector3f &d) const
+bool &Collider::isTrigger()
 {
-    int closestIndex = -1;
-    float closestDistance = numeric_limits<float>::infinity();
-
-    for(vector<Vector3f>::size_type i = 0; i < indices.size(); i += 3)
-    {
-        auto &a = vertices[indices[i + 0]];
-        auto &b = vertices[indices[i + 1]];
-        auto &c = vertices[indices[i + 2]];
-
-        /* Calculate the normalized face normal. */
-        Vector3f n = (c - a).cross(c - b).normalized();
-
-        /* Calculate the distance along the normal. */
-        float distance = n.dot(c);
-
-        /* If distance is closer, this triangle is the nearest. */
-        if(distance >= 0 && distance <= closestDistance)
-        {
-            closestDistance = distance;
-            closestIndex = i;
-            d = n * closestDistance;
-        }
-    }
-
-    return closestIndex;
+    return isTrigger_;
 }
 

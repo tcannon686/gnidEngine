@@ -36,7 +36,7 @@ class RendererMesh
 };
 
 /**
- * \brief The paring of a material, a mesh, and a node
+ * \brief The pairing of a material, a mesh, and a node
  *
  * \details
  *     Bindings are created to represent individual rendering units within the

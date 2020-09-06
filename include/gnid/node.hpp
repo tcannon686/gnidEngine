@@ -74,12 +74,7 @@ class Node : public std::enable_shared_from_this<Node>
         /**
          * \brief Whether the node is enabled or not
          */
-        bool isActive();
-
-        /**
-         * \brief Enable or disable the node
-         */
-        void setActive(bool active);
+        bool &isActive();
 
         /**
          * \brief Call the update function on the node and its descendants
@@ -217,7 +212,7 @@ class Node : public std::enable_shared_from_this<Node>
     private:
         std::list<std::shared_ptr<Node>> children;
         tmat::Matrix4f worldMatrix;
-        bool active;
+        bool isActive_;
         std::weak_ptr<Node> parent;
         std::weak_ptr<Scene> scene;
 

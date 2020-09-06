@@ -4,6 +4,7 @@
 #include <memory>
 #include <list>
 #include <vector>
+#include <queue>
 
 #include "gnid/matrix/matrix.hpp"
 #include "gnid/box.hpp"
@@ -16,13 +17,13 @@ class Shape;
 class Collider;
 
 /**
- * \brief A node capable of collision
+ * \brief A collision between two colliders
  */
 class Collision
 {
 public:
     /**
-     * \brief A collision between two colliders
+     * \brief The colliders involved in the collision
      *
      * \details
      *     The first collider pointer will always be less than the second one.
@@ -76,10 +77,17 @@ private:
 };
 
 /**
- * \brief A node capable of colliding with other shapes
+ * \brief A node capable of collision
  *
  * \details
- *     This node should be the descendant of a Rigidbody node.
+ *     This type of node should have a Rigidbody node as an ancestor. If a it
+ *     does not have a Rigidbody as an ancestor, the collider will be static,
+ *     meaning it will not move during collisions but can still be collided
+ *     against. If it does have a Rigidbody as an ancestor, its behavior is
+ *     determined by its first Rigidbody ancestor.
+ *
+ * \todo
+ *      - Add caching of initial axis for GJK.
  */
 class Collider : public Node
 {
@@ -121,8 +129,9 @@ public:
             tmat::Vector3f &out,
             const std::shared_ptr<Collider> &other,
             const tmat::Vector3f initialAxis = tmat::Vector3f::right,
-            const int maxIterations = 0,
-            const float tolerance = 0.000001f) const;
+            const float tolerance = 0.001f) const;
+
+    bool &isTrigger();
 
     void onSceneChanged(std::shared_ptr<Scene> newScene) override;
 
@@ -132,8 +141,44 @@ public:
     }
 
 private:
+
+    /**
+     * \brief A triangle class used in the EPA algorithm
+     */
+    class Triangle
+    {
+    public:
+        Triangle(
+                const int ia,
+                const int ib,
+                const int ic,
+                const std::vector<tmat::Vector3f> &vertices);
+
+        const int &indexA() const { return ia; }
+        const int &indexB() const { return ib; }
+        const int &indexC() const { return ic; }
+
+        const tmat::Vector3f &normal() const { return normal_; }
+        const float &distance() const { return distance_; };
+
+        /**
+         * \brief
+         *     Returns true if this triangle is closer to the origin than the
+         *     other
+         */
+        bool operator<(const Triangle &other) const;
+
+    private:
+        int ia;
+        int ib;
+        int ic;
+        tmat::Vector3f normal_;
+        float distance_;
+    };
+
     const std::shared_ptr<Shape> shape_;
     Box box_;
+    bool isTrigger_;
 
     typedef bool (Collider::*NearestSimplexFunction)(
             std::vector<tmat::Vector3f> &s,
@@ -177,23 +222,18 @@ private:
             tmat::Vector3f &d,
             const float tolerance) const;
 
-    /**
-     * \brief
-     *     Finds the nearest triangle to the origin on the simplex s
-     *
-     * \details
-     *     Finds the nearest triangle to the origin on the simplex s, calculates
-     *     the direction from the nearest point to the origin to the origin
-     *     (i.e. the nearest point negated) and stores it in d. The function
-     *     returns the index in the index array, at which the three indices for
-     *     the triangle start.
-     *
-     * \return The index of the triangle
-     */
-    int nearestTriangle(
-            const std::vector<tmat::Vector3f> &s,
-            const std::vector<int> &indices,
-            tmat::Vector3f &d) const;
+    bool gjk(
+            tmat::Vector3f &d,
+            std::vector<tmat::Vector3f> &s,
+            const std::shared_ptr<Collider> &other,
+            const float tolerance) const;
+
+    void epa(
+            tmat::Vector3f &out,
+            std::priority_queue<Triangle> &triangles,
+            std::vector<tmat::Vector3f> &vertices,
+            const std::shared_ptr<Collider> &other,
+            const float tolerance) const;
 
     friend class Scene;
 };

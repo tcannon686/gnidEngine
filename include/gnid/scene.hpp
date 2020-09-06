@@ -20,6 +20,10 @@ class RendererNode;
 
 /**
  * \brief A scene
+ *
+ * \todo
+ *     - Add more complex physics. The physics at the moment is very _very_
+ *       rudimentary.
  */
 class Scene : public std::enable_shared_from_this<Scene>
 {
@@ -55,6 +59,11 @@ class Scene : public std::enable_shared_from_this<Scene>
          *     local matrices
          */
         void updateWorldMatrix();
+
+        /**
+         * \brief The acceleration due to gravity in the scene
+         */
+        tmat::Vector3f &gravity();
 
         /**
          * \brief Register a collider node for use in the scene
@@ -106,6 +115,19 @@ class Scene : public std::enable_shared_from_this<Scene>
          */
         void unregisterNode(std::shared_ptr<LightNode> lightNode);
     private:
+        void handleCollision(
+                std::shared_ptr<Collider> a,
+                std::shared_ptr<Collider> b,
+                tmat::Vector3f overlap);
+
+        /**
+         * \brief Update the momentums when two bodies collide
+         */
+        void updateMomentums(
+                std::shared_ptr<Rigidbody> as,
+                std::shared_ptr<Rigidbody> bs,
+                const tmat::Vector3f &overlap);
+
         friend class Node;
 
         std::set<Collision> collisions;
@@ -115,6 +137,7 @@ class Scene : public std::enable_shared_from_this<Scene>
         std::shared_ptr<KdTree> kdTree;
         KdTreePruner pruner;
         Renderer renderer;
+        tmat::Vector3f gravity_;
 };
 
 }; /* namespace */
