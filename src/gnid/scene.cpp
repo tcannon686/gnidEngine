@@ -9,6 +9,7 @@
 #include "gnid/spatialnode.hpp"
 #include "gnid/collider.hpp"
 #include "gnid/collisionevent.hpp"
+#include "gnid/rigidbody.hpp"
 
 using namespace tmat;
 using namespace gnid;
@@ -17,7 +18,8 @@ using namespace std;
 Scene::Scene()
     : root(make_shared<EmptyNode>()),
       kdTree(make_shared<KdTree>()),
-      pruner(kdTree)
+      pruner(kdTree),
+      gravity_ { 0.0f, -9.8f, 0.0f }
 {
 }
 
@@ -26,11 +28,105 @@ void Scene::init()
     root->scene = shared_from_this();
 }
 
+void Scene::handleCollision(
+        shared_ptr<Collider> a,
+        shared_ptr<Collider> b,
+        Vector3f overlap)
+{
+    auto item = collisions.emplace(a, b, overlap);
+
+    /* Collision already exists, send onCollisionStay event. */
+    if(!item.second)
+    {
+        item.first->overlap_ = overlap;
+        item.first->visited_ = true;
+
+        /* TODO send event */
+    }
+    /* New collision, send the onCollisionEnter event. */
+    else
+    {
+        cout << "collision enter " << a << " " << b << " " << overlap << endl;
+        item.first->overlap_ = overlap;
+        item.first->visited_ = true;
+
+        /* TODO send event */
+    }
+
+    /* Move the objects away from each other if necessary. */
+    auto as = a->findAncestorByType<Rigidbody>();
+    auto bs = b->findAncestorByType<Rigidbody>();
+
+    float lenOverlap = overlap.magnitude();
+
+    /* Nothing to do if no overlap. */
+    if(lenOverlap == 0)
+        return;
+
+    /* If as is a rigidbody. */
+    if(as)
+    {
+        float lenVelocityA = as->velocity_.magnitude();
+        /* If they are both rigidbodies, move them away from eachother. */
+        if(bs)
+        {
+            float lenVelocityB = bs->velocity_.magnitude();
+            as->transformWorld(getTranslateMatrix(-overlap * 0.5f));
+            bs->transformWorld(getTranslateMatrix(overlap * 0.5f));
+            as->updateWorldMatrixAll();
+            bs->updateWorldMatrixAll();
+
+            /* Calculate the new velocities. */
+            if(lenVelocityA > 0)
+            {
+                as->velocity_ += as->velocity_
+                    * (as->velocity_.dot(-overlap.normalized())
+                            / lenVelocityA);
+            }
+
+            if(lenVelocityB > 0)
+            {
+                bs->velocity_ += bs->velocity_ * (bs->velocity_.dot(overlap)
+                            / (lenVelocityB * lenOverlap));
+            }
+        }
+        /* If just as is a rigidbody, move it away. */
+        else
+        {
+            as->transformWorld(getTranslateMatrix(-overlap));
+            as->updateWorldMatrixAll();
+
+            /* Calculate the new velocity. */
+            if(lenVelocityA > 0)
+            {
+                as->velocity_ += as->velocity_ * (as->velocity_.dot(-overlap)
+                            / (lenVelocityA * lenOverlap));
+            }
+        }
+    }
+    /* If as is not a rigidbody. */
+    else
+    {
+        /* If bs is a rigidbody, move it away. */
+        if(bs)
+        {
+            float lenVelocityB = bs->velocity_.magnitude();
+            bs->transformWorld(getTranslateMatrix(overlap));
+            bs->updateWorldMatrixAll();
+
+            if(lenVelocityB > 0)
+            {
+                bs->velocity_ += bs->velocity_ * (bs->velocity_.dot(overlap)
+                            / (lenVelocityB * lenOverlap));
+            }
+        }
+        /* Otherwise neither are rigidbodies, so nothing to do. */
+    }
+}
+
 void Scene::update(float dt)
 {
     root->updateAll(dt);
-
-    updateWorldMatrix();
 
     Vector3f overlap;
 
@@ -41,6 +137,15 @@ void Scene::update(float dt)
     {
         it->visited_ = false;
     }
+
+    /* Update the rigid bodies. */
+    for(auto &rb : rigidbodies)
+    {
+        rb->addImpulse(gravity_ * rb->mass() * dt);
+        rb->physicsUpdate(dt);
+    }
+
+    updateWorldMatrix();
 
     /* Update the boxes for all the colliders. */
     for(auto &collider : colliders)
@@ -56,48 +161,21 @@ void Scene::update(float dt)
         auto &a = overlappingPair.first;
         auto &b = overlappingPair.second;
 
-        /* If there is overlap, create collision object. */
-        if(a->getOverlap(overlap, b))
+        /* We only need to check if either collider is active. */
+        if(a->isActive() && b->isActive())
         {
-            auto item = collisions.emplace(a, b, overlap);
-
-            /* Collision already exists, send onCollisionStay event. */
-            if(!item.second)
+            /* If there is overlap, handle the collision. */
+            if(a->getOverlap(overlap, b))
             {
-                item.first->overlap_ = overlap;
-                item.first->visited_ = true;
-
-                /* TODO send event */
+                handleCollision(a, b, overlap);
             }
-            /* New collision, send the onCollisionEnter event. */
-            else
-            {
-                cout << "collision enter " << a << " " << b << " " << overlap << endl;
-                item.first->overlap_ = overlap;
-                item.first->visited_ = true;
-
-                /* TODO send event */
-            }
-
-            /* Move the objects away from each other. */
-            auto as = a->findAncestorByType<SpatialNode>();
-            auto bs = b->findAncestorByType<SpatialNode>();
-
-            if(as)
-                as->transformWorld(getTranslateMatrix(-overlap * 0.5f));
-
-            if(bs)
-                bs->transformWorld(getTranslateMatrix(overlap * 0.5f));
-
-            as->updateWorldMatrixAll();
-            bs->updateWorldMatrixAll();
         }
     }
 
     /* Find unvisited collision objects. */
     for(auto it = begin(collisions);
-        it != end(collisions);
-        /* pass */)
+            it != end(collisions);
+            /* pass */)
     {
         /* The objects are not colliding anymore, call onCollisionExit. */
         if(it->visited_ == false)
@@ -187,11 +265,11 @@ void Scene::unregisterNode(shared_ptr<LightNode> lightNode)
 
 void Scene::registerNode(shared_ptr<Rigidbody> rigidbody)
 {
-    /* TODO */
+    rigidbodies.push_back(rigidbody);
 }
 
 void Scene::unregisterNode(shared_ptr<Rigidbody> rigidbody)
 {
-    /* TODO */
+    rigidbodies.remove(rigidbody);
 }
 

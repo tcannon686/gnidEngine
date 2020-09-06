@@ -7,6 +7,9 @@
 #include <memory>
 #include <string>
 
+/**
+ * \brief The gnidEngine namespace
+ */
 namespace gnid
 {
 

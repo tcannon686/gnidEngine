@@ -105,17 +105,12 @@ void Node::updateAll(float dt)
     }
 }
 
-bool Node::isActive()
+bool &Node::isActive()
 {
-    return active;
+    return isActive_;
 }
 
-void Node::setActive(bool active)
-{
-    this->active = active;
-}
-
-Node::Node() : worldMatrix(Matrix4f::identity), active(true)
+Node::Node() : worldMatrix(Matrix4f::identity), isActive_(true)
 {
 }
 
@@ -124,7 +119,7 @@ Node::~Node()
 }
 
 Node::Node(const Node &other)
-    :  worldMatrix(other.worldMatrix), active(other.active)
+    :  worldMatrix(other.worldMatrix), isActive_(other.isActive_)
 {
     // Clone children.
     for(auto it = begin(other.children);
