@@ -18,6 +18,51 @@ Collider::nearestSimplexFunctions[4] = {
     &Collider::nearestSimplex4
 };
 
+Collider::Collider(shared_ptr<Shape> shape)
+    :  shape_(shape), isTrigger_(false)
+{
+    collisionEntered_ = makeCollisionObservable(collisionEnteredObservers);
+    collisionExited_ = makeCollisionObservable(collisionExitedObservers);
+    collisionStayed_ = makeCollisionObservable(collisionStayedObservers);
+}
+
+shared_ptr<Observable<Collision>> Collider::makeCollisionObservable(
+        vector<weak_ptr<Observer<Collision>>> &observers)
+{
+    return make_shared<Observable<Collision>>(
+            [&observers](
+                shared_ptr<Observer<Collision>> observer)
+            {
+                observers.push_back(observer);
+            });
+}
+
+void Collider::notifyCollisionObservers(
+        Collision collision,
+        vector<weak_ptr<Observer<Collision>>> &observers)
+{
+    /* Delete unreferenced observers. */
+    observers.erase(
+            remove_if(
+                begin(observers),
+                end(observers),
+                [](weak_ptr<Observer<Collision>> p)
+                {
+                    return p.expired();
+                }),
+            end(observers));
+
+    /* Notify the remaining observers. */
+    for(auto &element : observers)
+    {
+        auto observer = element.lock();
+        if(observer)
+        {
+            observer->next(collision);
+        }
+    }
+}
+
 void Collider::calcBox()
 {
     auto thisToWorld = getWorldMatrix();
@@ -556,8 +601,8 @@ void Collider::epa(
          * If we can't expand the polytope anymore, we're at the closest
          * triangle.
          */
-        if(triangle.distance() == 0 || a.dot(triangle.normal())
-                - triangle.distance() <= tolerance)
+        if(a.dot(triangle.normal()) - triangle.distance() <= tolerance
+                || a == vertices[vertices.size() - 1])
         {
             out = triangle.normal() * triangle.distance();
             break;

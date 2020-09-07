@@ -5,8 +5,8 @@
 #include <set>
 #include "gnid/matrix/matrix.hpp"
 #include "gnid/renderer.hpp"
-#include "gnid/collider.hpp"
 #include "gnid/kdtree.hpp"
+#include "gnid/collision.hpp"
 
 namespace gnid
 {
@@ -17,6 +17,7 @@ class EmptyNode;
 class Box;
 class Rigidbody;
 class RendererNode;
+class Collider;
 
 /**
  * \brief A scene

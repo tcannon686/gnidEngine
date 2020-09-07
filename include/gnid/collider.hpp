@@ -10,71 +10,15 @@
 #include "gnid/box.hpp"
 #include "gnid/node.hpp"
 
+#include "gnid/collisionevent.hpp"
+#include "gnid/observable.hpp"
+#include "gnid/observer.hpp"
+
 namespace gnid
 {
 
 class Shape;
 class Collider;
-
-/**
- * \brief A collision between two colliders
- */
-class Collision
-{
-public:
-    /**
-     * \brief The colliders involved in the collision
-     *
-     * \details
-     *     The first collider pointer will always be less than the second one.
-     */
-    const std::array<std::shared_ptr<Collider>, 2> &colliders() const
-    { return colliders_; }
-
-    /**
-     * \brief The overlap between the two
-     */
-    const tmat::Vector3f &overlap() const { return overlap_; }
-
-    Collision(
-            const std::shared_ptr<Collider> a,
-            const std::shared_ptr<Collider> b,
-            tmat::Vector3f overlap)
-        : colliders_ { (a < b ? a : b), (a < b ? b : a) },
-          overlap_(overlap),
-          visited_(true)
-    {
-    }
-
-    bool operator==(const Collision &other) const
-    {
-        for(int i = 0; i < 2; i ++)
-        {
-            if(colliders_[i] != other.colliders_[i])
-                return false;
-        }
-        return true;
-    }
-
-    bool operator<(const Collision &other) const
-    {
-        for(int i = 0; i < 2; i ++)
-        {
-            if(colliders_[i] >= other.colliders_[i])
-                return false;
-        }
-        return true;
-    }
-
-private:
-    std::array<std::shared_ptr<Collider>, 2> colliders_;
-    mutable tmat::Vector3f overlap_;
-
-    /* Whether or not the collider has been visited this cycle. */
-    mutable bool visited_;
-
-    friend class Scene;
-};
 
 /**
  * \brief A node capable of collision
@@ -96,9 +40,7 @@ public:
     /**
      * \brief Create a collider from the given shape
      */
-    Collider(std::shared_ptr<Shape> shape) : shape_(shape)
-    {
-    }
+    Collider(std::shared_ptr<Shape> shape);
 
     /**
      * \brief Return the world space bounding box
@@ -131,6 +73,38 @@ public:
             const tmat::Vector3f initialAxis = tmat::Vector3f::right,
             const float tolerance = 0.001f) const;
 
+    /**
+     * \brief Returns an observable for when the collider enters a collision
+     */
+    std::shared_ptr<Observable<Collision>> collisionEntered()
+    {
+        return collisionEntered_;
+    }
+
+    /**
+     * \brief Returns an observable for when the collider exits a collision
+     */
+    std::shared_ptr<Observable<Collision>> collisionExited()
+    {
+        return collisionExited_;
+    }
+
+    /**
+     * \brief Returns an observable for when the collider stays in a collision
+     */
+    std::shared_ptr<Observable<Collision>> collisionStayed()
+    {
+        return collisionStayed_;
+    }
+
+    /**
+     * \brief Returns whether the collider is a trigger or not
+     *
+     * \details
+     *     A trigger can be entered or exited, but does not "push back" other
+     *     objects. Trigger objects send the same collisionEntered(),
+     *     collisionStayed(), and collisionExited() events as regular colliders.
+     */
     bool &isTrigger();
 
     void onSceneChanged(std::shared_ptr<Scene> newScene) override;
@@ -234,6 +208,26 @@ private:
             std::vector<tmat::Vector3f> &vertices,
             const std::shared_ptr<Collider> &other,
             const float tolerance) const;
+
+    void notifyCollisionObservers(
+            Collision collision,
+            std::vector<std::weak_ptr<Observer<Collision>>> &observers);
+
+    std::shared_ptr<Observable<Collision>> makeCollisionObservable(
+            std::vector<std::weak_ptr<Observer<Collision>>> &observers);
+
+    std::vector<std::weak_ptr<Observer<Collision>>>
+        collisionEnteredObservers;
+
+    std::vector<std::weak_ptr<Observer<Collision>>>
+        collisionExitedObservers;
+
+    std::vector<std::weak_ptr<Observer<Collision>>>
+        collisionStayedObservers;
+
+    std::shared_ptr<Observable<Collision>> collisionEntered_;
+    std::shared_ptr<Observable<Collision>> collisionExited_;
+    std::shared_ptr<Observable<Collision>> collisionStayed_;
 
     friend class Scene;
 };
