@@ -18,6 +18,51 @@ Collider::nearestSimplexFunctions[4] = {
     &Collider::nearestSimplex4
 };
 
+Collider::Collider(shared_ptr<Shape> shape)
+    :  shape_(shape), isTrigger_(false)
+{
+    collisionEntered_ = makeCollisionObservable(collisionEnteredObservers);
+    collisionExited_ = makeCollisionObservable(collisionExitedObservers);
+    collisionStayed_ = makeCollisionObservable(collisionStayedObservers);
+}
+
+shared_ptr<Observable<Collision>> Collider::makeCollisionObservable(
+        vector<weak_ptr<Observer<Collision>>> &observers)
+{
+    return make_shared<Observable<Collision>>(
+            [&observers](
+                shared_ptr<Observer<Collision>> observer)
+            {
+                observers.push_back(observer);
+            });
+}
+
+void Collider::notifyCollisionObservers(
+        Collision collision,
+        vector<weak_ptr<Observer<Collision>>> &observers)
+{
+    /* Delete unreferenced observers. */
+    observers.erase(
+            remove_if(
+                begin(observers),
+                end(observers),
+                [](weak_ptr<Observer<Collision>> p)
+                {
+                    return p.expired();
+                }),
+            end(observers));
+
+    /* Notify the remaining observers. */
+    for(auto &element : observers)
+    {
+        auto observer = element.lock();
+        if(observer)
+        {
+            observer->next(collision);
+        }
+    }
+}
+
 void Collider::calcBox()
 {
     auto thisToWorld = getWorldMatrix();
@@ -386,11 +431,26 @@ Collider::Triangle::Triangle(
         const int ib,
         const int ic,
         const vector<Vector3f> &vertices)
-    : ia(ia), ib(ib), ic(ic),
-      normal_((vertices[ic] - vertices[ia])
-              .cross(vertices[ic] - vertices[ib]).normalized()),
-      distance_(normal_.dot(vertices[ic]))
+    : ia(ia), ib(ib), ic(ic)
 {
+    auto ac = vertices[ic] - vertices[ia];
+    auto bc = vertices[ic] - vertices[ib];
+
+    normal_ = ac.cross(bc);
+
+    /* Just use right if the cross product is zero. */
+    if(normal_[0] == 0 && normal_[1] == 0 && normal_[2] == 0)
+    {
+        normal_ = Vector3f::right;
+        distance_ = 0;
+    }
+    /* Otherwise normalize the normal. */
+    else
+    {
+        normal_.normalize();
+        distance_ = normal_.dot(vertices[ic]);
+    }
+
     /* If we have negative distance, flip the triangle. */
     if(distance_ < 0)
     {
@@ -541,8 +601,8 @@ void Collider::epa(
          * If we can't expand the polytope anymore, we're at the closest
          * triangle.
          */
-        if(triangle.distance() == 0 || a.dot(triangle.normal())
-                - triangle.distance() <= tolerance)
+        if(a.dot(triangle.normal()) - triangle.distance() <= tolerance
+                || a == vertices[vertices.size() - 1])
         {
             out = triangle.normal() * triangle.distance();
             break;

@@ -181,7 +181,6 @@ void KdTree::listOverlappingNodes(
         const KdTree &first,
         const KdTree &second)
 {
-    /* TODO nodes are being over-counted. */
     /* If the nodes overlap. */
     if(first.box_.overlaps(second.box_))
     {

@@ -8,6 +8,7 @@
 #include "gnid/node.hpp"
 #include "gnid/spatialnode.hpp"
 #include "gnid/collider.hpp"
+#include "gnid/collision.hpp"
 #include "gnid/collisionevent.hpp"
 #include "gnid/rigidbody.hpp"
 
@@ -33,24 +34,31 @@ void Scene::handleCollision(
         shared_ptr<Collider> b,
         Vector3f overlap)
 {
-    auto item = collisions.emplace(a, b, overlap);
+    Collision collision(a, b, overlap);
+    auto item = collisions.insert(collision);
 
-    /* Collision already exists, send onCollisionStay event. */
+    /* Collision already exists, send collisionStayed event. */
     if(!item.second)
     {
         item.first->overlap_ = overlap;
         item.first->visited_ = true;
-
-        /* TODO send event */
+        
+        a->notifyCollisionObservers(
+                *item.first,
+                a->collisionStayedObservers);
+        b->notifyCollisionObservers(
+                *item.first,
+                b->collisionStayedObservers);
     }
     /* New collision, send the onCollisionEnter event. */
     else
     {
-        cout << "collision enter " << a << " " << b << " " << overlap << endl;
-        item.first->overlap_ = overlap;
-        item.first->visited_ = true;
-
-        /* TODO send event */
+        a->notifyCollisionObservers(
+                *item.first,
+                a->collisionEnteredObservers);
+        b->notifyCollisionObservers(
+                *item.first,
+                b->collisionEnteredObservers);
     }
 
     /* Move the objects away from each other if necessary. */
@@ -63,12 +71,16 @@ void Scene::handleCollision(
     if(lenOverlap == 0)
         return;
 
+    /* Nothing to do if either is a trigger. */
+    if(a->isTrigger() || b->isTrigger())
+        return;
+
     /* If as is a rigidbody. */
-    if(as)
+    if(as && as->isActive())
     {
         float lenVelocityA = as->velocity_.magnitude();
         /* If they are both rigidbodies, move them away from eachother. */
-        if(bs)
+        if(bs && bs->isActive())
         {
             float lenVelocityB = bs->velocity_.magnitude();
             as->transformWorld(getTranslateMatrix(-overlap * 0.5f));
@@ -108,7 +120,7 @@ void Scene::handleCollision(
     else
     {
         /* If bs is a rigidbody, move it away. */
-        if(bs)
+        if(bs && bs->isActive())
         {
             float lenVelocityB = bs->velocity_.magnitude();
             bs->transformWorld(getTranslateMatrix(overlap));
@@ -130,14 +142,6 @@ void Scene::update(float dt)
 
     Vector3f overlap;
 
-    /* Mark all collisions as unvisited. */
-    for(auto it = begin(collisions);
-            it != end(collisions);
-            ++ it)
-    {
-        it->visited_ = false;
-    }
-
     /* Update the rigid bodies. */
     for(auto &rb : rigidbodies)
     {
@@ -154,6 +158,14 @@ void Scene::update(float dt)
     
     vector<pair<shared_ptr<Collider>, shared_ptr<Collider>>> overlappingNodes;
     pruner.listOverlappingNodes(overlappingNodes);
+
+    /* Mark all collisions as unvisited. */
+    for(auto it = begin(collisions);
+            it != end(collisions);
+            ++ it)
+    {
+        it->visited_ = false;
+    }
 
     /* Find overlapping colliders. */
     for(auto &overlappingPair : overlappingNodes)
@@ -177,14 +189,18 @@ void Scene::update(float dt)
             it != end(collisions);
             /* pass */)
     {
-        /* The objects are not colliding anymore, call onCollisionExit. */
-        if(it->visited_ == false)
+        /* The objects are not colliding anymore, call collisionExited. */
+        if(!it->visited_)
         {
             auto a = it->colliders()[0];
             auto b = it->colliders()[1];
 
-            /* TODO notify */
-            cout << "collision exit " << a << " " << b << " " << overlap << endl;
+            a->notifyCollisionObservers(
+                    *it,
+                    a->collisionExitedObservers);
+            b->notifyCollisionObservers(
+                    *it,
+                    b->collisionExitedObservers);
 
             collisions.erase(it ++);
         }
