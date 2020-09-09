@@ -25,7 +25,7 @@ Binding::Binding(
 
 bool Binding::operator<(const Binding &other) const
 {
-    if(material->getShader() < other.material->getShader())
+    if(material->shader() < other.material->shader())
         return true;
     else if(material < other.material)
         return true;
@@ -76,14 +76,14 @@ void Renderer::render(shared_ptr<Camera> camera) const
         ++ it)
     {
         if(it->material != material
-                || it->material->getShader() != material->getShader())
+                || it->material->shader() != material->shader())
         {
             if(instanceCount)
                 renderMesh(mesh, instanceCount);
-            if(!material || it->material->getShader() != material->getShader())
+            if(!material || it->material->shader() != material->shader())
             {
                 /* Use shader. */
-                shared_ptr<ShaderProgram> shader = it->material->getShader();
+                shared_ptr<ShaderProgram> shader = it->material->shader();
                 shader->use();
                 shader->setProjectionMatrix(camera->getProjectionMatrix());
             }
@@ -92,10 +92,10 @@ void Renderer::render(shared_ptr<Camera> camera) const
             mesh = it->mesh;
             glBindVertexArray(mesh->vao);
             instanceCount = 1;
-            it->material->getShader()->setModelViewMatrix(
+            it->material->shader()->setModelViewMatrix(
                     instanceCount,
                     camera->getViewMatrix() * it->node->getWorldMatrix());
-            updateLights(camera, it->material->getShader());
+            updateLights(camera, it->material->shader());
         }
         else if(it->mesh != mesh)
         {
@@ -104,24 +104,24 @@ void Renderer::render(shared_ptr<Camera> camera) const
             mesh = it->mesh;
             glBindVertexArray(mesh->vao);
             instanceCount = 1;
-            it->material->getShader()->setModelViewMatrix(
+            it->material->shader()->setModelViewMatrix(
                     instanceCount,
                     camera->getViewMatrix() * it->node->getWorldMatrix());
-            updateLights(camera, it->material->getShader());
+            updateLights(camera, it->material->shader());
         }
         else
         {
             /* If we've reached the max number of instances, draw them. */
-            if(instanceCount >= it->material->getShader()->getMaxInstances())
+            if(instanceCount >= it->material->shader()->getMaxInstances())
             {
                 renderMesh(mesh, instanceCount);
                 instanceCount = 0;
             }
 
-            it->material->getShader()->setModelViewMatrix(
+            it->material->shader()->setModelViewMatrix(
                     instanceCount,
                     camera->getViewMatrix() * it->node->getWorldMatrix());
-            updateLights(camera, it->material->getShader());
+            updateLights(camera, it->material->shader());
             instanceCount ++;
         }
     }

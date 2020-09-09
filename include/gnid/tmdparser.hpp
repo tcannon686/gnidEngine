@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <sstream>
+#include <map>
 #include <unordered_map>
 #include <cassert>
 #include "gnid/emptynode.hpp"
@@ -50,7 +51,9 @@ public:
      * \param shader    The shader to use for the materials
      */
     template<typename Shader, typename Material>
-    std::shared_ptr<Node> buildRendererNode(std::shared_ptr<Shader> shader);
+    std::shared_ptr<Node> buildRendererNode(
+            const std::map<std::string, std::shared_ptr<Material>>
+                &materialMappings);
 
 private:
     /* Numbers */
@@ -79,7 +82,6 @@ private:
     Stream &stream_;
     bool isDone = false;
 
-
     typedef enum
     {
         INVALID,
@@ -93,7 +95,13 @@ private:
     std::array<uint32_t, 5> vertexArrayComponentCounts;
     VertexArrayName currentVertexArray = INVALID;
 
-    std::vector<std::vector<uint32_t>> bindings;
+    struct Binding
+    {
+        std::string material;
+        std::vector<uint32_t> indices;
+    };
+
+    std::vector<Binding> bindings;
     int currentBinding = 0;
 
     /**
@@ -190,13 +198,14 @@ private:
         std::string materialName = nextString();
         bindings.emplace_back();
         currentBinding = bindings.size() - 1;
+        bindings[currentBinding].material = materialName;
     }
 
     void parseTriangle()
     {
         for(int i = 0; i < 3; i ++)
         {
-            bindings[currentBinding].emplace_back(next<uint32_t>() - 1);
+            bindings[currentBinding].indices.emplace_back(next<uint32_t>() - 1);
         }
     }
 
@@ -291,7 +300,8 @@ void TmdParser<Stream>::parse()
 template<typename Stream>
 template<typename Shader, typename Material>
 std::shared_ptr<Node> TmdParser<Stream>::buildRendererNode(
-        std::shared_ptr<Shader> shader)
+        const std::map<std::string, std::shared_ptr<Material>>
+            &materialMappings)
 {
     assert(isDone);
 
@@ -357,8 +367,8 @@ std::shared_ptr<Node> TmdParser<Stream>::buildRendererNode(
         /* Upload the index data. */
         glBufferData(
                 GL_ELEMENT_ARRAY_BUFFER,
-                binding.size() * sizeof(uint32_t),
-                binding.data(),
+                binding.indices.size() * sizeof(uint32_t),
+                binding.indices.data(),
                 GL_STATIC_DRAW);
 
         /* Set the attrib pointers for the VAO. */
@@ -383,16 +393,14 @@ std::shared_ptr<Node> TmdParser<Stream>::buildRendererNode(
         /* Create the mesh. */
         auto rendererMesh = std::make_shared<RendererMesh>(
                 GL_TRIANGLES,
-                binding.size(),
+                binding.indices.size(),
                 GL_UNSIGNED_INT,
                 vao);
         
-        /* TODO create actual material. */
-        /* Create the material. */
-        auto mat = std::make_shared<Material>(shader);
-
         /* Create the RendererNode and add it to the root node. */
-        rootNode->add(std::make_shared<RendererNode>(rendererMesh, mat));
+        rootNode->add(std::make_shared<RendererNode>(
+                    rendererMesh,
+                    materialMappings.at(binding.material)));
     }
 
     return rootNode;

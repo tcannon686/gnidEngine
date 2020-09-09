@@ -19,7 +19,7 @@ class Material
         /**
          * \brief Returns the shader used by the material
          */
-        virtual std::shared_ptr<ShaderProgram> getShader() = 0;
+        virtual const std::shared_ptr<ShaderProgram> shader() const = 0;
 
         /**
          * \brief

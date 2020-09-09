@@ -40,6 +40,7 @@ in vec4 fragVertex;
 
 uniform int lightCount;
 uniform vec4 lights[32];
+uniform vec3 diffuseColor;
 
 void main() {
     fragColor = vec4(0, 0, 0, 1);
@@ -51,7 +52,7 @@ void main() {
                 lights[i].w / dot(l, l),
                 0,
                 1);
-        fragColor += vec4(1, 1, 1, 0)
+        fragColor += vec4(diffuseColor, 0)
             * attenuation
             * clamp(dot(l, fragNormal.xyz), 0, 1);
     }
@@ -127,6 +128,7 @@ void PhongShader::init()
     modelViewMatrixLoc = glGetUniformLocation(program, "modelViewMatrix");
     projectionMatrixLoc = glGetUniformLocation(program, "projectionMatrix");
     lightCountLoc = glGetUniformLocation(program, "lightCount");
+    diffuseColorLoc = glGetUniformLocation(program, "diffuseColor");
 
     assert(modelViewMatrixLoc != -1);
     assert(projectionMatrixLoc != -1);
@@ -187,5 +189,19 @@ void PhongShader::setLight(
     uniform[3] = light->distance();
 
     glUniform4fv(lightsLocs[index], 1, uniform);
+}
+
+void PhongShader::setDiffuseColor(Vector3f &diffuseColor)
+{
+    glUniform3f(
+            diffuseColorLoc,
+            diffuseColor[0],
+            diffuseColor[1],
+            diffuseColor[2]);
+}
+
+void PhongMaterial::bind()
+{
+    shader_->setDiffuseColor(diffuseColor_);
 }
 

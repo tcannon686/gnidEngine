@@ -11,6 +11,9 @@
 namespace gnid
 {
 
+/**
+ * \brief A simple shader using the phong reflection model
+ */
 class PhongShader : public ShaderProgram
 {
     public:
@@ -25,32 +28,44 @@ class PhongShader : public ShaderProgram
                 int index,
                 std::shared_ptr<Camera> camera,
                 std::shared_ptr<LightNode> light) override;
+        void setDiffuseColor(tmat::Vector3f &diffuseColor);
         int getMaxInstances() override;
+
     private:
         GLint program;
         GLint modelViewMatrixLoc;
         GLint projectionMatrixLoc;
         GLint lightCountLoc;
         std::array<GLint, 32> lightsLocs;
+        GLint diffuseColorLoc;
 };
 
+/**
+ * \brief A material for the phong shader
+ */
 class PhongMaterial : public Material
 {
-    private:
-        std::shared_ptr<PhongShader> shader;
     public:
-        PhongMaterial(std::shared_ptr<PhongShader> shader) : shader(shader)
+        PhongMaterial(
+                std::shared_ptr<PhongShader> shader,
+                tmat::Vector3f diffuseColor)
+            : shader_(shader),
+              diffuseColor_(diffuseColor)
         {
         }
 
-        std::shared_ptr<ShaderProgram> getShader() override
+        const std::shared_ptr<ShaderProgram> shader() const override
         {
-            return shader;
+            return shader_;
         }
 
-        void bind() override
-        {
-        }
+        void bind() override;
+
+        tmat::Vector3f &diffuseColor();
+
+    private:
+        std::shared_ptr<PhongShader> shader_;
+        tmat::Vector3f diffuseColor_;
 };
 
 } /* namespace */
