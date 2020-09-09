@@ -361,14 +361,14 @@ private:
                 assert(nIndices.size() == vIndices.size());
 
             /* Convert to triangles. */
-            for(size_t i = 1; i < vIndices.size() - 1; i ++)
+            for(std::size_t i = 1; i < vIndices.size() - 1; i ++)
             {
                 this->vIndices.push_back(vIndices[0]);
                 if(nIndices.size() > 0)
                     this->nIndices.push_back(nIndices[0]);
                 if(tIndices.size() > 0)
                     this->tIndices.push_back(tIndices[0]);
-                for(size_t j = 0; j < 2; j ++)
+                for(std::size_t j = 0; j < 2; j ++)
                 {
                     this->vIndices.push_back(vIndices[i + j]);
                     if(nIndices.size() > 0)
@@ -540,7 +540,7 @@ std::shared_ptr<Node> ObjParser<Stream>::buildRendererNode(
     std::vector<float> data;
     int cur_index = 0;
 
-    for(size_t i = 0; i < vIndices.size(); i ++)
+    for(std::size_t i = 0; i < vIndices.size(); i ++)
     {
         std::string table_index =
             std::to_string(vIndices[i])
@@ -576,18 +576,19 @@ std::shared_ptr<Node> ObjParser<Stream>::buildRendererNode(
         index_array.push_back(index_table[table_index]);
     }
 
-    const size_t vertex_size = 3 * sizeof(float);
-    const size_t normal_size = (
+    const std::size_t vertex_size = 3 * sizeof(float);
+    const std::size_t normal_size = (
             nIndices.size() > 0? 3 * sizeof(float) : 0);
-    const size_t texco_size = (
+    const std::size_t texco_size = (
             tIndices.size() > 0? 2 * sizeof(float) : 0);
-    const size_t stride = vertex_size + normal_size + texco_size;
+    const std::size_t stride = vertex_size + normal_size + texco_size;
 
     GLuint vao, vbo, ibo;
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
     glGenBuffers(1, &ibo);
 
+    /* TODO throw exception. */
     assert(vao != 0);
     assert(vbo != 0);
     assert(ibo != 0);

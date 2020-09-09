@@ -12,42 +12,44 @@ namespace gnid
  */
 class SpatialNode : public Node
 {
-    public:
-        SpatialNode();
+public:
+    SpatialNode();
 
-        const tmat::Matrix4f &getLocalMatrix() const override;
+    const tmat::Matrix4f &getLocalMatrix() const override;
 
-        /**
-         * \brief Override the local matrix for the node
-         */
-        void setLocalMatrix(const tmat::Matrix4f &matrix);
+    /**
+     * \brief Override the local matrix for the node
+     */
+    void setLocalMatrix(const tmat::Matrix4f &matrix);
 
-        /**
-         * \brief Transforms this node's local matrix by the given matrix
-         *
-         * \details
-         *     Transforms in local space. The new local matrix is calculated as
-         *     matrix * getLocalMatrix().
-         */
-        void transformLocal(const tmat::Matrix4f &matrix);
+    /**
+     * \brief Transforms this node's local matrix by the given matrix
+     *
+     * \details
+     *     Transforms in local space. The new local matrix is calculated as
+     *     matrix * getLocalMatrix().
+     */
+    void transformLocal(const tmat::Matrix4f &matrix);
 
-        /**
-         * \brief Transforms this node's world matrix by the specified matrix
-         *
-         * \details
-         *     This does not update the world matrix of this nodes descendants.
-         *     To do that, call the updateWorldMatrix function. The new world
-         *     matrix is calculated as matrix * getWorldMatrix().
-         */
-        void transformWorld(const tmat::Matrix4f &matrix);
+    /**
+     * \brief Transforms this node's world matrix by the specified matrix
+     *
+     * \details
+     *     This does not update the world matrix of this nodes descendants.
+     *     To do that, call the updateWorldMatrix function. The new world
+     *     matrix is calculated as matrix * getWorldMatrix().
+     */
+    void transformWorld(const tmat::Matrix4f &matrix);
 
-        std::shared_ptr<Node> clone() override
-        {
-            return std::make_shared<SpatialNode>(*this);
-        }
+    std::shared_ptr<Node> clone() override
+    {
+        auto ret = std::make_shared<SpatialNode>(*this);
+        ret->cloneChildren(shared_from_this());
+        return ret;
+    }
 
-    private:
-        tmat::Matrix4f localMatrix;
+private:
+    tmat::Matrix4f localMatrix;
 };
 
 }; /* namespace */

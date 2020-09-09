@@ -26,8 +26,10 @@ void RendererNode::onSceneChanged(shared_ptr<Scene> newScene)
                 static_pointer_cast<RendererNode>(shared_from_this()));
 }
 
-shared_ptr<Node> RendererNode::clone()
+std::shared_ptr<Node> RendererNode::clone()
 {
-    auto node = make_shared<RendererNode>(*this);
-    return node;
+    auto ret = std::make_shared<RendererNode>(*this);
+    ret->cloneChildren(shared_from_this());
+    return ret;
 }
+

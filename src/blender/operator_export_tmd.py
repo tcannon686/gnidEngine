@@ -1,3 +1,18 @@
+"""
+@brief An exporter for a simple 3D file format
+
+@details
+    This is an exporter for Tom's Model format (.tmd) for blender 2.8, a super
+    simple 3D model format similar to the Wavefront OBJ format, but in binary.
+    It features exporting of simple mesh data (only using triangles), as well as
+    armature and bone weight information. It also has a very simple animation
+    system, which simply writes a transformation matrix per each bone per frame.
+
+    To use it, import it into Blender, select the mesh you want to export, and
+    run the script. The script will automatically export armature data if the
+    mesh is parented to one.
+"""
+
 import bpy
 import struct
 import bmesh
@@ -6,7 +21,7 @@ import math
 
 version = {
     "major" : 1,
-    "minor" : 1
+    "minor" : 2
 }
 
 magic_number = 0xCA770770
@@ -32,7 +47,7 @@ def write_record(f, recordType, data):
     f.write(data)
 
 def write_model(context, filepath, use_some_setting):
-    print("writing tmd model...")
+    print("Writing tmd model...")
     coord_transform = mathutils.Matrix(
                 [[-1, 0, 0, 0],
                  [0, 0, 1, 0],
@@ -55,10 +70,7 @@ def write_model(context, filepath, use_some_setting):
     object = bpy.context.active_object
     if object.type not in ['MESH', 'CURVE', 'SURFACE', 'FONT', 'META']:
         return
-    mesh = object.to_mesh(
-        scene=bpy.context.scene,
-        apply_modifiers=False,
-        settings='RENDER')
+    mesh = object.to_mesh()
     
     # Find if the mesh has an armature.
     armature = object.find_armature()
@@ -68,7 +80,7 @@ def write_model(context, filepath, use_some_setting):
         
         # Make a copy of it and convert it into the correct space.
         armature_data = armature.data
-        armature_data.transform(coord_transform * armature.matrix_world)
+        armature_data.transform(coord_transform @ armature.matrix_world)
         bone_name_indices = {}
         if armature:
             for i, bone in enumerate(armature_data.bones):
@@ -82,11 +94,12 @@ def write_model(context, filepath, use_some_setting):
     bm.free()
     
     # Calculate the normals for each vertex.
-    mesh.transform(coord_transform * object.matrix_world)
+    mesh.transform(coord_transform @ object.matrix_world)
     mesh.calc_normals_split()
     
     loops = {}
     loop_to_vertex = {}
+    bone_weights = []
     
     # Iterate through each loop, find where we need to create new vertices or use old ones.
     for loop in mesh.loops:
@@ -117,16 +130,8 @@ def write_model(context, filepath, use_some_setting):
             vertices.append(mesh.vertices[v].co.copy())
             normals.append(n)
             texCos.append(t)
-            
-            if weights:
-                for i in range(0, len(weights), 4):
-                    if i < len(boneWeights) * 4:
-                        components = weights[i:i+4]
-                        components = components + [0.0] * (4 - len(components))
-                        boneWeights[i // 4].append(mathutils.Vector(components))
-                    else:
-                        # Error, too many bones.
-                        print("failed to export tmd: too many bones.")
+            bone_weights.append(weights)
+
         else:
             vertex_index = loops[k]
         
@@ -144,26 +149,45 @@ def write_model(context, filepath, use_some_setting):
                         loop_to_vertex[poly.loop_indices[1]],
                         loop_to_vertex[poly.loop_indices[2]]))
     # Clean up mesh.
-    bpy.data.meshes.remove(mesh)
+    object.to_mesh_clear()
     
     # Write the vertices.
-    attribs = [b'vertex\0', b'normal\0', b'texCo\0']\
-        + [bytes('boneWeights{}\0'.format(i + 1), encoding='utf-8')
-            for i in range(0, len(boneWeights))]
-    for i, array in enumerate([vertices, normals, texCos] + boneWeights):
+    attribNames = [b'vertex\0', b'normal\0', b'texCo\0', b'weights\0']
+    
+    attribs = [vertices, normals, texCos]
+    attribSizes = [3, 3, 2]
+    
+    if bone_weights:
+        attribSizes.append(len(bone_weights[0]))
+        attribs.append(bone_weights)
+    
+    for i, array in enumerate(attribs):
         # Only write nonempty arrays.
         if array:
-            write_record(f, record_types['vertexAttrib'], attribs[i])
+            numCos =  attribSizes[i]
+
+            write_record(
+                    f,
+                    record_types['vertexAttrib'],
+                    attribNames[i] + struct.pack('<I', numCos))
+
             for vertex in array:
                 if vertex:
-                    x, y, z, w = vertex.to_4d().to_tuple()
-                    write_record(f, record_types['vertex'],
-                        struct.pack('<ffff', x, y, z, w))
+                    data = b''.join(
+                            [
+                                struct.pack('<f', vertex[j])
+                                for j in range(numCos)
+                            ])
+                    write_record(f, record_types['vertex'], data)
                 # If no coordinate was provided, use 0. For example, if missing texcos
                 # for a certain object.
                 else:
-                    write_record(f, record_types['vertex'],
-                        struct.pack('<ffff', 0, 0, 0, 0))
+                    data = b''.join(
+                            [
+                                struct.pack('<f', 0)
+                                for j in range(numCos)
+                            ])
+                    write_record(f, record_types['vertex'], data)
     
     # If the mesh has an armature, write the bones.
     if armature:
@@ -171,7 +195,7 @@ def write_model(context, filepath, use_some_setting):
         for i, bone in enumerate(armature_data.bones):
             head = bone.head
             matrix = mathutils.Matrix.Translation(head)\
-                    * bone.matrix.to_4x4()
+                    @ bone.matrix.to_4x4()
             write_record(f, record_types['newBone'],
                 struct.pack('<fffffffffffffffff',
                     bone.length,
@@ -219,8 +243,8 @@ def write_model(context, filepath, use_some_setting):
                     
                     head = bone.head
                     matrix = mathutils.Matrix.Translation(head)\
-                              * bone.matrix.to_4x4()\
-                              * pose_bone.matrix_basis
+                              @ bone.matrix.to_4x4()\
+                              @ pose_bone.matrix_basis
                     curves[bone_index]['samples'][frame - frame_start] = (
                             matrix[0][0], matrix[0][1], matrix[0][2], matrix[0][3],
                             matrix[1][0], matrix[1][1], matrix[1][2], matrix[1][3],
@@ -302,12 +326,12 @@ def menu_func_export(self, context):
 
 def register():
     bpy.utils.register_class(ExportTmd)
-    bpy.types.INFO_MT_file_export.append(menu_func_export)
+    bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
 
 
 def unregister():
     bpy.utils.unregister_class(ExportTmd)
-    bpy.types.INFO_MT_file_export.remove(menu_func_export)
+    bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
 
 
 if __name__ == "__main__":
@@ -315,3 +339,4 @@ if __name__ == "__main__":
 
     # test call
     bpy.ops.export_tmd.model('INVOKE_DEFAULT')
+

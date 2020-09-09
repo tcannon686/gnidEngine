@@ -121,9 +121,14 @@ Node::~Node()
 Node::Node(const Node &other)
     :  worldMatrix(other.worldMatrix), isActive_(other.isActive_)
 {
+    /* TODO fix */
     // Clone children.
-    for(auto it = begin(other.children);
-        it != end(other.children);
+}
+
+void Node::cloneChildren(shared_ptr<Node> other)
+{
+    for(auto it = begin(other->children);
+        it != end(other->children);
         ++ it)
     {
         add((*it)->clone());

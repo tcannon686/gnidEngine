@@ -16,21 +16,22 @@ class Material;
  */
 class RendererNode : public Node
 {
-    public:
-        /**
-         * \brief The mesh to be rendered
-         */
-        const std::shared_ptr<RendererMesh> mesh;
+public:
+    /**
+     * \brief The mesh to be rendered
+     */
+    const std::shared_ptr<RendererMesh> mesh;
 
-        /**
-         * \brief The material to render the mesh with
-         */
-        const std::shared_ptr<Material> material;
-        RendererNode(
-            std::shared_ptr<RendererMesh> mesh,
-            std::shared_ptr<Material> material);
-        void onSceneChanged(std::shared_ptr<Scene> newScene);
-        std::shared_ptr<Node> clone();
+    /**
+     * \brief The material to render the mesh with
+     */
+    const std::shared_ptr<Material> material;
+    RendererNode(
+        std::shared_ptr<RendererMesh> mesh,
+        std::shared_ptr<Material> material);
+    void onSceneChanged(std::shared_ptr<Scene> newScene);
+
+    std::shared_ptr<Node> clone();
 };
 
 } /* namespace */

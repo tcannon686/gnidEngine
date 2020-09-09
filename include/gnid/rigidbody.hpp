@@ -47,7 +47,9 @@ public:
 
     std::shared_ptr<Node> clone() override
     {
-        return std::make_shared<Rigidbody>(*this);
+        auto ret = std::make_shared<Rigidbody>(*this);
+        ret->cloneChildren(shared_from_this());
+        return ret;
     }
 
 private:

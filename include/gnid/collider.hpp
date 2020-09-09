@@ -111,7 +111,9 @@ public:
 
     std::shared_ptr<Node> clone() override
     {
-        return std::make_shared<Collider>(shape());
+        auto ret = std::make_shared<Collider>(*this);
+        ret->cloneChildren(shared_from_this());
+        return ret;
     }
 
 private:

@@ -20,8 +20,10 @@ void LightNode::onSceneChanged(shared_ptr<Scene> newScene)
                 static_pointer_cast<LightNode>(shared_from_this()));
 }
 
-shared_ptr<Node> LightNode::clone()
+std::shared_ptr<Node> LightNode::clone()
 {
-    return make_shared<LightNode>(*this);
+    auto ret = std::make_shared<LightNode>(*this);
+    ret->cloneChildren(shared_from_this());
+    return ret;
 }
 

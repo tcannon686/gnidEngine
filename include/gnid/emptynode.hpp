@@ -13,7 +13,9 @@ class EmptyNode : public Node
 {
     std::shared_ptr<Node> clone() override
     {
-        return std::make_shared<EmptyNode>(*this);
+        auto ret = std::make_shared<EmptyNode>(*this);
+        ret->cloneChildren(shared_from_this());
+        return ret;
     }
 };
 

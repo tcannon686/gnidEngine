@@ -66,10 +66,20 @@ class Node : public std::enable_shared_from_this<Node>
         /**
          * \brief Clone this node
          * \details
-         *     This should be overriden by subclasses, and should simply call
-         *     the copy constructor.
+         *     This should be overriden by subclasses, and should call the copy
+         *     constructor as well as cloneChildren.
          */
         virtual std::shared_ptr<Node> clone() = 0;
+
+        /**
+         * \brief
+         *     Clone the descendants of the given node and add them to this
+         *     node
+         *
+         * \details
+         *     This should be called by the clone method.
+         */
+        void cloneChildren(std::shared_ptr<Node> other);
 
         /**
          * \brief Whether the node is enabled or not
