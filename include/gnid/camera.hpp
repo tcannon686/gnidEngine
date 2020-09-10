@@ -8,12 +8,10 @@ namespace gnid
 
 class Camera : public Node
 {
-    private:
-        tmat::Matrix4f projectionMatrix;
     public:
         Camera(float fovy, float aspect, float znear, float zfar);
-        tmat::Matrix4f getProjectionMatrix();
-        tmat::Matrix4f getViewMatrix();
+        const tmat::Matrix4f &projectionMatrix() const;
+        const tmat::Matrix4f &viewMatrix() const;
         void onSceneChanged(std::shared_ptr<Scene> newScene) override;
         
         std::shared_ptr<Node> clone() override
@@ -22,6 +20,8 @@ class Camera : public Node
             ret->cloneChildren(shared_from_this());
             return ret;
         }
+    private:
+        tmat::Matrix4f projectionMatrix_;
 };
 
 }; /* namespace */

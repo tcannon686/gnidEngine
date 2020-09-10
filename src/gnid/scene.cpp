@@ -85,8 +85,6 @@ void Scene::handleCollision(
             float lenVelocityB = bs->velocity_.magnitude();
             as->transformWorld(getTranslateMatrix(-overlap * 0.5f));
             bs->transformWorld(getTranslateMatrix(overlap * 0.5f));
-            as->updateWorldMatrixAll();
-            bs->updateWorldMatrixAll();
 
             /* Calculate the new velocities. */
             if(lenVelocityA > 0)
@@ -106,7 +104,6 @@ void Scene::handleCollision(
         else
         {
             as->transformWorld(getTranslateMatrix(-overlap));
-            as->updateWorldMatrixAll();
 
             /* Calculate the new velocity. */
             if(lenVelocityA > 0)
@@ -124,7 +121,6 @@ void Scene::handleCollision(
         {
             float lenVelocityB = bs->velocity_.magnitude();
             bs->transformWorld(getTranslateMatrix(overlap));
-            bs->updateWorldMatrixAll();
 
             if(lenVelocityB > 0)
             {
@@ -138,6 +134,7 @@ void Scene::handleCollision(
 
 void Scene::update(float dt)
 {
+    root->newFrameAll();
     root->updateAll(dt);
 
     Vector3f overlap;
@@ -149,7 +146,6 @@ void Scene::update(float dt)
         rb->physicsUpdate(dt);
     }
 
-    updateWorldMatrix();
 
     /* Update the boxes for all the colliders. */
     for(auto &collider : colliders)
@@ -176,10 +172,17 @@ void Scene::update(float dt)
         /* We only need to check if either collider is active. */
         if(a->isActive() && b->isActive())
         {
-            /* If there is overlap, handle the collision. */
-            if(a->getOverlap(overlap, b))
+            auto as = a->findAncestorByType<Rigidbody>();
+            auto bs = b->findAncestorByType<Rigidbody>();
+
+            if(as || bs)
             {
-                handleCollision(a, b, overlap);
+                Vector3f initialAxis = Vector3f::right;
+                /* If there is overlap, handle the collision. */
+                if(a->getOverlap(overlap, initialAxis, b))
+                {
+                    handleCollision(a, b, overlap);
+                }
             }
         }
     }
@@ -209,13 +212,9 @@ void Scene::update(float dt)
     }
 }
 
-void Scene::updateWorldMatrix()
-{
-    root->updateWorldMatrixAll();
-}
-
 void Scene::render()
 {
+    double startTime = glfwGetTime();
     bool hasCamera = false;
 
     for(auto it = begin(cameras);

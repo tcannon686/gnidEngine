@@ -18,7 +18,7 @@ Camera::Camera(float fovy, float aspect, float znear, float zfar)
     float m33 = (znear + zfar) / (znear - zfar);
     float m34 = 2 * zfar * znear / (znear - zfar);
     
-    projectionMatrix = Matrix4f {
+    projectionMatrix_ = Matrix4f {
         { m11,   0,   0,   0 },
         {   0, m22,   0,   0 },
         {   0,   0, m33, m34 },
@@ -26,14 +26,14 @@ Camera::Camera(float fovy, float aspect, float znear, float zfar)
     };
 }
 
-Matrix4f Camera::getProjectionMatrix()
+const Matrix4f &Camera::projectionMatrix() const
 {
-    return projectionMatrix;
+    return projectionMatrix_;
 }
 
-Matrix4f Camera::getViewMatrix()
+const Matrix4f &Camera::viewMatrix() const
 {
-    return getWorldMatrix().inverse();
+    return worldMatrixInverse();
 }
 
 void Camera::onSceneChanged(shared_ptr<Scene> newScene)

@@ -51,26 +51,37 @@ void KdTree::print(int indent)
     }
 }
 
-void KdTree::update()
+bool KdTree::update()
 {
     /* If we are at an inner node. */
     if(nodes.size() == 0)
     {
         assert(left && right);
 
-        /* Update the box from the sub nodes. */
-        left->update();
-        right->update();
-
-        box_.clear();
-        box_.add(left->box());
-        box_.add(right->box());
+        bool updated = false;
 
         /* Regenerate if the maximum allowed shift is met. */
         if(abs(box_.center()[axisIndex] - median) > maxShift_)
         {
             regenerate();
+            updated = true;
         }
+        else
+        {
+            /* Update the box from the sub nodes. */
+            bool updatedLeft = left->update();
+            bool updatedRight = right->update();
+
+            if(updatedLeft || updatedRight)
+            {
+                box_.clear();
+                box_.add(left->box());
+                box_.add(right->box());
+                updated = true;
+            }
+        }
+
+        return updated;
     }
     /* If we are at a leaf node. */
     else
@@ -79,15 +90,29 @@ void KdTree::update()
         if(static_cast<unsigned int>(nodes.size()) > maxNodesPerLeaf_)
         {
             generate();
+            return true;
         }
         /* Otherwise just update the box from the nodes. */
         else
         {
-            box_.clear();
+            bool updated = false;
             for(auto node : nodes)
             {
-                box_.add(node->box());
+                if(node->moved())
+                {
+                    updated = true;
+                }
             }
+
+            if(updated)
+            {
+                box_.clear();
+                for(auto node : nodes)
+                {
+                    box_.add(node->box());
+                }
+            }
+            return updated;
         }
     }
 }
@@ -360,6 +385,7 @@ void KdTree::generate()
 
     left->generate();
     right->generate();
+    median = box_.center()[longAxisIndex];
 }
 
 KdTreePruner::KdTreePruner(std::shared_ptr<KdTree> kdTree)

@@ -83,33 +83,14 @@ Vector3f Box::size() const
 
 Vector3f Box::support(const Vector3f &d) const
 {
-    Vector3f ret = min();
-    float retDot = d.dot(min());
-
-    const int pointCount = 1 << 3;
-    const Vector3f diff = max() - min();
-
-    for(int i = 0; i < pointCount; i ++)
+    Vector3f ret;
+    for(int i = 0; i < 3; i ++)
     {
-        Vector3f point = min();
-
-        /* Calculate the point's position. */
-        for(int j = 0; j < 3; j ++)
-        {
-            if(((i >> j) & 1) == 1)
-            {
-                point[j] += diff[j];
-            }
-        }
-
-        float dot = d.dot(point);
-        if(dot > retDot)
-        {
-            ret = point;
-            retDot = dot;
-        }
+        if(d[i] == 0)
+            ret[i] = 0;
+        else
+            ret[i] = d[i] > 0 ? max_[i] : min_[i];
     }
-
     return ret;
 }
 

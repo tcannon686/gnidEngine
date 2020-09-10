@@ -2,7 +2,7 @@
 #define SCENE_HPP
 
 #include <list>
-#include <set>
+#include <unordered_set>
 #include "gnid/matrix/matrix.hpp"
 #include "gnid/renderer.hpp"
 #include "gnid/kdtree.hpp"
@@ -53,13 +53,6 @@ class Scene : public std::enable_shared_from_this<Scene>
          * \param dt The elapsed time in seconds
          */
         void update(float dt);
-
-        /**
-         * \brief
-         *     Update the world matrices of all of the scenes nodes from their
-         *     local matrices
-         */
-        void updateWorldMatrix();
 
         /**
          * \brief The acceleration due to gravity in the scene
@@ -131,7 +124,7 @@ class Scene : public std::enable_shared_from_this<Scene>
 
         friend class Node;
 
-        std::set<Collision> collisions;
+        std::unordered_set<Collision> collisions;
         std::list<std::shared_ptr<Collider>> colliders;
         std::list<std::shared_ptr<Camera>> cameras;
         std::list<std::shared_ptr<Rigidbody>> rigidbodies;

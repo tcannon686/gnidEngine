@@ -33,9 +33,10 @@ public:
      * \brief Update the KdTree from the new positions of the colliders
      *
      * \details
-     *     This function should be called at least once per frame.
+     *     This function should be called at least once per frame. Returns true
+     *     if the k-D tree node changed its bounding box.
      */
-    void update();
+    bool update();
     
     /**
      * \brief Add a collider to the KdTree
@@ -96,6 +97,7 @@ private:
     float median;
     float maxShift_;
     unsigned int totalNodes;    /* The total number of nodes in the tree. */
+    bool needsUpdate_;
 
     mutable bool visited_;
 

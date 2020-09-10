@@ -7,43 +7,34 @@
 using namespace tmat;
 using namespace gnid;
 
-const Matrix4f &Node::getLocalMatrix() const
+const Matrix4f &Node::localMatrix() const
 {
     return Matrix4f::identity;
 }
 
-const Matrix4f &Node::getWorldMatrix() const
+const Matrix4f &Node::localMatrixInverse() const
 {
-    return worldMatrix;
+    return Matrix4f::identity;
 }
 
-void Node::updateWorldMatrix()
+const Matrix4f &Node::worldMatrix() const
 {
-    shared_ptr<Node> parent;
-    parent = getParent().lock();
+    shared_ptr<Node> p = parent.lock();
 
-    /* If the node has a parent, update from its parent node. */
-    if(parent)
-    {
-        worldMatrix = parent->getWorldMatrix() * getLocalMatrix();
-    }
-    /* Otherwise just use the local matrix. */
-    else
-    {
-        worldMatrix = getLocalMatrix();
-    }
+    if(p)
+        return p->worldMatrix();
+
+    return Matrix4f::identity;
 }
 
-void Node::updateWorldMatrixAll()
+const Matrix4f &Node::worldMatrixInverse() const
 {
-    updateWorldMatrix();
+    shared_ptr<Node> p = parent.lock();
 
-    for(auto it = children.begin();
-            it != children.end();
-            ++ it)
-    {
-        (*it)->updateWorldMatrixAll();
-    }
+    if(p)
+        return p->worldMatrixInverse();
+
+    return Matrix4f::identity;
 }
 
 void Node::onSceneChangedAll(shared_ptr<Scene> newScene)
@@ -69,20 +60,22 @@ void Node::add(shared_ptr<Node> child)
     /* Remove the child from its old parent. */
     if(child_parent)
     {
-        child_parent->onChildRemoved(child);
-        /*child_parent->onDescendantRemovedAll(child);*/
         child_parent->children.remove(child);
+        child_parent->onChildRemoved(child);
+        child_parent->onDescendantRemovedAll(child);
+        child->onAncestorRemovedAll(child_parent);
     }
 
-    /* Invoke callback functions. */
-    onChildAdded(child);
-    /*onDescendantAddedAll(child);*/
-
-    child->onParentChanged(shared_from_this());
 
     /* Add the child. */
     child->parent = shared_from_this();
     children.push_front(child);
+
+    /* Invoke callback functions. */
+    onChildAdded(child);
+    onDescendantAddedAll(child);
+    child->onParentChanged(child_parent);
+    child->onAncestorAddedAll(shared_from_this());
 
     /*
      * If in two different scenes, call the remove callback on the previous
@@ -98,8 +91,8 @@ void Node::updateAll(float dt)
 {
     update(dt);
     for(auto it = begin(children);
-        it != end(children);
-        ++ it)
+            it != end(children);
+            ++ it)
     {
         (*it)->updateAll(dt);
     }
@@ -110,7 +103,7 @@ bool &Node::isActive()
     return isActive_;
 }
 
-Node::Node() : worldMatrix(Matrix4f::identity), isActive_(true)
+Node::Node()
 {
 }
 
@@ -119,17 +112,15 @@ Node::~Node()
 }
 
 Node::Node(const Node &other)
-    :  worldMatrix(other.worldMatrix), isActive_(other.isActive_)
+    :  isActive_(other.isActive_)
 {
-    /* TODO fix */
-    // Clone children.
 }
 
 void Node::cloneChildren(shared_ptr<Node> other)
 {
     for(auto it = begin(other->children);
-        it != end(other->children);
-        ++ it)
+            it != end(other->children);
+            ++ it)
     {
         add((*it)->clone());
     }
@@ -147,22 +138,22 @@ const weak_ptr<Scene> &Node::getScene() const
 
 Vector3f Node::position() const
 {
-    return transform(worldMatrix, Vector3f::zero);
+    return transform(worldMatrix(), Vector3f::zero);
 }
 
 Vector3f Node::right() const
 {
-    return transformDirection(worldMatrix, Vector3f::right);
+    return transformDirection(worldMatrix(), Vector3f::right);
 }
 
 Vector3f Node::up() const
 {
-    return transformDirection(worldMatrix, Vector3f::up);
+    return transformDirection(worldMatrix(), Vector3f::up);
 }
 
 Vector3f Node::forward() const
 {
-    return transformDirection(worldMatrix, Vector3f::forward);
+    return transformDirection(worldMatrix(), Vector3f::forward);
 }
 
 void Node::onDescendantAddedAll(shared_ptr<Node> child)
@@ -191,5 +182,51 @@ void Node::onDescendantRemovedAll(shared_ptr<Node> child)
     {
         parent->onDescendantRemovedAll(child);
     }
+}
+
+void Node::onAncestorAddedAll(shared_ptr<Node> ancestor)
+{
+    onAncestorAdded(ancestor);
+    for(auto &child : children)
+    {
+        child->onAncestorAddedAll(ancestor);
+    }
+}
+
+void Node::onAncestorRemovedAll(shared_ptr<Node> ancestor)
+{
+    onAncestorRemoved(ancestor);
+    for(auto &child : children)
+    {
+        child->onAncestorRemovedAll(ancestor);
+    }
+}
+
+void Node::newFrame()
+{
+    /* pass */
+}
+
+void Node::newFrameAll()
+{
+    newFrame();
+
+    for(auto it = begin(children);
+            it != end(children);
+            ++ it)
+    {
+        (*it)->newFrameAll();
+    }
+}
+
+bool Node::moved() const
+{
+    shared_ptr<Node> p = getParent().lock();
+    if(p)
+    {
+        return p->moved();
+    }
+    else
+        return false;
 }
 

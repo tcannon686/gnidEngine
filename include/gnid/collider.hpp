@@ -64,13 +64,18 @@ public:
      * \description
      *     Returns true if this collider is overlapping the other collider. If
      *     they are overlapping, the minimum amount needed to move the shapes so
-     *     that they are not overlapping is stored in out.
+     *     that they are not overlapping is stored in out. The initial axis to
+     *     use for the next iteration is stored in initialAxis
      *
+     * \param[out]    out         The overlap between the two shapes
+     * \param[in,out] initialAxis The initial axis to start from
+     * \param[in]     other       The other collider
+     * \param[in]     tolerance   The tolerance to use for EPA
      */
     bool getOverlap(
             tmat::Vector3f &out,
+            tmat::Vector3f &initialAxis,
             const std::shared_ptr<Collider> &other,
-            const tmat::Vector3f initialAxis = tmat::Vector3f::right,
             const float tolerance = 0.001f) const;
 
     /**
@@ -108,6 +113,8 @@ public:
     bool &isTrigger();
 
     void onSceneChanged(std::shared_ptr<Scene> newScene) override;
+
+    void onAncestorAdded(std::shared_ptr<Node> ancestor) override;
 
     std::shared_ptr<Node> clone() override
     {
@@ -158,8 +165,7 @@ private:
 
     typedef bool (Collider::*NearestSimplexFunction)(
             std::vector<tmat::Vector3f> &s,
-            tmat::Vector3f &d,
-            const float tolerance) const;
+            tmat::Vector3f &d) const;
 
     /* Nearest simplex lookup table. */
     static NearestSimplexFunction nearestSimplexFunctions[4];
@@ -177,32 +183,26 @@ private:
      */
     bool nearestSimplex(
             std::vector<tmat::Vector3f> &s,
-            tmat::Vector3f &d,
-            const float tolerance) const;
+            tmat::Vector3f &d) const;
 
     /* Implementations for each vertex count. */
     bool nearestSimplex1(
             std::vector<tmat::Vector3f> &s,
-            tmat::Vector3f &d,
-            const float tolerance) const;
+            tmat::Vector3f &d) const;
     bool nearestSimplex2(
             std::vector<tmat::Vector3f> &s,
-            tmat::Vector3f &d,
-            const float tolerance) const;
+            tmat::Vector3f &d) const;
     bool nearestSimplex3(
             std::vector<tmat::Vector3f> &s,
-            tmat::Vector3f &d,
-            const float tolerance) const;
+            tmat::Vector3f &d) const;
     bool nearestSimplex4(
             std::vector<tmat::Vector3f> &s,
-            tmat::Vector3f &d,
-            const float tolerance) const;
+            tmat::Vector3f &d) const;
 
     bool gjk(
             tmat::Vector3f &d,
             std::vector<tmat::Vector3f> &s,
-            const std::shared_ptr<Collider> &other,
-            const float tolerance) const;
+            const std::shared_ptr<Collider> &other) const;
 
     void epa(
             tmat::Vector3f &out,
@@ -214,6 +214,11 @@ private:
     void notifyCollisionObservers(
             Collision collision,
             std::vector<std::weak_ptr<Observer<Collision>>> &observers);
+
+    /**
+     * \brief Calculates the bounding box
+     */
+    void updateBox();
 
     std::shared_ptr<Observable<Collision>> makeCollisionObservable(
             std::vector<std::weak_ptr<Observer<Collision>>> &observers);
@@ -230,6 +235,8 @@ private:
     std::shared_ptr<Observable<Collision>> collisionEntered_;
     std::shared_ptr<Observable<Collision>> collisionExited_;
     std::shared_ptr<Observable<Collision>> collisionStayed_;
+
+    bool forceUpdateBox_;
 
     friend class Scene;
 };

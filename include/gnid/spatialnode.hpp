@@ -15,19 +15,19 @@ class SpatialNode : public Node
 public:
     SpatialNode();
 
-    const tmat::Matrix4f &getLocalMatrix() const override;
+    const tmat::Matrix4f &localMatrix() const override;
+    const tmat::Matrix4f &worldMatrix() const override;
+    const tmat::Matrix4f &localMatrixInverse() const;
+    const tmat::Matrix4f &worldMatrixInverse() const;
 
-    /**
-     * \brief Override the local matrix for the node
-     */
-    void setLocalMatrix(const tmat::Matrix4f &matrix);
+    tmat::Matrix4f &localMatrix();
 
     /**
      * \brief Transforms this node's local matrix by the given matrix
      *
      * \details
      *     Transforms in local space. The new local matrix is calculated as
-     *     matrix * getLocalMatrix().
+     *     matrix * localMatrix().
      */
     void transformLocal(const tmat::Matrix4f &matrix);
 
@@ -37,9 +37,15 @@ public:
      * \details
      *     This does not update the world matrix of this nodes descendants.
      *     To do that, call the updateWorldMatrix function. The new world
-     *     matrix is calculated as matrix * getWorldMatrix().
+     *     matrix is calculated as matrix * worldMatrix().
      */
     void transformWorld(const tmat::Matrix4f &matrix);
+
+    bool moved() const override;
+
+    void newFrame() override;
+
+    void onAncestorAdded(std::shared_ptr<Node> ancestor) override;
 
     std::shared_ptr<Node> clone() override
     {
@@ -49,7 +55,13 @@ public:
     }
 
 private:
-    tmat::Matrix4f localMatrix;
+    tmat::Matrix4f localMatrix_;
+    mutable tmat::Matrix4f worldMatrix_;
+    mutable tmat::Matrix4f localMatrixInverse_;
+    mutable tmat::Matrix4f worldMatrixInverse_;
+    mutable bool shouldUpdateLocalMatrixInverse_ = true;
+    mutable bool shouldUpdateWorldMatrixInverse_ = true;
+    bool moved_;
 };
 
 }; /* namespace */

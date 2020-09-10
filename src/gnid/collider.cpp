@@ -65,8 +65,16 @@ void Collider::notifyCollisionObservers(
 
 void Collider::calcBox()
 {
-    auto thisToWorld = getWorldMatrix();
-    auto worldToThis = thisToWorld.inverse();
+    /* Only update if the node has moved. */
+    if(moved() || forceUpdateBox_)
+        updateBox();
+    forceUpdateBox_ = false;
+}
+
+void Collider::updateBox()
+{
+    const auto &thisToWorld = worldMatrix();
+    const auto &worldToThis = worldMatrixInverse();
 
     /* Calculate the extents in local space. */
     auto forward = transformDirection(worldToThis, Vector3f::forward);
@@ -88,8 +96,7 @@ void Collider::calcBox()
 
 bool Collider::nearestSimplex1(
         vector<Vector3f> &s,
-        Vector3f &d,
-        const float tolerance) const
+        Vector3f &d) const
 {
     assert(s.size() == 1);
 
@@ -100,8 +107,7 @@ bool Collider::nearestSimplex1(
 
 bool Collider::nearestSimplex2(
         vector<Vector3f> &s,
-        Vector3f &d,
-        const float tolerance) const
+        Vector3f &d) const
 {
     Vector3f ab = s[1] - s[0];
 
@@ -111,7 +117,7 @@ bool Collider::nearestSimplex2(
     assert(d.dot(s[1]) >= d.dot(s[0]));
 
     /* If the origin is past the second point it is the closest. */
-    if(ab.dot(s[1]) <= tolerance)
+    if(ab.dot(s[1]) <= 0)
     {
         s[0] = s[1];
         d = -s[0];
@@ -128,8 +134,7 @@ bool Collider::nearestSimplex2(
 
 bool Collider::nearestSimplex3(
         vector<Vector3f> &s,
-        Vector3f &d,
-        const float tolerance) const
+        Vector3f &d) const
 {
     Vector3f ac = s[2] - s[0];
     Vector3f bc = s[2] - s[1];
@@ -146,13 +151,13 @@ bool Collider::nearestSimplex3(
             && d.dot(s[2]) >= d.dot(s[1]));
     
     /* Inside the triangle on ac side. */
-    if(acn.dot(s[2]) <= tolerance)
+    if(acn.dot(s[2]) <= 0)
     {
         /* Inside the triangle on both ac and bc sides. */
-        if(bcn.dot(s[2]) <= tolerance)
+        if(bcn.dot(s[2]) <= 0)
         {
             /* The simplex is still a triangle. Determine which side. */
-            if(abc.dot(s[2]) <= tolerance)
+            if(abc.dot(s[2]) <= 0)
             {
                 d = abc;
                 return false;
@@ -173,7 +178,7 @@ bool Collider::nearestSimplex3(
         else
         {
             /* If the origin is past bc, then c is the closest. */
-            if(bc.dot(s[2]) <= tolerance)
+            if(bc.dot(s[2]) <= 0)
             {
                 s[0] = s[2];
                 d = -s[0];
@@ -192,7 +197,7 @@ bool Collider::nearestSimplex3(
         }
     }
     /* Inside the triangle on bc side but not the ac side. */
-    else if(bcn.dot(s[2]) <= tolerance)
+    else if(bcn.dot(s[2]) <= 0)
     {
         /*
          * At this point, we can't be inside the triangle on the ac side, so ac
@@ -200,7 +205,7 @@ bool Collider::nearestSimplex3(
          */
 
          /* If the origin is past ac, then c is closest. */
-        if(ac.dot(s[2]) <= tolerance)
+        if(ac.dot(s[2]) <= 0)
         {
             s[0] = s[2];
             s.resize(1);
@@ -228,8 +233,7 @@ bool Collider::nearestSimplex3(
 
 bool Collider::nearestSimplex4(
         vector<Vector3f> &s,
-        Vector3f &d,
-        const float tolerance) const
+        Vector3f &d) const
 {
     Vector3f ad = s[3] - s[0];
     Vector3f bd = s[3] - s[1];
@@ -249,13 +253,13 @@ bool Collider::nearestSimplex4(
             && d.dot(s[3]) >= d.dot(s[2]));
 
     /* Inside on abd face. */
-    if(abd.dot(s[3]) <= tolerance)
+    if(abd.dot(s[3]) <= 0)
     {
         /* Inside on abd and bcd faces. */
-        if(bcd.dot(s[3]) <= tolerance)
+        if(bcd.dot(s[3]) <= 0)
         {
             /* Inside on all three faces. */
-            if(cad.dot(s[3]) <= tolerance)
+            if(cad.dot(s[3]) <= 0)
             {
                 return true;
             }
@@ -270,21 +274,21 @@ bool Collider::nearestSimplex4(
                 s[2] = s[3];
                 s.resize(3);
 
-                return nearestSimplex3(s, d, tolerance);
+                return nearestSimplex3(s, d);
             }
         }
         /* Inside on abd face but not bcd face. */
         else
         {
             /* Inside on abd and cad, but not bcd. Nearest must be on bcd. */
-            if(cad.dot(s[3]) <= tolerance)
+            if(cad.dot(s[3]) <= 0)
             {
                 s[0] = s[1];
                 s[1] = s[2];
                 s[2] = s[3];
                 s.resize(3);
 
-                return nearestSimplex3(s, d, tolerance);
+                return nearestSimplex3(s, d);
             }
             /* Only inside abd. Nearest simplex must be on bcd, or cad. */
             else
@@ -302,8 +306,8 @@ bool Collider::nearestSimplex4(
                 s2.push_back(s[0]);
                 s2.push_back(s[3]);
 
-                nearestSimplex3(s1, d1, tolerance);
-                nearestSimplex3(s2, d2, tolerance);
+                nearestSimplex3(s1, d1);
+                nearestSimplex3(s2, d2);
 
                 /* Calculate the distance to both, choose the closest one. */
                 float l1, l2;
@@ -326,15 +330,15 @@ bool Collider::nearestSimplex4(
         }
     }
     /* Inside on bcd face but not abd face. */
-    else if(bcd.dot(s[3]) <= tolerance)
+    else if(bcd.dot(s[3]) <= 0)
     {
         /* Inside on bcd and cad, but not abd. Nearest must be on abd. */
-        if(cad.dot(s[3]) <= tolerance)
+        if(cad.dot(s[3]) <= 0)
         {
             s[2] = s[3];
             s.resize(3);
 
-            return nearestSimplex3(s, d, tolerance);
+            return nearestSimplex3(s, d);
         }
         /* Only inside bcd. Nearest simplex must be on abd or cad.  */
         else
@@ -352,8 +356,8 @@ bool Collider::nearestSimplex4(
             s2.push_back(s[0]);
             s2.push_back(s[3]);
 
-            nearestSimplex3(s1, d1, tolerance);
-            nearestSimplex3(s2, d2, tolerance);
+            nearestSimplex3(s1, d1);
+            nearestSimplex3(s2, d2);
 
             /* Calculate the distance to both, choose the closest one. */
             float l1, l2;
@@ -390,8 +394,8 @@ bool Collider::nearestSimplex4(
         s2.push_back(s[2]);
         s2.push_back(s[3]);
 
-        nearestSimplex3(s1, d1, tolerance);
-        nearestSimplex3(s2, d2, tolerance);
+        nearestSimplex3(s1, d1);
+        nearestSimplex3(s2, d2);
 
         /* Calculate the distance to both, choose the closest one. */
         float l1, l2;
@@ -415,15 +419,14 @@ bool Collider::nearestSimplex4(
 
 bool Collider::nearestSimplex(
         vector<Vector3f> &s,
-        Vector3f &d,
-        const float tolerance) const
+        Vector3f &d) const
 {
     NearestSimplexFunction function;
 
     assert(s.size() > 0 && s.size() <= 4);
 
     function = nearestSimplexFunctions[s.size() - 1];
-    return (this->*function)(s, d, tolerance);
+    return (this->*function)(s, d);
 }
 
 Collider::Triangle::Triangle(
@@ -467,14 +470,14 @@ bool Collider::Triangle::operator<(const Triangle &other) const
 
 bool Collider::getOverlap(
         Vector3f &out,
+        Vector3f &initialAxis,
         const shared_ptr<Collider> &other,
-        const Vector3f initialAxis,
         const float tolerance) const
 {
-    auto thisToWorld = getWorldMatrix();
-    auto worldToThis = thisToWorld.inverse();
-    auto otherToWorld = other->getWorldMatrix();
-    auto worldToOther = otherToWorld.inverse();
+    const auto &thisToWorld = worldMatrix();
+    const auto &worldToThis = worldMatrixInverse();
+    const auto &otherToWorld = other->worldMatrix();
+    const auto &worldToOther = other->worldMatrixInverse();
 
     Vector3f a =
         transform(
@@ -491,7 +494,7 @@ bool Collider::getOverlap(
 
     Vector3f d = -a;
 
-    if(gjk(d, s, other, tolerance))
+    if(gjk(d, s, other))
     {
         /*
          * If the overlap is on a line, point, or triangle, we know that the
@@ -527,13 +530,12 @@ bool Collider::getOverlap(
 bool Collider::gjk(
         Vector3f &d,
         vector<Vector3f> &s,
-        const shared_ptr<Collider> &other,
-        const float tolerance) const
+        const shared_ptr<Collider> &other) const
 {
-    auto thisToWorld = getWorldMatrix();
-    auto worldToThis = thisToWorld.inverse();
-    auto otherToWorld = other->getWorldMatrix();
-    auto worldToOther = otherToWorld.inverse();
+    const auto &thisToWorld = worldMatrix();
+    const auto &worldToThis = worldMatrixInverse();
+    const auto &otherToWorld = other->worldMatrix();
+    const auto &worldToOther = other->worldMatrixInverse();
 
     Vector3f a;
 
@@ -548,13 +550,13 @@ bool Collider::gjk(
                     other->shape()->support(
                         transformDirection(worldToOther, -d)));
 
-        if(a.dot(d) <= tolerance)
+        if(a.dot(d) <= 0)
             return false;
 
         /* Add to the simplex. */
         s.push_back(a);
 
-        if(nearestSimplex(s, d, 0))
+        if(nearestSimplex(s, d))
         {
             /*
              * We now know that the shapes are colliding, and we have a simplex
@@ -572,10 +574,10 @@ void Collider::epa(
         const shared_ptr<Collider> &other,
         const float tolerance) const
 {
-    auto thisToWorld = getWorldMatrix();
-    auto worldToThis = thisToWorld.inverse();
-    auto otherToWorld = other->getWorldMatrix();
-    auto worldToOther = otherToWorld.inverse();
+    const auto &thisToWorld = worldMatrix();
+    const auto &worldToThis = worldMatrixInverse();
+    const auto &otherToWorld = other->worldMatrix();
+    const auto &worldToOther = other->worldMatrixInverse();
 
     while(true)
     {
@@ -690,6 +692,11 @@ void Collider::onSceneChanged(shared_ptr<Scene> newScene)
     if(newScene)
         newScene->registerNode(
                 static_pointer_cast<Collider>(shared_from_this()));
+}
+
+void Collider::onAncestorAdded(std::shared_ptr<Node> ancestor)
+{
+    forceUpdateBox_ = true;
 }
 
 bool &Collider::isTrigger()

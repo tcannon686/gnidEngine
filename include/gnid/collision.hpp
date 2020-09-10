@@ -2,6 +2,7 @@
 #define COLLISION_HPP
 
 #include <memory>
+#include <functional>
 
 namespace gnid
 {
@@ -33,19 +34,19 @@ public:
             const std::shared_ptr<Collider> b,
             tmat::Vector3f overlap)
         : colliders_ { (a < b ? a : b), (a < b ? b : a) },
-          overlap_(overlap),
+          overlap_((a < b ? overlap : -overlap)),
           visited_(true)
     {
     }
 
-    bool operator<(const Collision &other) const
+    bool operator==(const Collision &other) const
     {
         for(int i = 0; i < 2; i ++)
         {
-            if(colliders_[i] < other.colliders_[i])
-                return true;
+            if(colliders_[i] != other.colliders_[i])
+                return false;
         }
-        return false;
+        return true;
     }
 
 private:
@@ -59,5 +60,22 @@ private:
 };
 
 } /* namespace */
+
+namespace std
+{
+    template<>
+    struct hash<gnid::Collision>
+    {
+        size_t operator()(const gnid::Collision &collision) const noexcept
+        {
+            auto h0 = std::hash<std::shared_ptr<gnid::Collider>>{}(
+                    collision.colliders()[0]);
+            auto h1 = std::hash<std::shared_ptr<gnid::Collider>>{}(
+                    collision.colliders()[1]);
+            
+            return h0 ^ (h1 << 1);
+        }
+    };
+}
 
 #endif

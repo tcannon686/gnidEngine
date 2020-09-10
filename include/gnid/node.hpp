@@ -30,28 +30,43 @@ class Node : public std::enable_shared_from_this<Node>
         virtual void onSceneChanged(std::shared_ptr<Scene> newScene) {}
 
         /**
-         * \brief Called just before the node is added to a new parent node
+         * \brief Called just after the node is added to a new parent node
          */
-        virtual void onParentChanged(std::shared_ptr<Node> newParent) {}
+        virtual void onParentChanged(std::shared_ptr<Node> oldParent) {}
 
         /**
-         * \brief Called just before child node is added directly to this node
+         * \brief
+         *     Called just after the child node is added directly to this node
          */
         virtual void onChildAdded(std::shared_ptr<Node> child) {}
 
         /**
          * \brief
-         *     Called just before a node is added to this node or one of its
+         *     Called just after a node is added to this node or one of its
          *     descendants
          */
         virtual void onDescendantAdded(std::shared_ptr<Node> child) {}
 
         /**
          * \brief
-         *     Called just before a node is removed from this node or one of its
+         *     Called just after a node is removed from this node or one of its
          *     descendants
          */
         virtual void onDescendantRemoved(std::shared_ptr<Node> child) {}
+
+        /**
+         * \brief
+         *     Called just after a child or one of its ancestors are added to
+         *     the given ancestor
+         */
+        virtual void onAncestorAdded(std::shared_ptr<Node> ancestor) {}
+
+        /**
+         * \brief
+         *     Called just after a child or one of its ancestors are removed
+         *     from the given ancestor
+         */
+        virtual void onAncestorRemoved(std::shared_ptr<Node> ancestor) {}
 
         /**
          * \brief Called just after a child is removed directly from this node
@@ -103,28 +118,43 @@ class Node : public std::enable_shared_from_this<Node>
         /**
          * \brief Get or set the local matrix of the node
          */
-        virtual const tmat::Matrix4f &getLocalMatrix() const;
+        virtual const tmat::Matrix4f &localMatrix() const;
 
         /**
          * \brief Get the world matrix of the node
          */
-        const tmat::Matrix4f &getWorldMatrix() const;
+        virtual const tmat::Matrix4f &worldMatrix() const;
 
         /**
-         * \brief
-         *     Calculates the world matrix for this node from its local matrix
+         * \brief Return the inverse of the local matrix
          */
-        void updateWorldMatrix();
+        virtual const tmat::Matrix4f &localMatrixInverse() const;
+
+        /**
+         * \brief Return the inverse of the world matrix
+         */
+        virtual const tmat::Matrix4f &worldMatrixInverse() const;
 
         /**
          * \brief
-         *     Calculates the world matrix for this node and its descendants
-         *     from its local matrix
+         *     Return whether the node moved this frame (i.e. has a new world
+         *     matrix)
          *
          * \details
-         *     This function will be called after all nodes have been updated
+         *     The default behavior is to return true if the node's parent
+         *     moved. This should be overriden by nodes that change transform.
          */
-        void updateWorldMatrixAll();
+        virtual bool moved() const;
+
+        /**
+         * \brief Called at the beginning of each frame to clear flags
+         */
+        virtual void newFrame();
+
+        /**
+         * \brief Call newFrame on the node and its descendants
+         */
+        virtual void newFrameAll();
 
         /**
          * \brief Get this parents parent node
@@ -221,16 +251,18 @@ class Node : public std::enable_shared_from_this<Node>
 
     private:
         std::list<std::shared_ptr<Node>> children;
-        tmat::Matrix4f worldMatrix;
-        bool isActive_;
         std::weak_ptr<Node> parent;
         std::weak_ptr<Scene> scene;
+
+        bool isActive_ = true;
 
         friend class Scene;
 
         void onSceneChangedAll(std::shared_ptr<Scene> newScene);
         void onDescendantAddedAll(std::shared_ptr<Node> child);
         void onDescendantRemovedAll(std::shared_ptr<Node> child);
+        void onAncestorAddedAll(std::shared_ptr<Node> ancestor);
+        void onAncestorRemovedAll(std::shared_ptr<Node> ancestor);
 };
 
 } /* namespace */

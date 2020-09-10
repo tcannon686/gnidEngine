@@ -85,7 +85,7 @@ void Renderer::render(shared_ptr<Camera> camera) const
                 /* Use shader. */
                 shared_ptr<ShaderProgram> shader = it->material->shader();
                 shader->use();
-                shader->setProjectionMatrix(camera->getProjectionMatrix());
+                shader->setProjectionMatrix(camera->projectionMatrix());
             }
             material = it->material;
             material->bind();
@@ -94,7 +94,7 @@ void Renderer::render(shared_ptr<Camera> camera) const
             instanceCount = 1;
             it->material->shader()->setModelViewMatrix(
                     instanceCount,
-                    camera->getViewMatrix() * it->node->getWorldMatrix());
+                    camera->viewMatrix() * it->node->worldMatrix());
             updateLights(camera, it->material->shader());
         }
         else if(it->mesh != mesh)
@@ -106,7 +106,7 @@ void Renderer::render(shared_ptr<Camera> camera) const
             instanceCount = 1;
             it->material->shader()->setModelViewMatrix(
                     instanceCount,
-                    camera->getViewMatrix() * it->node->getWorldMatrix());
+                    camera->projectionMatrix() * it->node->worldMatrix());
             updateLights(camera, it->material->shader());
         }
         else
@@ -120,7 +120,7 @@ void Renderer::render(shared_ptr<Camera> camera) const
 
             it->material->shader()->setModelViewMatrix(
                     instanceCount,
-                    camera->getViewMatrix() * it->node->getWorldMatrix());
+                    camera->viewMatrix() * it->node->worldMatrix());
             updateLights(camera, it->material->shader());
             instanceCount ++;
         }
