@@ -80,6 +80,10 @@ public:
 
     /**
      * \brief Returns an observable for when the collider enters a collision
+     *
+     * \details
+     *     The collision is relative to this node, i.e. colliders()[0] of the
+     *     returned value is equal to this node.
      */
     std::shared_ptr<Observable<Collision>> collisionEntered()
     {
@@ -88,6 +92,10 @@ public:
 
     /**
      * \brief Returns an observable for when the collider exits a collision
+     *
+     * \details
+     *     The collision is relative to this node, i.e. colliders()[0] of the
+     *     returned value is equal to this node.
      */
     std::shared_ptr<Observable<Collision>> collisionExited()
     {
@@ -96,6 +104,10 @@ public:
 
     /**
      * \brief Returns an observable for when the collider stays in a collision
+     *
+     * \details
+     *     The collision is relative to this node, i.e. colliders()[0] of the
+     *     returned value is equal to this node.
      */
     std::shared_ptr<Observable<Collision>> collisionStayed()
     {

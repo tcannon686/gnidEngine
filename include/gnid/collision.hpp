@@ -4,6 +4,8 @@
 #include <memory>
 #include <functional>
 
+#include "gnid/matrix/matrix.hpp"
+
 namespace gnid
 {
 
@@ -15,6 +17,16 @@ class Collider;
 class Collision
 {
 public:
+    /**
+     * \brief
+     *     Create a collision object given two colliders and the overlap between
+     *     them, relative to the first collider
+     */
+    Collision(
+            const std::shared_ptr<Collider> a,
+            const std::shared_ptr<Collider> b,
+            tmat::Vector3f overlap);
+
     /**
      * \brief The colliders involved in the collision
      *
@@ -29,25 +41,19 @@ public:
      */
     const tmat::Vector3f &overlap() const { return overlap_; }
 
-    Collision(
-            const std::shared_ptr<Collider> a,
-            const std::shared_ptr<Collider> b,
-            tmat::Vector3f overlap)
-        : colliders_ { (a < b ? a : b), (a < b ? b : a) },
-          overlap_((a < b ? overlap : -overlap)),
-          visited_(true)
-    {
-    }
+    /**
+     * \brief
+     *     Swap colliders positions and calculate the overlap relative to the
+     *     first collider
+     */
+    void swapColliders();
 
-    bool operator==(const Collision &other) const
-    {
-        for(int i = 0; i < 2; i ++)
-        {
-            if(colliders_[i] != other.colliders_[i])
-                return false;
-        }
-        return true;
-    }
+    /**
+     * \brief Return the collision with swapColliders() called
+     */
+    Collision swapped() const;
+
+    bool operator==(const Collision &other) const;
 
 private:
     std::array<std::shared_ptr<Collider>, 2> colliders_;

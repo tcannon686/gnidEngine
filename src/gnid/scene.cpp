@@ -43,22 +43,22 @@ void Scene::handleCollision(
         item.first->overlap_ = overlap;
         item.first->visited_ = true;
         
-        a->notifyCollisionObservers(
+        item.first->colliders()[0]->notifyCollisionObservers(
                 *item.first,
-                a->collisionStayedObservers);
-        b->notifyCollisionObservers(
-                *item.first,
-                b->collisionStayedObservers);
+                item.first->colliders()[0]->collisionStayedObservers);
+        item.first->colliders()[1]->notifyCollisionObservers(
+                item.first->swapped(),
+                item.first->colliders()[1]->collisionStayedObservers);
     }
     /* New collision, send the onCollisionEnter event. */
     else
     {
-        a->notifyCollisionObservers(
+        item.first->colliders()[0]->notifyCollisionObservers(
                 *item.first,
-                a->collisionEnteredObservers);
-        b->notifyCollisionObservers(
-                *item.first,
-                b->collisionEnteredObservers);
+                item.first->colliders()[0]->collisionEnteredObservers);
+        item.first->colliders()[1]->notifyCollisionObservers(
+                item.first->swapped(),
+                item.first->colliders()[1]->collisionEnteredObservers);
     }
 
     /* Move the objects away from each other if necessary. */
@@ -202,7 +202,7 @@ void Scene::update(float dt)
                     *it,
                     a->collisionExitedObservers);
             b->notifyCollisionObservers(
-                    *it,
+                    it->swapped(),
                     b->collisionExitedObservers);
 
             collisions.erase(it ++);
