@@ -11,7 +11,7 @@ namespace gnid
 {
 
 /**
- * \brief A convex hull shape made of a polyhedron (currently in progress)
+ * \brief A convex hull shape made of a polyhedron
  *
  * \todo
  *      - Implement faster algorithm, currently just does a simple O(n) search

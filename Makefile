@@ -16,6 +16,9 @@ install: all
 	$(MKDIR) $(BUILD_DIR)
 	$(CD)    $(BUILD_DIR) && $(CMAKE) -DCMAKE_BUILD_TYPE=Debug ..
 
+doc:
+	doxygen Doxyfile
+
 distclean:
 	$(RMRF) $(BUILD_DIR)
 

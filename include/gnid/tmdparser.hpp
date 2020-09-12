@@ -19,10 +19,12 @@ namespace gnid
  *
  * \details
  *     This class can be used to parse the data exported from
- *     operator_export_tmd.py.
+ *     operator_export_tmd.py. This is triangulated mesh, armature and animation
+ *     data. Meshes are associated with a material name, but materials
+ *     themselves are not stored. Instead, they must be provided in a separate
+ *     map.
  *
  * \todo
- *      - Add feature allowing user to map material names to materials
  *      - Add support for loading armatures
  *      - Add support for loading animations
  */
@@ -30,6 +32,10 @@ template<typename Stream>
 class TmdParser
 {
 public:
+
+    /**
+     * \brief Create a TMD parser for the given stream
+     */
     TmdParser(Stream &stream) : stream_(stream)
     {
     }
@@ -43,12 +49,18 @@ public:
      * \brief Create a render node from the parsed data
      *
      * \details
-     *     This method must be called after parse is called.
+     *     This method must be called after parse is called. It creates a set of
+     *     nodes from the parsed data and adds them to a root node. In the TMD
+     *     format, mesh nodes are associated with a material name, but not
+     *     material data. The materialMappings parameter is used to select which
+     *     name should be associated with what material.
      *
-     * \tparam Shader   The type of shader to use for materials
-     * \tparam Material The type of materials to use
+     * \tparam Shader          The type of shader to use for materials
+     * \tparam Material        The type of materials to use
      *
-     * \param shader    The shader to use for the materials
+     * \param shader           The shader to use for the materials
+     *
+     * \param materialMappings Associates a material with a material name
      */
     template<typename Shader, typename Material>
     std::shared_ptr<Node> buildRendererNode(

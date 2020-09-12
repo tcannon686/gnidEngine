@@ -6,11 +6,28 @@
 namespace gnid
 {
 
+/**
+ * \brief A camera in the scene
+ */
 class Camera : public Node
 {
     public:
+        /**
+         * \brief
+         *     Constructs the camera's projection matrix from the given values
+         */
         Camera(float fovy, float aspect, float znear, float zfar);
+
+        /**
+         * \brief Returns the camera projection matrix
+         */
         const tmat::Matrix4f &projectionMatrix() const;
+        
+        /**
+         * \brief
+         *     Returns the camera view matrix, i.e. the inverse of the camera
+         *     world matrix
+         */
         const tmat::Matrix4f &viewMatrix() const;
         void onSceneChanged(std::shared_ptr<Scene> newScene) override;
         

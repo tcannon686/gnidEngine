@@ -8,17 +8,17 @@ most OSs.
 ## Compiling
 To compile, install the dependencies, then run `make`. The project uses CMake,
 but a wrapper makefile is included for convenience. CMake will build a static
-object. You will need to link with a few libraries to use the engine in your own
-project.
+library you can link with your game project. You will need to link with a few
+libraries to use the engine in your own project.
 
-You can also build the docs by running `doxygen Doxyfile`. This will output
-index.html in the docs/html.
+You can also build the docs by running `make doc`. This will output index.html
+in the docs/html.
 
-The easiest way to build with your own projects is to install. This can be done
-by running `sudo make install`, and will install libgnid.a to /usr/local/lib and
-a gnid folder to /usr/local/include. The libgnid.a option can then be linked
-with by passing `-lgnid` to gcc. You will also need to link with `-lglfw`,
-and `-ldl`.
+The easiest way to build with your own projects is to install the library using
+the CMake install system. This can be done by running `sudo make install`, and
+will install libgnid.a to /usr/local/lib and a gnid folder to
+/usr/local/include. The libgnid.a option can then be linked with by passing
+`-lgnid` to gcc. You will also need to link with `-lglfw`, and `-ldl`.
 
 ### Dependencies
  - GLFW3
