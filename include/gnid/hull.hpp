@@ -4,6 +4,7 @@
 #include <vector>
 #include <cassert>
 
+#include "gnid/matrix/matrix.hpp"
 #include "gnid/shape.hpp"
 
 namespace gnid
@@ -13,23 +14,18 @@ namespace gnid
  * \brief A convex hull shape made of a polyhedron (currently in progress)
  *
  * \todo
- *      - What data structure should be used to store the points?
- *      - Implement all features
+ *      - Implement faster algorithm, currently just does a simple O(n) search
+ *        on the points.
  */
 class Hull : public Shape
 {
 public:
-    Hull(const std::vector<tmat::Vector3f> &points)
-    {
-        /* TODO implement */
-        assert(false);
-    }
+    Hull(const std::vector<tmat::Vector3f> &points);
 
-    tmat::Vector3f support(const tmat::Vector3f &d) override
-    {
-        /* TODO implement */
-        assert(false);
-    }
+    tmat::Vector3f support(const tmat::Vector3f &d) const override;
+
+private:
+    const std::vector<tmat::Vector3f> points_;
 };
 
 } /* namespace */
