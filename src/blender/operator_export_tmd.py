@@ -10,7 +10,9 @@
 
     To use it, import it into Blender, select the mesh you want to export, and
     run the script. The script will automatically export armature data if the
-    mesh is parented to one.
+    mesh is parented to one. Meshes will only be exported if a material is
+    assigned. If you do not see your model in game, make sure you set a material
+    to it in Blender.
 """
 
 import bpy
@@ -130,7 +132,8 @@ def write_model(context, filepath, use_some_setting):
             vertices.append(mesh.vertices[v].co.copy())
             normals.append(n)
             texCos.append(t)
-            bone_weights.append(weights)
+            if weights:
+                bone_weights.append(weights)
 
         else:
             vertex_index = loops[k]

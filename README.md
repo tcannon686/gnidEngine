@@ -38,8 +38,9 @@ sudo pacman -S glfw-x11
 ```
 
 ## Running
-The program will not run standalone, you need a separate project to do this. An
-example project will be provided shortly.
+The program will not run standalone, you need a separate project to do this. A
+sample game is available
+[here](https://github.com/tcannon686/gnidEngine-sampleGame).
 
 ## Features
 gnidEngine is a very simple game engine, but nevertheless, it still includes
