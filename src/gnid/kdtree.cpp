@@ -72,6 +72,10 @@ bool KdTree::update()
             bool updatedLeft = left->update();
             bool updatedRight = right->update();
 
+            hasNonStaticNodes_ =
+                    left->hasNonStaticNodes_
+                    || right->hasNonStaticNodes_;
+
             if(updatedLeft || updatedRight)
             {
                 box_.clear();
@@ -92,16 +96,16 @@ bool KdTree::update()
             generate();
             return true;
         }
-        /* Otherwise just update the box from the nodes. */
+        /* Otherwise update the box from the nodes. */
         else
         {
             bool updated = false;
             for(auto node : nodes)
             {
                 if(node->moved())
-                {
                     updated = true;
-                }
+                if(!node->isStatic())
+                    hasNonStaticNodes_ = true;
             }
 
             if(updated)
@@ -168,6 +172,10 @@ void KdTree::listOverlappingNodesRecursive(
         return;
     visited_ = true;
 
+    /* Do not continue if the node only contains static nodes. */
+    if(!hasNonStaticNodes_)
+        return;
+
     /*
      * If the node is an inner node, list the overlaps between its child nodes.
      */
@@ -216,6 +224,7 @@ void KdTree::listOverlappingNodes(
 
             listOverlappingNodes(list, *first.left,  *second.right);
             listOverlappingNodes(list, *first.right, *second.left);
+
             listOverlappingNodes(list, *first.left,  *second.left);
             listOverlappingNodes(list, *first.right, *second.right);
         }
@@ -249,6 +258,7 @@ void KdTree::listOverlappingNodes(
          */
         else
         {
+            /* Both nodes should be leaf nodes. */
             assert(first.nodes.size() != 0 && second.nodes.size() != 0);
             assert(!first.left && !first.right && !second.left && !second.right);
 

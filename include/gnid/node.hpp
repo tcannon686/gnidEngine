@@ -196,6 +196,17 @@ class Node : public std::enable_shared_from_this<Node>
 
         /**
          * \brief
+         *     Dynamic casts the node to the given type, returning null if it is
+         *     not possible
+         */
+        template<class T>
+        std::shared_ptr<T> as()
+        {
+            return std::dynamic_pointer_cast<T>(shared_from_this());
+        }
+
+        /**
+         * \brief
          *     Find the first ancestor of this node with the given type, or this
          *     node if it has the type
          */

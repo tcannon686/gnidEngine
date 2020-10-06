@@ -124,13 +124,24 @@ public:
      */
     bool &isTrigger();
 
+    /**
+     * \brief Returns whether the collider is static
+     *
+     * \details
+     *     This will be true if the collider does not have a rigidbody as a
+     *     parent.
+     */
+    const bool &isStatic() const;
+
     void onSceneChanged(std::shared_ptr<Scene> newScene) override;
 
     void onAncestorAdded(std::shared_ptr<Node> ancestor) override;
+    void onAncestorRemoved(std::shared_ptr<Node> ancestor) override;
 
     std::shared_ptr<Node> clone() override
     {
         auto ret = std::make_shared<Collider>(*this);
+        ret->isStatic_ = true;
         ret->cloneChildren(shared_from_this());
         return ret;
     }
@@ -173,7 +184,8 @@ private:
 
     const std::shared_ptr<Shape> shape_;
     Box box_;
-    bool isTrigger_;
+    bool isTrigger_ = false;
+    bool isStatic_ = true;
 
     typedef bool (Collider::*NearestSimplexFunction)(
             std::vector<tmat::Vector3f> &s,

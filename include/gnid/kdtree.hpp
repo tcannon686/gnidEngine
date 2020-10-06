@@ -98,6 +98,7 @@ private:
     float maxShift_;
     unsigned int totalNodes;    /* The total number of nodes in the tree. */
     bool needsUpdate_;
+    bool hasNonStaticNodes_;
 
     mutable bool visited_;
 

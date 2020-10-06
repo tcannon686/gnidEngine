@@ -2,6 +2,7 @@
 
 #include "gnid/matrix/matrix.hpp"
 #include "gnid/scene.hpp"
+#include "gnid/rigidbody.hpp"
 #include <cassert>
 #include <limits>
 #include <map>
@@ -19,7 +20,7 @@ Collider::nearestSimplexFunctions[4] = {
 };
 
 Collider::Collider(shared_ptr<Shape> shape)
-    :  shape_(shape), isTrigger_(false)
+    : shape_(shape)
 {
     collisionEntered_ = makeCollisionObservable(collisionEnteredObservers);
     collisionExited_ = makeCollisionObservable(collisionExitedObservers);
@@ -697,10 +698,31 @@ void Collider::onSceneChanged(shared_ptr<Scene> newScene)
 void Collider::onAncestorAdded(std::shared_ptr<Node> ancestor)
 {
     forceUpdateBox_ = true;
+
+    /* Should only have one rigidbody as an ancestor. */
+    /* TODO throw exception */
+    if(ancestor->as<Rigidbody>())
+    {
+        assert(isStatic_);
+        isStatic_ = false;
+    }
+}
+
+void Collider::onAncestorRemoved(std::shared_ptr<Node> ancestor)
+{
+    if(ancestor->as<Rigidbody>())
+    {
+        isStatic_ = true;
+    }
 }
 
 bool &Collider::isTrigger()
 {
     return isTrigger_;
+}
+
+const bool &Collider::isStatic() const
+{
+    return isStatic_;
 }
 
