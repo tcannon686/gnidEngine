@@ -18,43 +18,59 @@ static const char *vert_code = R"VERT(
 in vec4 vertex;
 in vec3 normal;
 
-out vec4 fragNormal;
-out vec4 fragVertex;
+out vec3 fragNormal;
+out vec3 fragVertex;
 
 uniform mat4 modelViewMatrix;
 uniform mat4 projectionMatrix;
 
 void main() {
-    fragVertex = modelViewMatrix * vec4(vertex.xyz, 1);
-    fragNormal = (modelViewMatrix * vec4(normal, 0));
+    fragVertex = (modelViewMatrix * vec4(vertex.xyz, 1.0)).xyz;
+    fragNormal = (modelViewMatrix * vec4(normal, 0.0)).xyz;
 
-    gl_Position = projectionMatrix * fragVertex;
+    gl_Position = projectionMatrix * vec4(fragVertex, 1.0);
 }
 )VERT";
 
 static const char *frag_code = R"FRAG(
 #version 440
 out vec4 fragColor;
-in vec4 fragNormal;
-in vec4 fragVertex;
+in vec3 fragNormal;
+in vec3 fragVertex;
 
 uniform int lightCount;
 uniform vec4 lights[32];
+
+/* Material definition. */
 uniform vec3 diffuseColor;
+uniform vec3 specularColor;
+uniform float specularExponent;
 
 void main() {
-    fragColor = vec4(0, 0, 0, 1);
+    fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+
+    vec3 n = normalize(fragNormal);
 
     for(int i = 0; i < lightCount; i ++)
     {
-        vec3 l = normalize(lights[i].xyz - fragVertex.xyz);
+        vec3 l = normalize(lights[i].xyz - fragVertex);
+
+        /* Calculate attenuation. */
         float attenuation = clamp(
                 lights[i].w / dot(l, l),
                 0,
                 1);
-        fragColor += vec4(diffuseColor, 0)
-            * attenuation
-            * clamp(dot(l, fragNormal.xyz), 0, 1);
+
+        float kS = pow(
+                clamp(dot(normalize(l - normalize(fragVertex)), n), 0.0, 1.0),
+                specularExponent);
+        
+        float kD = clamp(dot(l, n), 0.0, 1.0);
+
+        vec3 diffuse = diffuseColor * attenuation * kD;
+        vec3 specular = specularColor * attenuation * kS;
+
+        fragColor += vec4(diffuse + specular, 0.0);
     }
 }
 )FRAG";
@@ -129,10 +145,15 @@ void PhongShader::init()
     projectionMatrixLoc = glGetUniformLocation(program, "projectionMatrix");
     lightCountLoc = glGetUniformLocation(program, "lightCount");
     diffuseColorLoc = glGetUniformLocation(program, "diffuseColor");
+    specularColorLoc = glGetUniformLocation(program, "specularColor");
+    specularExponentLoc = glGetUniformLocation(program, "specularExponent");
 
     assert(modelViewMatrixLoc != -1);
     assert(projectionMatrixLoc != -1);
     assert(lightCountLoc != -1);
+    assert(diffuseColorLoc != -1);
+    assert(specularColorLoc != -1);
+    assert(specularExponentLoc != -1);
 
     for(int i = 0; i < 32; i ++)
     {
@@ -200,8 +221,24 @@ void PhongShader::setDiffuseColor(Vector3f &diffuseColor)
             diffuseColor[2]);
 }
 
+void PhongShader::setSpecularColor(Vector3f &specularColor)
+{
+    glUniform3f(
+            specularColorLoc,
+            specularColor[0],
+            specularColor[1],
+            specularColor[2]);
+}
+
+void PhongShader::setSpecularExponent(float exponent)
+{
+    glUniform1f(specularExponentLoc, exponent);
+}
+
 void PhongMaterial::bind()
 {
     shader_->setDiffuseColor(diffuseColor_);
+    shader_->setSpecularColor(specularColor_);
+    shader_->setSpecularExponent(specularExponent_);
 }
 

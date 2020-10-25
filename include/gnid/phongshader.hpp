@@ -12,7 +12,7 @@ namespace gnid
 {
 
 /**
- * \brief A simple shader using the phong reflection model
+ * \brief A simple shader using the Blinn-Phong reflection model
  */
 class PhongShader : public ShaderProgram
 {
@@ -29,15 +29,19 @@ class PhongShader : public ShaderProgram
                 std::shared_ptr<Camera> camera,
                 std::shared_ptr<LightNode> light) override;
         void setDiffuseColor(tmat::Vector3f &diffuseColor);
+        void setSpecularColor(tmat::Vector3f &specularColor);
+        void setSpecularExponent(float exponent);
         int getMaxInstances() override;
 
     private:
-        GLint program;
-        GLint modelViewMatrixLoc;
-        GLint projectionMatrixLoc;
-        GLint lightCountLoc;
+        GLint program = 0;
+        GLint modelViewMatrixLoc = -1;
+        GLint projectionMatrixLoc = -1;
+        GLint lightCountLoc = -1;
         std::array<GLint, 32> lightsLocs;
-        GLint diffuseColorLoc;
+        GLint diffuseColorLoc = -1;
+        GLint specularColorLoc = -1;
+        GLint specularExponentLoc = -1;
 };
 
 /**
@@ -48,9 +52,13 @@ class PhongMaterial : public Material
     public:
         PhongMaterial(
                 std::shared_ptr<PhongShader> shader,
-                tmat::Vector3f diffuseColor)
+                tmat::Vector3f diffuseColor,
+                tmat::Vector3f specularColor,
+                float specularExponent)
             : shader_(shader),
-              diffuseColor_(diffuseColor)
+              diffuseColor_(diffuseColor),
+              specularColor_(specularColor),
+              specularExponent_(specularExponent)
         {
         }
 
@@ -62,10 +70,14 @@ class PhongMaterial : public Material
         void bind() override;
 
         tmat::Vector3f &diffuseColor();
+        tmat::Vector3f &specularColor();
+        float &specularExponent();
 
     private:
         std::shared_ptr<PhongShader> shader_;
         tmat::Vector3f diffuseColor_;
+        tmat::Vector3f specularColor_;
+        float specularExponent_;
 };
 
 } /* namespace */
