@@ -7,6 +7,8 @@ project(
 set(CMAKE_CXX_STANDARD                 17)
 set(CMAKE_CXX_STANDARD_REQUIRED        True)
 
+enable_testing()
+
 ################################### SOURCES ####################################
 
 file(
@@ -51,6 +53,31 @@ add_library(${PROJECT_NAME}            STATIC
 target_include_directories(
     ${PROJECT_NAME}
     PUBLIC                             include)
+
+#################################### TESTS #####################################
+
+file(
+    GLOB                               tests_SOURCES
+    LIST_DIRECTORIES                   false
+    src/tests/*.cpp)
+
+foreach(SRC ${tests_SOURCES})
+    # Figure out test name
+    string(REGEX REPLACE ".*src/tests/(.*)\.cpp"
+        "${PROJECT_NAME}_test_\\1"
+        TESTNAME "${SRC}")
+    message(STATUS "Found test: ${TESTNAME}")
+
+    # Add an executable for the test
+    add_executable(${TESTNAME}         ${SRC})
+    target_link_libraries(${TESTNAME}  ${PROJECT_NAME})
+    target_include_directories(
+        ${TESTNAME}
+        PUBLIC                         include)
+
+    # Add the test
+    add_test(${TESTNAME} ${TESTNAME})
+endforeach()
 
 ################################### INSTALL ####################################
 

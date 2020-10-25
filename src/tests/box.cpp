@@ -1,19 +1,18 @@
 #include <cassert>
 #include <iostream>
-#include "matrix/matrix.hpp"
-#include "box.hpp"
+#include "gnid/matrix/matrix.hpp"
+#include "gnid/box.hpp"
 
 using namespace gnid;
 using namespace tmat;
 
-void testBox()
+int main(int argc, char *argv[])
 {
     Box box;
     box.add({ -1, -1, -1 });
     box.add({ 1, 1, 1 });
 
     /* Make sure the support function works. */
-    cout << box.support(Vector3f::right) << endl;
     assert(box.support(Vector3f::right)[0] > 0);
     cout << box.support(-Vector3f::right) << endl;
     assert(box.support(-Vector3f::right)[0] < 0);

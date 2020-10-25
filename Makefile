@@ -1,7 +1,8 @@
 # Makefile wrapper
 
 BUILD_DIR = build
-CMAKE 	  = cmake
+CMAKE     = cmake
+CTEST     = ctest
 CD        = cd
 RMRF      = rm -rf
 MKDIR     = mkdir -p
@@ -15,6 +16,9 @@ install: all
 ./build/Makefile: ./CMakeLists.txt
 	$(MKDIR) $(BUILD_DIR)
 	$(CD)    $(BUILD_DIR) && $(CMAKE) -DCMAKE_BUILD_TYPE=Debug ..
+
+test: all
+	$(CD)    $(BUILD_DIR) && $(CTEST)
 
 doc:
 	doxygen Doxyfile
