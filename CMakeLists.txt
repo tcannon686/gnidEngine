@@ -69,8 +69,11 @@ foreach(SRC ${tests_SOURCES})
     message(STATUS "Found test: ${TESTNAME}")
 
     # Add an executable for the test
-    add_executable(${TESTNAME}         ${SRC})
-    target_link_libraries(${TESTNAME}  ${PROJECT_NAME})
+    add_executable(${TESTNAME}         ${SRC}
+                                       ${glad_SOURCES})
+
+    target_link_libraries(${TESTNAME} glfw ${PROJECT_NAME} dl pthread)
+
     target_include_directories(
         ${TESTNAME}
         PUBLIC                         include)

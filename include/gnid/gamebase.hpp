@@ -33,6 +33,8 @@ public:
      */
     GameBase(std::string title, int clientWidth, int clientHeight);
 
+    virtual ~GameBase();
+
     /**
      * \brief The title of the game
      */
@@ -88,7 +90,8 @@ public:
     }
 
     /**
-     * \brief Called every frame
+     * \brief
+     *     Called at the beginning of every frame, before the scene is updated
      */
     virtual void update(float dt) {}
 
@@ -142,6 +145,16 @@ public:
      */
     void start();
 
+    /**
+     * \brief Stop the game loop
+     */
+    void stop();
+
+    /**
+     * \brief Perform one iteration of the game loop
+     */
+    void spinOnce();
+
     GLFWwindow *window();
 
 private:
@@ -149,6 +162,10 @@ private:
     const int clientWidth_;
     const int clientHeight_;
     const std::string title_;
+
+    bool shouldStop_ = false;
+
+    double time_;
 
     static void keyCallback(
             GLFWwindow* window,

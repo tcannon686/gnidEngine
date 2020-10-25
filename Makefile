@@ -18,7 +18,7 @@ install: all
 	$(CD)    $(BUILD_DIR) && $(CMAKE) -DCMAKE_BUILD_TYPE=Debug ..
 
 test: all
-	$(CD)    $(BUILD_DIR) && $(CTEST)
+	$(CD)    $(BUILD_DIR) && $(CTEST) --output-on-failure
 
 doc:
 	doxygen Doxyfile

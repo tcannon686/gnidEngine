@@ -14,12 +14,8 @@ GameBase::GameBase(string title, int clientWidth, int clientHeight)
       clientHeight_(clientHeight),
       title_(title)
 {
-    /* Set up GLFW. */
-	if(!glfwInit())
-    {
-        /* TODO throw exception. */
-        return;
-    }
+    /* TODO throw exception. */
+    assert(glfwInit());
 
 	glfwDefaultWindowHints();
 	glfwWindowHint(GLFW_RESIZABLE, 0);
@@ -35,12 +31,8 @@ GameBase::GameBase(string title, int clientWidth, int clientHeight)
             NULL,
             NULL);
 
-    if(!window_)
-    {
-        /* TODO throw exception. */
-        cerr << "Failed to create window." << endl;
-        return;
-    }
+    /* TODO throw exception. */
+    assert(window_);
 
     glfwSetWindowUserPointer(window_, static_cast<void *>(this));
 
@@ -51,47 +43,58 @@ GameBase::GameBase(string title, int clientWidth, int clientHeight)
 	glfwSetMouseButtonCallback(window_, &GameBase::mouseCallback);
 	glfwSetCursorPosCallback(window_,   &GameBase::mouseMoveCallback);
 
-    if(!gladLoadGL())
-    {
-        /* TODO throw exception. */
-        cerr << "error: glad error." << endl;
-        return;
-    }
+    /* TODO throw exception. */
+    assert(gladLoadGL());
 }
 
 void GameBase::start()
 {
-    double time;
-
     init();
     loadContent();
     postLoadContent();
 
     glEnable(GL_DEPTH_TEST);
-	while(!glfwWindowShouldClose(window_))
+	while(!glfwWindowShouldClose(window_) && !shouldStop_)
 	{
-        float dt;
-        GLenum error;
+        spinOnce();
+	}
+}
 
-        dt = glfwGetTime() - time;
-        time += dt;
+void GameBase::stop()
+{
+    shouldStop_ = true;
+}
 
-        glClearColor(.25f, .5f, 1.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+void GameBase::spinOnce()
+{
+    float dt;
+    GLenum error;
 
-        update(dt);
+    dt = glfwGetTime() - time_;
+    time_ += dt;
+
+    glClearColor(.25f, .5f, 1.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    update(dt);
+
+    if(currentScene())
+    {
         currentScene()->update(dt);
         currentScene()->render();
+    }
 
-        glfwSwapBuffers(window_);
-        glfwPollEvents();
+    glfwSwapBuffers(window_);
+    glfwPollEvents();
 
-        while((error = glGetError()) != GL_NO_ERROR)
-        {
-            cerr << "error: OpenGL error " << hex << error << endl;
-        }
-	}
+    while((error = glGetError()) != GL_NO_ERROR)
+    {
+        cerr << "error: OpenGL error " << hex << error << endl;
+    }
+}
 
+GameBase::~GameBase()
+{
     glfwDestroyWindow(window_);
 }
 
