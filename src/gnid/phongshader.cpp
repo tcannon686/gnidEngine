@@ -8,6 +8,8 @@
 
 #include "gnid/camera.hpp"
 #include "gnid/lightnode.hpp"
+#include "gnid/directionallight.hpp"
+#include "gnid/pointlight.hpp"
 
 using namespace gnid;
 using namespace tmat;
@@ -38,7 +40,14 @@ out vec4 fragColor;
 in vec3 fragNormal;
 in vec3 fragVertex;
 
+/* Light definitions. */
 uniform int lightCount;
+
+/*
+ * If w component is greater than zero, represents a point light with the
+ * position xyz. If w component equals zero, represents a directional light with
+ * the direction xyz.
+ */
 uniform vec4 lights[32];
 
 /* Material definition. */
@@ -53,13 +62,18 @@ void main() {
 
     for(int i = 0; i < lightCount; i ++)
     {
-        vec3 l = normalize(lights[i].xyz - fragVertex);
+        /*
+         * Use the direction to the surface to the light if the light is a point
+         * light, else use the light direction.
+         */
+        vec3 l = (lights[i].w > 0.0)
+                ? normalize(lights[i].xyz - fragVertex)
+                : normalize(lights[i].xyz);
 
-        /* Calculate attenuation. */
-        float attenuation = clamp(
-                lights[i].w / dot(l, l),
-                0,
-                1);
+        /* Calculate attenuation for point light. */
+        float attenuation = (lights[i].w > 0.0)
+                ? clamp(lights[i].w / dot(l, l), 0, 1)
+                : 1.0;
 
         float kS = pow(
                 clamp(dot(normalize(l - normalize(fragVertex)), n), 0.0, 1.0),
@@ -198,7 +212,23 @@ void PhongShader::setLightCount(int count)
 void PhongShader::setLight(
         int index,
         shared_ptr<Camera> camera,
-        shared_ptr<LightNode> light)
+        shared_ptr<DirectionalLight> light)
+{
+    /* Calculate the light direction. */
+    Vector3f position = transformDirection(
+            camera->viewMatrix(), light->direction());
+
+    float uniform[4];
+    position.toArray(uniform);
+    uniform[3] = 0.0f;
+
+    glUniform4fv(lightsLocs[index], 1, uniform);
+}
+
+void PhongShader::setLight(
+        int index,
+        shared_ptr<Camera> camera,
+        shared_ptr<PointLight> light)
 {
     /* Calculate the light position. */
     Vector3f position = transform(camera->viewMatrix(), light->position());

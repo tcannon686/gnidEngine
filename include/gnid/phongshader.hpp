@@ -27,7 +27,11 @@ class PhongShader : public ShaderProgram
         void setLight(
                 int index,
                 std::shared_ptr<Camera> camera,
-                std::shared_ptr<LightNode> light) override;
+                std::shared_ptr<DirectionalLight> light) override;
+        void setLight(
+                int index,
+                std::shared_ptr<Camera> camera,
+                std::shared_ptr<PointLight> light) override;
         void setDiffuseColor(tmat::Vector3f &diffuseColor);
         void setSpecularColor(tmat::Vector3f &specularColor);
         void setSpecularExponent(float exponent);

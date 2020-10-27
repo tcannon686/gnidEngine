@@ -6,12 +6,15 @@
 #include <iostream>
 #include <memory>
 #include <set>
+#include <cassert>
 
 #include "gnid/material.hpp"
 #include "gnid/shader.hpp"
 #include "gnid/node.hpp"
 #include "gnid/camera.hpp"
 #include "gnid/lightnode.hpp"
+#include "gnid/pointlight.hpp"
+#include "gnid/directionallight.hpp"
 
 using namespace gnid;
 using namespace std;
@@ -59,8 +62,24 @@ void Renderer::updateLights(
             it != end(lights);
             ++ it)
     {
-        program->setLight(i, camera, *it);
-        ++ i;
+        /* Set the light depending on its type. */
+        auto dl = (*it)->as<DirectionalLight>();
+        auto pl = (*it)->as<PointLight>();
+
+        if(dl)
+        {
+            program->setLight(i, camera, dl);
+            ++ i;
+        }
+        else if(pl)
+        {
+            program->setLight(i, camera, pl);
+        }
+        else
+        {
+            /* TODO throw exception. */
+            assert(false);
+        }
     }
 }
 

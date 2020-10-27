@@ -8,6 +8,8 @@
 namespace gnid
 {
 
+class DirectionalLight;
+class PointLight;
 class LightNode;
 class Camera;
 
@@ -51,12 +53,20 @@ class ShaderProgram
         virtual void setLightCount(int count) = 0;
 
         /**
-         * \brief Create a light in the scene from the given light node
+         * \brief Create a light in the scene from a point light node
          */
         virtual void setLight(
                 int index,
                 std::shared_ptr<Camera> camera,
-                std::shared_ptr<LightNode> light) = 0;
+                std::shared_ptr<PointLight> light) = 0;
+
+        /**
+         * \brief Create a light in the scene from a directional light node
+         */
+        virtual void setLight(
+                int index,
+                std::shared_ptr<Camera> camera,
+                std::shared_ptr<DirectionalLight> light) = 0;
 
         /**
          * \brief
