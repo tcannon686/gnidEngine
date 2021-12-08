@@ -1,5 +1,6 @@
 #include "gnid/hull.hpp"
 
+#include <limits>
 #include <vector>
 
 #include "gnid/matrix/matrix.hpp"
@@ -15,7 +16,7 @@ Hull::Hull(const vector<Vector3f> &points)
 
 Vector3f Hull::support(const tmat::Vector3f &d) const
 {
-    float currentMax = 0.0f;
+    float currentMax = -std::numeric_limits<float>::infinity();
     Vector3f currentPoint;
 
     for(auto &point : points_)
