@@ -13,6 +13,9 @@
 #include "gnid/shader.hpp"
 #include "gnid/renderer.hpp"
 #include "gnid/renderernode.hpp"
+#include "gnid/spatialnode.hpp"
+#include "gnid/collider.hpp"
+#include "gnid/hull.hpp"
 #include "gnid/node.hpp"
 #include "gnid/matrix/matrix.hpp"
 
@@ -49,8 +52,9 @@ public:
      *
      * \param shader    The shader to use for the materials
      */
-    template<typename Shader, typename Material>
-    std::shared_ptr<Node> buildRendererNode(std::shared_ptr<Shader> shader);
+    template<typename Material>
+    std::shared_ptr<Node> buildRendererNode(std::shared_ptr<Material> material);
+    std::shared_ptr<Node> buildPhysicsNode();
     
 private:
     Stream &stream;
@@ -523,9 +527,9 @@ void ObjParser<Stream>::parse()
 }
 
 template<typename Stream>
-template<typename Shader, typename Material>
+template<typename Material>
 std::shared_ptr<Node> ObjParser<Stream>::buildRendererNode(
-        std::shared_ptr<Shader> shader)
+        std::shared_ptr<Material> material)
 {
     assert(done);
     /* Change the separate indices to one set of vertex indices. */
@@ -648,8 +652,23 @@ std::shared_ptr<Node> ObjParser<Stream>::buildRendererNode(
         index_array.size(),
         GL_UNSIGNED_INT,
         vao);
-    std::shared_ptr<Material> mat = std::make_shared<Material>(shader);
-    return std::make_shared<RendererNode>(renderMesh, mat);
+    return std::make_shared<RendererNode>(renderMesh, material);
+}
+
+template<typename Stream>
+std::shared_ptr<Node> ObjParser<Stream>::buildPhysicsNode()
+{
+    std::shared_ptr<SpatialNode> ret = std::make_shared<SpatialNode>();
+    for (int i = 0; i < vIndices.size(); i += 3) {
+        std::vector<tmat::Vector3f> points;
+        for (int j = 0; j < 3; j ++) {
+            points.push_back(vertices[vIndices[i + j]].cut());
+        }
+        std::shared_ptr<Collider> collider = std::make_shared<Collider>(
+            std::make_shared<Hull>(points));
+        ret->add(collider);
+    }
+    return ret;
 }
 
 } /* namespace */
