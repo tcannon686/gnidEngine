@@ -215,7 +215,7 @@ void KdTree::listOverlappingNodes(
         const KdTree &second)
 {
     /* If the nodes overlap. */
-    if(first.box_.overlaps(second.box_))
+    if(first.box_.overlaps(second.box_) && (first.hasNonStaticNodes_ || second.hasNonStaticNodes_))
     {
         /* If the nodes are both inner nodes, check their children. */
         if(first.nodes.size() == 0 && second.nodes.size() == 0)
@@ -338,6 +338,8 @@ void KdTree::generate()
     assert(left == nullptr);
     assert(right == nullptr);
 
+    const auto tolerance = 0.0001f;
+
     /*
      * The box that contains all of the centers. We need to split using this box
      * to avoid cases where the median of the bounding box contains the centers
@@ -382,12 +384,21 @@ void KdTree::generate()
     right = make_unique<KdTree>();
 
     /* Split the nodes based on their center. */
+    int leftCount = 0, rightCount = 0;
     for(auto node : nodes)
     {
-        if(node->box().center()[axisIndex] < median)
+        auto center = node->box().center()[axisIndex];
+        if(center < median
+            || (abs(center - median) < tolerance && leftCount < rightCount))
+        {
             left->add(node);
+            leftCount ++;
+        }
         else
+        {
             right->add(node);
+            rightCount ++;
+        }
     }
 
     assert(left->nodes.size() > 0 && right->nodes.size() > 0);
@@ -430,6 +441,13 @@ void KdTreePruner::remove(shared_ptr<Collider> collider)
             kdTree_->add(c);
         }
     }
+}
+
+int KdTree::depth()
+{
+    return 1 + max(
+        left ? left->depth() : 0,
+        right ? right->depth() : 0);
 }
 
 void KdTreePruner::update()

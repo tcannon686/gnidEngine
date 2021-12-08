@@ -89,6 +89,12 @@ public:
      */
     float &maxShift() { return maxShift_; }
 
+    /**
+     * \brief
+     *     Return the depth of the kdTree
+     */
+    int depth();
+
     void print(int indent = 0);
 
 private:
