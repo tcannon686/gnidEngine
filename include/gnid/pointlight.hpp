@@ -21,6 +21,11 @@ public:
 
     std::shared_ptr<Node> clone() override;
 
+    void setLight(
+        int index,
+        std::shared_ptr<Camera> camera,
+        std::shared_ptr<ShaderProgram> program) override;
+
 private:
     float distance_ = 1.0;
 };

@@ -19,3 +19,13 @@ shared_ptr<Node> PointLight::clone()
     return ret;
 }
 
+void PointLight::setLight(
+    int index,
+    shared_ptr<Camera> camera,
+    shared_ptr<ShaderProgram> program)
+{
+    program->setLight(
+        index,
+        camera,
+        static_pointer_cast<PointLight>(shared_from_this()));
+}

@@ -32,6 +32,9 @@ class PhongShader : public ShaderProgram
                 int index,
                 std::shared_ptr<Camera> camera,
                 std::shared_ptr<PointLight> light) override;
+        void setLight(
+                std::shared_ptr<Camera> camera,
+                std::shared_ptr<AmbientLight> light) override;
         void setDiffuseColor(tmat::Vector3f &diffuseColor);
         void setSpecularColor(tmat::Vector3f &specularColor);
         void setSpecularExponent(float exponent);
@@ -43,8 +46,10 @@ class PhongShader : public ShaderProgram
         GLint projectionMatrixLoc = -1;
         GLint lightCountLoc = -1;
         std::array<GLint, 32> lightsLocs;
+        std::array<GLint, 32> lightColorsLocs;
         GLint diffuseColorLoc = -1;
         GLint specularColorLoc = -1;
+        GLint ambientColorLoc = -1;
         GLint specularExponentLoc = -1;
 };
 

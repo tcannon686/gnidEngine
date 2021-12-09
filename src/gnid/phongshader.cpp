@@ -10,6 +10,7 @@
 #include "gnid/lightnode.hpp"
 #include "gnid/directionallight.hpp"
 #include "gnid/pointlight.hpp"
+#include "gnid/ambientlight.hpp"
 
 using namespace gnid;
 using namespace tmat;
@@ -49,6 +50,9 @@ uniform int lightCount;
  * the direction xyz.
  */
 uniform vec4 lights[32];
+uniform vec3 lightColors[32];
+
+uniform vec3 ambientColor;
 
 /* Material definition. */
 uniform vec3 diffuseColor;
@@ -81,11 +85,14 @@ void main() {
         
         float kD = clamp(dot(l, n), 0.0, 1.0);
 
-        vec3 diffuse = diffuseColor * attenuation * kD;
-        vec3 specular = specularColor * attenuation * kS;
+        vec3 diffuse = diffuseColor * lightColors[i] * attenuation * kD;
+        vec3 specular = specularColor * lightColors[i] * attenuation * kS;
+        vec3 ambient = diffuseColor * ambientColor;
 
-        fragColor += vec4(diffuse + specular, 0.0);
+        fragColor += vec4(diffuse + specular + ambient, 0.0);
     }
+    fragColor = clamp(fragColor, 0.0, 1.0);
+    fragColor.w = 1.0;
 }
 )FRAG";
 
@@ -159,6 +166,7 @@ void PhongShader::init()
     projectionMatrixLoc = glGetUniformLocation(program, "projectionMatrix");
     lightCountLoc = glGetUniformLocation(program, "lightCount");
     diffuseColorLoc = glGetUniformLocation(program, "diffuseColor");
+    ambientColorLoc = glGetUniformLocation(program, "ambientColor");
     specularColorLoc = glGetUniformLocation(program, "specularColor");
     specularExponentLoc = glGetUniformLocation(program, "specularExponent");
 
@@ -166,15 +174,19 @@ void PhongShader::init()
     assert(projectionMatrixLoc != -1);
     assert(lightCountLoc != -1);
     assert(diffuseColorLoc != -1);
+    assert(ambientColorLoc != -1);
     assert(specularColorLoc != -1);
     assert(specularExponentLoc != -1);
 
     for(int i = 0; i < 32; i ++)
     {
         string uniform = "lights[" + to_string(i) + "]";
+        string uniformColor = "lightColors[" + to_string(i) + "]";
 
         lightsLocs[i] = glGetUniformLocation(program, uniform.c_str());
+        lightColorsLocs[i] = glGetUniformLocation(program, uniformColor.c_str());
         assert(lightsLocs[i] != -1);
+        assert(lightColorsLocs[i] != -1);
     }
 }
 
@@ -223,6 +235,10 @@ void PhongShader::setLight(
     uniform[3] = 0.0f;
 
     glUniform4fv(lightsLocs[index], 1, uniform);
+
+    /* Set the color. */
+    const auto &color = light->color();
+    glUniform3f(lightColorsLocs[index], color[0], color[1], color[2]);
 }
 
 void PhongShader::setLight(
@@ -240,6 +256,18 @@ void PhongShader::setLight(
     uniform[3] = light->distance();
 
     glUniform4fv(lightsLocs[index], 1, uniform);
+
+    /* Set the color. */
+    const auto &color = light->color();
+    glUniform3f(lightColorsLocs[index], color[0], color[1], color[2]);
+}
+
+void PhongShader::setLight(
+        shared_ptr<Camera> camera,
+        shared_ptr<AmbientLight> light)
+{
+    const auto &color = light->color();
+    glUniform3f(ambientColorLoc, color[0], color[1], color[2]);
 }
 
 void PhongShader::setDiffuseColor(Vector3f &diffuseColor)

@@ -21,3 +21,13 @@ shared_ptr<Node> DirectionalLight::clone()
     return ret;
 }
 
+void DirectionalLight::setLight(
+    int index,
+    shared_ptr<Camera> camera,
+    shared_ptr<ShaderProgram> program)
+{
+    program->setLight(
+        index,
+        camera,
+        static_pointer_cast<DirectionalLight>(shared_from_this()));
+}

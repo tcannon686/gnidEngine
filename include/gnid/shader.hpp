@@ -8,6 +8,7 @@
 namespace gnid
 {
 
+class AmbientLight;
 class DirectionalLight;
 class PointLight;
 class LightNode;
@@ -67,6 +68,13 @@ class ShaderProgram
                 int index,
                 std::shared_ptr<Camera> camera,
                 std::shared_ptr<DirectionalLight> light) = 0;
+
+        /**
+         * \brief Create an ambient light in the scene
+         */
+        virtual void setLight(
+                std::shared_ptr<Camera> camera,
+                std::shared_ptr<AmbientLight> light) = 0;
 
         /**
          * \brief

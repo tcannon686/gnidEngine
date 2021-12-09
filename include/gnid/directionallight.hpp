@@ -1,6 +1,8 @@
 #ifndef DIRECTIONALLIGHT_HPP
 #define DIRECTIONALLIGHT_HPP
 
+#include "gnid/camera.hpp"
+#include "gnid/shader.hpp"
 #include "gnid/matrix/matrix.hpp"
 #include "gnid/lightnode.hpp"
 
@@ -21,6 +23,11 @@ public:
     tmat::Vector3f &direction();
 
     std::shared_ptr<Node> clone() override;
+
+    void setLight(
+        int index,
+        std::shared_ptr<Camera> camera,
+        std::shared_ptr<ShaderProgram> program) override;
 private:
     tmat::Vector3f direction_;
 };

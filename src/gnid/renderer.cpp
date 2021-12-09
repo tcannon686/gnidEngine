@@ -62,24 +62,8 @@ void Renderer::updateLights(
             it != end(lights);
             ++ it)
     {
-        /* Set the light depending on its type. */
-        auto dl = (*it)->as<DirectionalLight>();
-        auto pl = (*it)->as<PointLight>();
-
-        if(dl)
-        {
-            program->setLight(i, camera, dl);
-            ++ i;
-        }
-        else if(pl)
-        {
-            program->setLight(i, camera, pl);
-        }
-        else
-        {
-            /* TODO throw exception. */
-            assert(false);
-        }
+        /* Send the light to the shader. */
+        (*it)->setLight(i, camera, program);
     }
 }
 

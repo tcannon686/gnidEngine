@@ -7,6 +7,7 @@
 
 using namespace std;
 using namespace gnid;
+using namespace tmat;
 
 void LightNode::onSceneChanged(shared_ptr<Scene> newScene)
 {
@@ -20,3 +21,10 @@ void LightNode::onSceneChanged(shared_ptr<Scene> newScene)
                 static_pointer_cast<LightNode>(shared_from_this()));
 }
 
+const Vector3f &LightNode::color() const {
+    return color_;
+}
+
+Vector3f &LightNode::color() {
+    return color_;
+}
