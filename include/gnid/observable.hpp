@@ -5,7 +5,6 @@
 #include <memory>
 
 #include "gnid/observer.hpp"
-#include "gnid/subscription.hpp"
 
 namespace gnid
 {

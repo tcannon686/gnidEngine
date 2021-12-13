@@ -8,6 +8,8 @@
 #include "gnid/matrix/matrix.hpp"
 #include "gnid/material.hpp"
 
+#include <array>
+
 namespace gnid
 {
 

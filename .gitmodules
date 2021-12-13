@@ -1,3 +1,6 @@
 [submodule "matrix"]
 	path = include/gnid/matrix
 	url = git@github.com:tcannon686/matrix.git
+[submodule "deps/glfw"]
+	path = deps/glfw
+	url = git@github.com:glfw/glfw.git

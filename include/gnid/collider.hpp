@@ -10,7 +10,6 @@
 #include "gnid/box.hpp"
 #include "gnid/node.hpp"
 
-#include "gnid/collisionevent.hpp"
 #include "gnid/observable.hpp"
 #include "gnid/observer.hpp"
 
@@ -18,7 +17,7 @@ namespace gnid
 {
 
 class Shape;
-class Collider;
+class Collision;
 
 /**
  * \brief A node capable of collision

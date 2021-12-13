@@ -9,7 +9,6 @@
 #include "gnid/spatialnode.hpp"
 #include "gnid/collider.hpp"
 #include "gnid/collision.hpp"
-#include "gnid/collisionevent.hpp"
 #include "gnid/rigidbody.hpp"
 
 using namespace tmat;

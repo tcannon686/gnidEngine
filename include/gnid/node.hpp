@@ -6,8 +6,6 @@
 #include <memory>
 #include <algorithm>
 
-#include "gnid/event.hpp"
-
 namespace gnid
 {
 

@@ -23,6 +23,11 @@ file(
 
 ################################# DEPENDENCIES #################################
 
+set(GLFW_BUILD_DOCS                    OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS                   OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES                OFF CACHE BOOL "" FORCE)
+add_subdirectory(deps/glfw)
+
 file(
     GLOB                               glad_SOURCES
     LIST_DIRECTORIES                   false
@@ -52,7 +57,8 @@ add_library(${PROJECT_NAME}            STATIC
 
 target_include_directories(
     ${PROJECT_NAME}
-    PUBLIC                             include)
+    PUBLIC                             include
+    PRIVATE                            deps/glfw/include)
 
 #################################### TESTS #####################################
 
@@ -69,14 +75,14 @@ foreach(SRC ${tests_SOURCES})
     message(STATUS "Found test: ${TESTNAME}")
 
     # Add an executable for the test
-    add_executable(${TESTNAME}         ${SRC}
-                                       ${glad_SOURCES})
+    add_executable(${TESTNAME}         ${SRC})
 
-    target_link_libraries(${TESTNAME} glfw ${PROJECT_NAME} dl pthread)
+    target_link_libraries(${TESTNAME} glfw ${PROJECT_NAME})
 
     target_include_directories(
         ${TESTNAME}
-        PUBLIC                         include)
+        PUBLIC                         include
+        PRIVATE                        deps/glfw/include)
 
     # Add the test
     add_test(${TESTNAME} ${TESTNAME})
