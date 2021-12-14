@@ -77,7 +77,7 @@ foreach(SRC ${tests_SOURCES})
     # Add an executable for the test
     add_executable(${TESTNAME}         ${SRC})
 
-    target_link_libraries(${TESTNAME} glfw ${PROJECT_NAME})
+    target_link_libraries(${TESTNAME} ${PROJECT_NAME} glfw)
 
     target_include_directories(
         ${TESTNAME}
