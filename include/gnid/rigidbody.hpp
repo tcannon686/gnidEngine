@@ -52,6 +52,11 @@ public:
         return ret;
     }
 
+    const tmat::Vector3f &velocity() const
+    {
+        return velocity_;
+    }
+
 private:
     tmat::Vector3f velocity_;
     float mass_;

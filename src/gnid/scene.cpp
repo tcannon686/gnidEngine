@@ -64,11 +64,13 @@ void Scene::handleCollision(
     auto as = a->findAncestorByType<Rigidbody>();
     auto bs = b->findAncestorByType<Rigidbody>();
 
-    float lenOverlap = overlap.magnitude();
+    auto lenOverlap = overlap.magnitude();
 
     /* Nothing to do if no overlap. */
     if(lenOverlap == 0)
         return;
+
+    const auto normal = overlap * (1.0 / lenOverlap);
 
     /* Nothing to do if either is a trigger. */
     if(a->isTrigger() || b->isTrigger())
@@ -88,15 +90,16 @@ void Scene::handleCollision(
             /* Calculate the new velocities. */
             if(lenVelocityA > 0)
             {
-                as->velocity_ += as->velocity_
-                    * (as->velocity_.dot(-overlap.normalized())
-                            / lenVelocityA);
+                as->velocity_ -= normal * as->velocity_.dot(normal);
+                /* Apply friction. TODO change constant. */
+                as->velocity_ *= 0.9;
             }
 
             if(lenVelocityB > 0)
             {
-                bs->velocity_ += bs->velocity_ * (bs->velocity_.dot(overlap)
-                            / (lenVelocityB * lenOverlap));
+                bs->velocity_ -= normal * bs->velocity_.dot(normal);
+                /* Apply friction. TODO change constant. */
+                bs->velocity_ *= 0.9;
             }
         }
         /* If just as is a rigidbody, move it away. */
@@ -107,8 +110,9 @@ void Scene::handleCollision(
             /* Calculate the new velocity. */
             if(lenVelocityA > 0)
             {
-                as->velocity_ += as->velocity_ * (as->velocity_.dot(-overlap)
-                            / (lenVelocityA * lenOverlap));
+                as->velocity_ -= normal * as->velocity_.dot(normal);
+                /* Apply friction. TODO change constant. */
+                as->velocity_ *= 0.9;
             }
         }
     }
@@ -123,8 +127,9 @@ void Scene::handleCollision(
 
             if(lenVelocityB > 0)
             {
-                bs->velocity_ += bs->velocity_ * (bs->velocity_.dot(overlap)
-                            / (lenVelocityB * lenOverlap));
+                bs->velocity_ -= normal * bs->velocity_.dot(normal);
+                /* Apply friction. TODO change constant. */
+                bs->velocity_ *= 0.9;
             }
         }
         /* Otherwise neither are rigidbodies, so nothing to do. */
