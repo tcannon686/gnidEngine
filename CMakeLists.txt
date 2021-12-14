@@ -39,6 +39,11 @@ file(
     include/gnid/glad/*.h)
 
 file(
+    GLOB                               KHR_HEADERS
+    LIST_DIRECTORIES                   false
+    include/gnid/KHR/*.h)
+
+file(
     GLOB                               matrix_SOURCES
     LIST_DIRECTORIES                   false
     src/gnid/matrix/*.cpp)
@@ -101,6 +106,10 @@ install(
 install(
     FILES                              ${glad_HEADERS}
     DESTINATION                        include/gnid/glad)
+
+install(
+    FILES                              ${KHR_HEADERS}
+    DESTINATION                        include/gnid/KHR)
 
 install(
     FILES                              ${matrix_HEADERS}
