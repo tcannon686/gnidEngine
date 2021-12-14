@@ -82,34 +82,40 @@ void Renderer::render(shared_ptr<Camera> camera) const
                 || it->material->shader() != material->shader())
         {
             if(instanceCount)
+            {
+                assert(instanceCount <= material->shader()->getMaxInstances());
                 renderMesh(mesh, instanceCount);
+            }
             if(!material || it->material->shader() != material->shader())
             {
                 /* Use shader. */
                 shared_ptr<ShaderProgram> shader = it->material->shader();
                 shader->use();
                 shader->setProjectionMatrix(camera->projectionMatrix());
+                updateLights(camera, it->material->shader());
             }
             material = it->material;
             material->bind();
             mesh = it->mesh;
             glBindVertexArray(mesh->vao);
-            instanceCount = 1;
             it->material->shader()->setModelViewMatrix(
-                    instanceCount,
+                    0,
                     camera->viewMatrix() * it->node->worldMatrix());
-            updateLights(camera, it->material->shader());
+            instanceCount = 1;
         }
         else if(it->mesh != mesh)
         {
             if(instanceCount)
+            {
+                assert(instanceCount <= material->shader()->getMaxInstances());
                 renderMesh(mesh, instanceCount);
+            }
             mesh = it->mesh;
             glBindVertexArray(mesh->vao);
-            instanceCount = 1;
             it->material->shader()->setModelViewMatrix(
-                    instanceCount,
-                    camera->projectionMatrix() * it->node->worldMatrix());
+                    0,
+                    camera->viewMatrix() * it->node->worldMatrix());
+            instanceCount = 1;
             updateLights(camera, it->material->shader());
         }
         else
@@ -117,6 +123,7 @@ void Renderer::render(shared_ptr<Camera> camera) const
             /* If we've reached the max number of instances, draw them. */
             if(instanceCount >= it->material->shader()->getMaxInstances())
             {
+                assert(instanceCount <= material->shader()->getMaxInstances());
                 renderMesh(mesh, instanceCount);
                 instanceCount = 0;
             }
@@ -130,6 +137,7 @@ void Renderer::render(shared_ptr<Camera> camera) const
     }
     if(instanceCount)
     {
+        assert(instanceCount <= material->shader()->getMaxInstances());
         renderMesh(mesh, instanceCount);
     }
 }

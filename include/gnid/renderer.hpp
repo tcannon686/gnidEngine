@@ -29,7 +29,11 @@ class RendererMesh
         const GLenum type;
         const GLuint vao;
 
-        RendererMesh(GLenum mode, GLsizei count, GLenum type, GLuint vao)
+        RendererMesh(
+            GLenum mode,
+            GLsizei count,
+            GLenum type,
+            GLuint vao)
             : mode(mode), count(count), type(type), vao(vao)
         {
         }

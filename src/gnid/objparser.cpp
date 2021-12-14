@@ -138,6 +138,15 @@ bool ObjParser::expect(ObjParser::TokenType type)
     return false;
 }
 
+ObjParser::Mesh &ObjParser::mesh()
+{
+    if (meshes.empty())
+    {
+        meshes.emplace_back();
+    }
+    return meshes.back();
+}
+
 bool ObjParser::parseVertex()
 {
     if(accept(TokenType::VERTEX))
@@ -253,26 +262,26 @@ bool ObjParser::parseFace()
         /* Convert to triangles. */
         for(std::size_t i = 1; i < vIndices.size() - 1; i ++)
         {
-            this->vIndices.push_back(vIndices[0]);
+            this->mesh().vIndices.push_back(vIndices[0]);
             if(nIndices.size() > 0)
-                this->nIndices.push_back(nIndices[0]);
+                this->mesh().nIndices.push_back(nIndices[0]);
             if(tIndices.size() > 0)
-                this->tIndices.push_back(tIndices[0]);
+                this->mesh().tIndices.push_back(tIndices[0]);
             for(std::size_t j = 0; j < 2; j ++)
             {
-                this->vIndices.push_back(vIndices[i + j]);
+                this->mesh().vIndices.push_back(vIndices[i + j]);
                 if(nIndices.size() > 0)
-                    this->nIndices.push_back(nIndices[i + j]);
+                    this->mesh().nIndices.push_back(nIndices[i + j]);
                 if(tIndices.size() > 0)
-                    this->tIndices.push_back(tIndices[i + j]);
+                    this->mesh().tIndices.push_back(tIndices[i + j]);
             }
         }
 
-        if(this->nIndices.size() > 0)
-            assert(this->nIndices.size() == this->vIndices.size());
+        if(this->mesh().nIndices.size() > 0)
+            assert(this->mesh().nIndices.size() == this->mesh().vIndices.size());
 
-        if(this->tIndices.size() > 0)
-            assert(this->tIndices.size() == this->vIndices.size());
+        if(this->mesh().tIndices.size() > 0)
+            assert(this->mesh().tIndices.size() == this->mesh().vIndices.size());
 
         return true;
     }
@@ -286,6 +295,9 @@ bool ObjParser::parseUseMtl()
         parseString();
         expect(TokenType::STRING);
         std::string name = token;
+
+        meshes.emplace_back();
+        mesh().material = name;
 
         return true;
     }
@@ -389,17 +401,169 @@ void ObjParser::parse()
 
 std::shared_ptr<Node> ObjParser::buildPhysicsNode()
 {
-    std::shared_ptr<SpatialNode> ret = std::make_shared<SpatialNode>();
-    for (int i = 0; i < vIndices.size(); i += 3) {
-        std::vector<tmat::Vector3f> points;
-        for (int j = 0; j < 3; j ++) {
-            points.push_back(vertices[vIndices[i + j]].cut());
+    std::shared_ptr<EmptyNode> ret = std::make_shared<EmptyNode>();
+    for (const Mesh &mesh : meshes) {
+        for (int i = 0; i < mesh.vIndices.size(); i += 3) {
+            std::vector<tmat::Vector3f> points;
+            for (int j = 0; j < 3; j ++) {
+                points.push_back(vertices[mesh.vIndices[i + j]].cut());
+            }
+            std::shared_ptr<Collider> collider = std::make_shared<Collider>(
+                std::make_shared<Hull>(points));
+            ret->add(collider);
         }
-        std::shared_ptr<Collider> collider = std::make_shared<Collider>(
-            std::make_shared<Hull>(points));
-        ret->add(collider);
     }
     return ret;
+}
+
+std::shared_ptr<Node> ObjParser::buildRendererNode(
+    const Mesh &mesh,
+    std::shared_ptr<Material> material)
+{
+    assert(done);
+    /* Change the separate indices to one set of vertex indices. */
+
+    /* Maps old vIndices, tIndices, nIndices tuple to new index. */
+    std::unordered_map<std::string, unsigned int> index_table;
+
+    /* Vertex array buffer */
+    std::vector<unsigned int> index_array;
+
+    /* Vertex buffer format: vvvttnnn */
+    std::vector<float> data;
+    int cur_index = 0;
+
+    for(std::size_t i = 0; i < mesh.vIndices.size(); i ++)
+    {
+        std::string table_index =
+            std::to_string(mesh.vIndices[i])
+            + "/" + (mesh.tIndices.size() > 0 ?
+                    std::to_string(mesh.tIndices[i])
+                    : "")
+            + "/" + (mesh.nIndices.size() > 0 ?
+                    std::to_string(mesh.nIndices[i])
+                    : "");
+
+        auto in_table = index_table.find(table_index);
+
+        /* If the vertex has not been added yet, add it. */
+        if(in_table == end(index_table))
+        {
+            /* Add the data. */
+            for(int j = 0; j < 3; j ++)
+                data.push_back(vertices[mesh.vIndices[i]][j]);
+            if(mesh.tIndices.size() > 0)
+            {
+                for(int j = 0; j < 2; j ++)
+                    data.push_back(texCos[mesh.tIndices[i]][j]);
+            }
+            if(mesh.nIndices.size() > 0)
+            {
+                for(int j = 0; j < 3; j ++)
+                    data.push_back(normals[mesh.nIndices[i]][j]);
+            }
+
+            index_table[table_index] = cur_index;
+            cur_index ++;
+        }
+        index_array.push_back(index_table[table_index]);
+    }
+
+    const std::size_t vertex_size = 3 * sizeof(float);
+    const std::size_t normal_size = (
+            mesh.nIndices.size() > 0? 3 * sizeof(float) : 0);
+    const std::size_t texco_size = (
+            mesh.tIndices.size() > 0? 2 * sizeof(float) : 0);
+    const std::size_t stride = vertex_size + normal_size + texco_size;
+
+    GLuint vao, vbo, ibo;
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
+    glGenBuffers(1, &ibo);
+
+    /* TODO throw exception. */
+    assert(vao != 0);
+    assert(vbo != 0);
+    assert(ibo != 0);
+
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        data.size() * sizeof(float),
+        data.data(), GL_STATIC_DRAW);
+
+    glBufferData(
+        GL_ELEMENT_ARRAY_BUFFER,
+        index_array.size() * sizeof(unsigned int),
+        index_array.data(), GL_STATIC_DRAW);
+
+    glVertexAttribPointer(
+        ShaderProgram::ATTRIB_LOCATION_VERTEX,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        stride,
+        nullptr);
+
+    glEnableVertexAttribArray(ShaderProgram::ATTRIB_LOCATION_VERTEX);
+
+    if(mesh.tIndices.size() > 0)
+    {
+        glVertexAttribPointer(
+            ShaderProgram::ATTRIB_LOCATION_TEXCO,
+            2,
+            GL_FLOAT,
+            GL_FALSE,
+            stride,
+            (void *)(vertex_size));
+
+        glEnableVertexAttribArray(ShaderProgram::ATTRIB_LOCATION_TEXCO);
+    }
+
+    if(mesh.nIndices.size() > 0)
+    {
+        glVertexAttribPointer(
+            ShaderProgram::ATTRIB_LOCATION_NORMAL,
+            3,
+            GL_FLOAT,
+            GL_FALSE,
+            stride,
+            (void *)(vertex_size + texco_size));
+
+        glEnableVertexAttribArray(ShaderProgram::ATTRIB_LOCATION_NORMAL);
+    }
+
+    auto renderMesh = std::make_shared<RendererMesh>(
+        GL_TRIANGLES,
+        index_array.size(),
+        GL_UNSIGNED_INT,
+        vao);
+    return std::make_shared<RendererNode>(renderMesh, material);
+}
+
+std::shared_ptr<Node> ObjParser::buildRendererNode(
+    std::shared_ptr<Material> material)
+{
+    auto node = std::make_shared<EmptyNode>();
+    for (const Mesh &mesh : meshes)
+    {
+        node->add(buildRendererNode(mesh, material));
+    }
+    return node;
+}
+
+std::shared_ptr<Node> ObjParser::buildRendererNode(
+    std::unordered_map<std::string, std::shared_ptr<Material>> materials)
+{
+    auto node = std::make_shared<EmptyNode>();
+    for (const Mesh &mesh : meshes)
+    {
+        node->add(buildRendererNode(mesh, materials.at(mesh.material)));
+    }
+    return node;
 }
 
 const std::string ObjParser::tokenStrings[] =
