@@ -556,7 +556,7 @@ std::shared_ptr<Node> ObjParser::buildRendererNode(
 }
 
 std::shared_ptr<Node> ObjParser::buildRendererNode(
-    std::unordered_map<std::string, std::shared_ptr<Material>> materials)
+    const std::unordered_map<std::string, std::shared_ptr<Material>> &materials)
 {
     auto node = std::make_shared<EmptyNode>();
     for (const Mesh &mesh : meshes)

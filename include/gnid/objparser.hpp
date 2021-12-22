@@ -59,10 +59,10 @@ public:
      * \param materials A map from material name to material
      */
     std::shared_ptr<Node> buildRendererNode(
-            std::unordered_map<
+            const std::unordered_map<
                 std::string,
                 std::shared_ptr<Material>
-            > materials);
+            > &materials);
 
     /**
      * \brief Create a physics node from the triangles in the parsed data
