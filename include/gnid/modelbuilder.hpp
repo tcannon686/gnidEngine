@@ -24,14 +24,11 @@ public:
             const std::unordered_map<std::string, std::shared_ptr<Material>>
             &materials);
     ModelBuilder &materials(
-            std::shared_ptr<
-                std::unordered_map<std::string, std::shared_ptr<Material>>
-            > &materials);
+            std::shared_ptr<MaterialMapping> &materials);
     std::shared_ptr<Node> build();
 private:
     std::unordered_map<std::string, std::shared_ptr<Material>> materials_;
-    std::shared_ptr<std::unordered_map<std::string, std::shared_ptr<Material>>>
-        materialsPtr_;
+    std::shared_ptr<MaterialMapping> materialsPtr_;
     bool loadMesh_;
     bool loadPhysics_;
     std::unique_ptr<ObjParser> objParser_;

@@ -35,18 +35,13 @@ ModelBuilder &ModelBuilder::loadPhysics(bool loadMesh)
     return *this;
 }
 
-ModelBuilder &ModelBuilder::materials(
-        const std::unordered_map<std::string, std::shared_ptr<Material>>
-        &materials)
+ModelBuilder &ModelBuilder::materials(const MaterialMapping &materials)
 {
     materials_ = materials;
     return *this;
 }
 
-ModelBuilder &ModelBuilder::materials(
-        std::shared_ptr<
-            std::unordered_map<std::string, std::shared_ptr<Material>>
-        > &materials)
+ModelBuilder &ModelBuilder::materials(std::shared_ptr<MaterialMapping> &materials)
 {
     materialsPtr_ = materials;
     return *this;

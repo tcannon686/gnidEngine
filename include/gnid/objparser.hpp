@@ -2,7 +2,6 @@
 #define OBJPARSER_HPP
 
 #include <iostream>
-#include <unordered_map>
 #include <memory>
 #include <cassert>
 #include <string>
@@ -58,11 +57,7 @@ public:
      *
      * \param materials A map from material name to material
      */
-    std::shared_ptr<Node> buildRendererNode(
-            const std::unordered_map<
-                std::string,
-                std::shared_ptr<Material>
-            > &materials);
+    std::shared_ptr<Node> buildRendererNode(const MaterialMapping &materials);
 
     /**
      * \brief Create a physics node from the triangles in the parsed data

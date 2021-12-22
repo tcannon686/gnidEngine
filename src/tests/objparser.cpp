@@ -4,7 +4,6 @@
 #include "gnid/node.hpp"
 #include "gnid/phongshader.hpp"
 #include <sstream>
-#include <unordered_map>
 
 using namespace std;
 using namespace gnid;

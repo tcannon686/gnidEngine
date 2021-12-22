@@ -2,6 +2,7 @@
 #define MATERIAL_HPP
 
 #include <memory>
+#include <unordered_map>
 
 namespace gnid
 {
@@ -28,6 +29,9 @@ class Material
          */
         virtual void bind() = 0;
 };
+
+typedef std::unordered_map<std::string, std::shared_ptr<Material>>
+    MaterialMapping;
 
 }; /* namespace */
 

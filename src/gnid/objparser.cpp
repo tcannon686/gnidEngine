@@ -1,4 +1,5 @@
 #include "gnid/objparser.hpp"
+#include <unordered_map>
 
 using namespace gnid;
 
@@ -556,7 +557,7 @@ std::shared_ptr<Node> ObjParser::buildRendererNode(
 }
 
 std::shared_ptr<Node> ObjParser::buildRendererNode(
-    const std::unordered_map<std::string, std::shared_ptr<Material>> &materials)
+    const MaterialMapping &materials)
 {
     auto node = std::make_shared<EmptyNode>();
     for (const Mesh &mesh : meshes)
