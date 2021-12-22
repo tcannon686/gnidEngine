@@ -330,3 +330,76 @@ void PhongMaterial::bind()
     shader_->setSpecularExponent(specularExponent_);
 }
 
+PhongMaterial::Builder::Builder()
+{
+}
+
+PhongMaterial::Builder &PhongMaterial::Builder::shader(
+        std::shared_ptr<PhongShader> shader)
+{
+    shader_ = shader;
+    return *this;
+}
+
+PhongMaterial::Builder &PhongMaterial::Builder::diffuse(
+        const tmat::Vector3f &diffuse)
+{
+    diffuseColor_ = diffuse;
+    return *this;
+}
+
+PhongMaterial::Builder &PhongMaterial::Builder::diffuse(
+        float r, float g, float b)
+{
+    diffuseColor_ = Vector3f { r, g, b };
+    return *this;
+}
+
+PhongMaterial::Builder &PhongMaterial::Builder::specular(
+        float r, float g, float b)
+{
+    specularColor_ = Vector3f { r, g, b };
+    return *this;
+}
+
+PhongMaterial::Builder &PhongMaterial::Builder::shininess(
+        float exponent)
+{
+    specularExponent_ = exponent;
+    return *this;
+}
+
+PhongMaterial::Builder &PhongMaterial::Builder::specular(
+        const tmat::Vector3f &specular, float exponent)
+{
+    specularColor_ = specular;
+    specularExponent_ = exponent;
+    return *this;
+}
+
+PhongMaterial::Builder &PhongMaterial::Builder::diffuse(
+        std::shared_ptr<Texture2D> diffuseTexture)
+{
+    diffuseTexture_ = diffuseTexture;
+    diffuseMix_ = 1.0f;
+    return *this;
+}
+
+PhongMaterial::Builder &PhongMaterial::Builder::mix(
+        float diffuseTextureMix)
+{
+    diffuseMix_ = diffuseTextureMix;
+    return *this;
+}
+
+std::shared_ptr<PhongMaterial> PhongMaterial::Builder::build()
+{
+    assert(shader_);
+    return std::shared_ptr<PhongMaterial>(new PhongMaterial(
+            shader_,
+            diffuseColor_,
+            diffuseTexture_,
+            diffuseMix_,
+            specularColor_,
+            specularExponent_));
+}

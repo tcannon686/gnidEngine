@@ -41,11 +41,12 @@ public:
     bool loadContent() override
     {
         cout << "loadContent() called" << endl;
-        phongMaterial = make_shared<PhongMaterial>(
-                phongShader,
-                Vector3f { 1, 0, 0 },
-                Vector3f { 0, 1, 0 },
-                100.0f);
+        phongMaterial = PhongMaterial::Builder()
+                .shader(phongShader)
+                .diffuse(1, 0, 0)
+                .specular(0, 1, 0)
+                .shininess(100.0f)
+                .build();
         return true;
     }
 

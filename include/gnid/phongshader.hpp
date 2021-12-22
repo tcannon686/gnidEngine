@@ -44,7 +44,6 @@ class PhongShader : public ShaderProgram
         void setSpecularColor(tmat::Vector3f &specularColor);
         void setSpecularExponent(float exponent);
         int getMaxInstances() override;
-
     private:
         GLint program = 0;
         GLint modelViewMatrixLoc = -1;
@@ -66,22 +65,6 @@ class PhongShader : public ShaderProgram
 class PhongMaterial : public Material
 {
     public:
-        PhongMaterial(
-                std::shared_ptr<PhongShader> shader,
-                tmat::Vector3f diffuseColor,
-                tmat::Vector3f specularColor,
-                float specularExponent)
-            : shader_(shader),
-              diffuseColor_(diffuseColor),
-              specularColor_(specularColor),
-              specularExponent_(specularExponent)
-        {
-        }
-
-        PhongMaterial()
-        {
-        }
-
         const std::shared_ptr<ShaderProgram> shader() const override
         {
             return shader_;
@@ -89,11 +72,37 @@ class PhongMaterial : public Material
 
         void bind() override;
 
-        std::shared_ptr<Texture2D> &diffuseTexture() { return diffuseTexture_; }
-        tmat::Vector3f &diffuseColor() { return diffuseColor_; }
-        float &diffuseMix() { return diffuseMix_; }
-        tmat::Vector3f &specularColor() { return specularColor_; }
+        const std::shared_ptr<Texture2D> &diffuseTexture() const {
+            return diffuseTexture_;
+        }
+        const tmat::Vector3f &diffuseColor() const { return diffuseColor_; }
+        float diffuseMix() { return diffuseMix_; }
+        const tmat::Vector3f &specularColor() const { return specularColor_; }
         float &specularExponent() { return specularExponent_; }
+
+        /**
+         * Builder class used to create PhongMaterial instances.
+         */
+        class Builder {
+        public:
+            Builder();
+            Builder &shader(std::shared_ptr<PhongShader> shader);
+            Builder &diffuse(float r, float g, float b);
+            Builder &diffuse(const tmat::Vector3f &diffuse);
+            Builder &diffuse(std::shared_ptr<Texture2D> diffuse);
+            Builder &mix(float diffuseTextureMix);
+            Builder &specular(const tmat::Vector3f &specular, float exponent);
+            Builder &specular(float r, float g, float b);
+            Builder &shininess(float exponent);
+            std::shared_ptr<PhongMaterial> build();
+        private:
+            std::shared_ptr<Texture2D> diffuseTexture_;
+            std::shared_ptr<PhongShader> shader_;
+            tmat::Vector3f diffuseColor_;
+            tmat::Vector3f specularColor_;
+            float specularExponent_ = 0;
+            float diffuseMix_ = 0;
+        };
 
     private:
         std::shared_ptr<Texture2D> diffuseTexture_;
@@ -102,6 +111,23 @@ class PhongMaterial : public Material
         tmat::Vector3f specularColor_;
         float specularExponent_;
         float diffuseMix_;
+
+        PhongMaterial(
+                std::shared_ptr<PhongShader> shader,
+                tmat::Vector3f diffuseColor,
+                std::shared_ptr<Texture2D> diffuseTexture,
+                float diffuseMix,
+                tmat::Vector3f specularColor,
+                float specularExponent)
+            : shader_(shader),
+              diffuseColor_(diffuseColor),
+              diffuseTexture_(diffuseTexture),
+              diffuseMix_(diffuseMix),
+              specularColor_(specularColor),
+              specularExponent_(specularExponent)
+        {
+        }
+
 };
 
 } /* namespace */

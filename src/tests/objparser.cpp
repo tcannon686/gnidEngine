@@ -55,7 +55,7 @@ f 6/11/6 5/10/6 1/1/6 2/13/6
 
 static shared_ptr<Node> rendererNode;
 static shared_ptr<Node> physicsNode;
-static shared_ptr<PhongShader> phongShader;
+static shared_ptr<PhongShader> phongShader = make_shared<PhongShader>();
 static shared_ptr<PhongMaterial> phongMaterial;
 
 class TestGame : public GameBase
@@ -78,7 +78,6 @@ public:
     bool init() override
     {
         cout << "init() called" << endl;
-        phongShader = make_shared<PhongShader>();
         phongShader->init();
         return true;
     }
@@ -86,11 +85,11 @@ public:
     bool loadContent() override
     {
         cout << "loadContent() called" << endl;
-        phongMaterial = make_shared<PhongMaterial>(
-                phongShader,
-                Vector3f { 1, 0, 0 },
-                Vector3f { 0, 1, 0 },
-                100.0f);
+        phongMaterial = PhongMaterial::Builder()
+            .shader(phongShader)
+            .diffuse(1, 0, 0)
+            .specular(Vector3f { 0, 1, 0 }, 100.0f)
+            .build();
         stringstream stream;
         stream << obj;
         ObjParser parser(stream);
