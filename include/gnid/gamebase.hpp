@@ -62,10 +62,7 @@ public:
      *     This function is called after construction and context creation but
      *     before loadContent().
      */
-    virtual bool init()
-    {
-        return false;
-    }
+    virtual void init() {}
 
     /**
      * \brief Load the content for the game
@@ -73,10 +70,7 @@ public:
      * \details
      *     This function is called after init().
      */
-    virtual bool loadContent()
-    {
-        return false;
-    }
+    virtual void loadContent() {}
 
     /**
      * \brief Load the content for the game.
@@ -84,10 +78,7 @@ public:
      * \details
      *     This function is called after loadContent()
      */
-    virtual bool postLoadContent()
-    {
-        return false;
-    }
+    virtual void postLoadContent() {}
 
     /**
      * \brief
@@ -153,7 +144,7 @@ public:
     /**
      * \brief Perform one iteration of the game loop
      */
-    void spinOnce();
+    void tick();
 
     GLFWwindow *window();
 

@@ -74,14 +74,13 @@ public:
         return scene;
     }
 
-    bool init() override
+    void init() override
     {
         cout << "init() called" << endl;
         phongShader->init();
-        return true;
     }
 
-    bool loadContent() override
+    void loadContent() override
     {
         cout << "loadContent() called" << endl;
         phongMaterial = PhongMaterial::Builder()
@@ -97,14 +96,12 @@ public:
         parser.buildRendererNode({
             { "Material", phongMaterial }
         });
-        return true;
     }
 
-    bool postLoadContent() override
+    void postLoadContent() override
     {
         /* postLoadContent should happen after loadContent. */
         cout << "postLoadContent() called" << endl;
-        return true;
     }
 
     void update(float dt) override

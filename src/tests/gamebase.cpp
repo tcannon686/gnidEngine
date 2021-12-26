@@ -24,31 +24,28 @@ public:
         return scene;
     }
 
-    bool init() override
+    void init() override
     {
         /* Init should happen before load content. */
         cout << "init() called" << endl;
         assert(t == 0);
         t ++;
-        return true;
     }
 
-    bool loadContent() override
+    void loadContent() override
     {
         /* Load content should happen before postLoadContent. */
         cout << "loadContent() called" << endl;
         assert(t == 1);
         t ++;
-        return true;
     }
 
-    bool postLoadContent() override
+    void postLoadContent() override
     {
         /* postLoadContent should happen after loadContent. */
         cout << "postLoadContent() called" << endl;
         assert(t == 2);
         t ++;
-        return true;
     }
 
     void update(float dt) override

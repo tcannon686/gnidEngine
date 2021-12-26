@@ -30,15 +30,14 @@ public:
         return scene;
     }
 
-    bool init() override
+    void init() override
     {
         cout << "init() called" << endl;
         phongShader = make_shared<PhongShader>();
         phongShader->init();
-        return true;
     }
 
-    bool loadContent() override
+    void loadContent() override
     {
         cout << "loadContent() called" << endl;
         phongMaterial = PhongMaterial::Builder()
@@ -47,14 +46,12 @@ public:
                 .specular(0, 1, 0)
                 .shininess(100.0f)
                 .build();
-        return true;
     }
 
-    bool postLoadContent() override
+    void postLoadContent() override
     {
         /* postLoadContent should happen after loadContent. */
         cout << "postLoadContent() called" << endl;
-        return true;
     }
 
     void update(float dt) override

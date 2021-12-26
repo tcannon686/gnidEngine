@@ -56,7 +56,7 @@ void GameBase::start()
     glEnable(GL_DEPTH_TEST);
 	while(!glfwWindowShouldClose(window_) && !shouldStop_)
 	{
-        spinOnce();
+        tick();
 	}
 }
 
@@ -65,7 +65,7 @@ void GameBase::stop()
     shouldStop_ = true;
 }
 
-void GameBase::spinOnce()
+void GameBase::tick()
 {
     float dt;
     GLenum error;
