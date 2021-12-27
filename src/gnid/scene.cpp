@@ -138,8 +138,12 @@ void Scene::handleCollision(
 
 void Scene::update(float dt)
 {
-    root->newFrameAll();
-    root->updateAll(dt);
+    vector<shared_ptr<Node>> nodes;
+    root->listDescendants(nodes);
+    for(const auto node : nodes)
+        node->newFrame();
+    for(const auto node : nodes)
+        node->update(dt);
 
     Vector3f overlap;
 

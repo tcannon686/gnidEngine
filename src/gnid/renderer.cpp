@@ -30,10 +30,16 @@ bool Binding::operator<(const Binding &other) const
 {
     if(material->shader() < other.material->shader())
         return true;
+    else if (material->shader() > other.material->shader())
+        return false;
     else if(material < other.material)
         return true;
+    else if(material > other.material)
+        return false;
     else if(mesh < other.mesh)
         return true;
+    else if(mesh > other.mesh)
+        return false;
     else if(node < other.node)
         return true;
     else
@@ -145,11 +151,13 @@ void Renderer::render(shared_ptr<Camera> camera) const
 void Renderer::add(Binding binding)
 {
     bindings.insert(binding);
+    assert(bindings.find(binding) != bindings.end());
 }
 
 void Renderer::remove(Binding binding)
 {
-    bindings.erase(bindings.find(binding));
+    assert(bindings.find(binding) != bindings.end());
+    bindings.erase(binding);
 }
 
 void Renderer::add(shared_ptr<LightNode> light)

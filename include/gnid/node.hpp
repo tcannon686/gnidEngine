@@ -100,11 +100,6 @@ class Node : public std::enable_shared_from_this<Node>
         bool &isActive();
 
         /**
-         * \brief Call the update function on the node and its descendants
-         */
-        void updateAll(float dt);
-
-        /**
          * \brief Add the child node to this node
          *
          * \details
@@ -112,6 +107,16 @@ class Node : public std::enable_shared_from_this<Node>
          *     parent node.
          */
         void add(std::shared_ptr<Node> child);
+
+        /**
+         * \brief Remove the child node from this node
+         */
+        void remove(std::shared_ptr<Node> child);
+
+        /**
+         * \brief Remove this node from its parent
+         */
+        void remove();
 
         /**
          * \brief Get or set the local matrix of the node
@@ -148,11 +153,6 @@ class Node : public std::enable_shared_from_this<Node>
          * \brief Called at the beginning of each frame to clear flags
          */
         virtual void newFrame();
-
-        /**
-         * \brief Call newFrame on the node and its descendants
-         */
-        virtual void newFrameAll();
 
         /**
          * \brief Get this parents parent node
@@ -256,6 +256,20 @@ class Node : public std::enable_shared_from_this<Node>
                 }
             }
             return nullptr;
+        }
+
+
+        /**
+         * \brief Store this node and its descendants in the given container
+         */
+        template<class T>
+        void listDescendants(T &container)
+        {
+            container.push_back(shared_from_this());
+            for(auto &child : children)
+            {
+                child->listDescendants(container);
+            }
         }
 
     private:

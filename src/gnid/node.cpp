@@ -51,6 +51,25 @@ void Node::onSceneChangedAll(shared_ptr<Scene> newScene)
     }
 }
 
+void Node::remove(shared_ptr<Node> child)
+{
+    shared_ptr<Node> child_parent = child->parent.lock();
+    assert(child_parent == shared_from_this());
+
+    children.remove(child);
+    onChildRemoved(child);
+    onDescendantRemovedAll(child);
+    child->onAncestorRemovedAll(child_parent);
+    child->onSceneChangedAll(nullptr);
+}
+
+void Node::remove()
+{
+    auto this_parent = parent.lock();
+    assert(this_parent);
+    this_parent->remove(shared_from_this());
+}
+
 void Node::add(shared_ptr<Node> child)
 {
     shared_ptr<Node> child_parent = child->parent.lock();
@@ -84,17 +103,6 @@ void Node::add(shared_ptr<Node> child)
     if(child_scene != this_scene)
     {
         child->onSceneChangedAll(this_scene);
-    }
-}
-
-void Node::updateAll(float dt)
-{
-    update(dt);
-    for(auto it = begin(children);
-            it != end(children);
-            ++ it)
-    {
-        (*it)->updateAll(dt);
     }
 }
 
@@ -205,18 +213,6 @@ void Node::onAncestorRemovedAll(shared_ptr<Node> ancestor)
 void Node::newFrame()
 {
     /* pass */
-}
-
-void Node::newFrameAll()
-{
-    newFrame();
-
-    for(auto it = begin(children);
-            it != end(children);
-            ++ it)
-    {
-        (*it)->newFrameAll();
-    }
 }
 
 bool Node::moved() const
