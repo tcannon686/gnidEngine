@@ -38,8 +38,8 @@ public:
 private:
     std::unordered_map<std::string, std::shared_ptr<Material>> materials_;
     std::shared_ptr<MaterialMapping> materialsPtr_;
-    bool loadMesh_;
-    bool loadPhysics_;
+    bool loadMesh_ = false;
+    bool loadPhysics_ = false;
     std::unique_ptr<ObjParser> objParser_;
     std::ifstream stream_;
     tmat::Matrix4f transform_ = tmat::Matrix4f::identity;
